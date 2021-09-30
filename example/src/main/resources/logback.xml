@@ -1,0 +1,14 @@
+<configuration>
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <charset>utf-8</charset>
+            <pattern>%-20d{dd/MM/YYYY HH:mm:ss.SSS} %-5level %logger - %msg %X{JoinedMdc}%n</pattern>
+        </encoder>
+    </appender>
+
+    <root level="DEBUG">
+        <appender-ref ref="STDOUT" />
+    </root>
+    <logger name="akka.cluster.sharding.ShardRegion" level="WARN" />
+    <logger name="akka.cluster.sharding.PersistentShard" level="WARN" />
+</configuration>

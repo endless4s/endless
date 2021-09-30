@@ -1,0 +1,9 @@
+syntax = "proto2";
+
+package endless.runtime.akka.serializer.proto;
+option optimize_for = SPEED;
+
+message Command {
+  required string id = 1;
+  required bytes payload = 2;
+}
