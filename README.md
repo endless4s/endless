@@ -3,6 +3,9 @@ endless is a Scala library to describe event sourced entities using tagless-fina
 
 (*endless* refers to persistence and the ever flowing stream of events capturing state evolution with ES, and is a nod to *tag-less*)    
 
+## Work in progress 🚧
+This project is a work in progress...
+
 ## Algebras
 In a nutshell, the library allows describing event sourcing logic with pure functional algebras. This makes it possible to code Akka cluster applications using cats-effect, from beginning to end in tagless-final style, with a pure algebraic domain.
 
