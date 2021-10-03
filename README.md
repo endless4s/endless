@@ -1,4 +1,6 @@
 # endless ♾️
+[![Release](https://github.com/endless4s/endless/actions/workflows/release.yml/badge.svg?branch=master)](https://github.com/endless4s/endless/actions/workflows/release.yml)
+
 endless is a Scala library to describe event sourced entities using tagless-final algebras, running with built-in implementations for Akka. 
 
 (*endless* refers to persistence and the ever flowing stream of events capturing state evolution with ES, and is a nod to *tag-less*)    
