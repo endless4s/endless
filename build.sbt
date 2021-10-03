@@ -61,7 +61,7 @@ lazy val root = project
   .dependsOn(example)
   .settings(Compile / mainClass := (example / Compile / mainClass).value)
   .settings(commonSettings: _*)
-  .settings(skip in publish := true)
+  .settings(publish / skip := true)
   .settings(
     name := "endless",
     version := "0.0.1"
