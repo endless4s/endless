@@ -22,6 +22,7 @@ inThisBuild(
         url("https://jonaschapuis.com")
       )
     ),
+    sonatypeCredentialHost := "s01.oss.sonatype.org",
     scalaVersion := "2.13.3",
     Global / onChangedBuildSource := ReloadOnSourceChanges
   )
