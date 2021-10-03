@@ -11,6 +11,17 @@ val commonSettings = Seq(
 
 inThisBuild(
   List(
+    organization := "org.endless4s",
+    homepage := Some(url("https://github.com/endless4s/endless")),
+    licenses := List("MIT License" -> url("http://opensource.org/licenses/mit-license.php")),
+    developers := List(
+      Developer(
+        "jchapuis",
+        "Jonas Chapuis",
+        "me@jonaschapuis.com",
+        url("https://jonaschapuis.com")
+      )
+    ),
     scalaVersion := "2.13.3",
     Global / onChangedBuildSource := ReloadOnSourceChanges
   )

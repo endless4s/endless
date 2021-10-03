@@ -2,6 +2,7 @@
 *.log
 
 # sbt specific
+.DS_Store/
 .cache/
 .history/
 .metals/
