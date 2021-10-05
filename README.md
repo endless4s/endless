@@ -163,4 +163,4 @@ This example application can be found in `endless-example` and can be run direct
 
 ## Inspiration
 This library takes most of its inspiration from the outstanding work done by Denis Mikhaylov & contributors on https://github.com/notxcain/aecor as well as the excellent [blog series](https://pavkin.ru/aecor-intro/) by Vladimir Pavkin.
-Compared to Aecor, this library aims to be smaller in scale, stick close to DDD & Akka nomenclature and provide a thin runtime layer delegating to native Akka persistence as much as possible.    
+Compared to Aecor, this library aims to be smaller in scale (no projections, at least for now), stick close to DDD & Akka nomenclature and provide a thin runtime layer delegating to native Akka persistence as much as possible.    
