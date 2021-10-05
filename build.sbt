@@ -56,7 +56,7 @@ lazy val example = (project in file("example"))
   .dependsOn(core, runtime, circeHelpers)
   .settings(commonSettings: _*)
   .settings(libraryDependencies ++= catsEffect ++ http4s ++ akkaTest ++ logback ++ log4catsSlf4j)
-  .settings(name := "endless-example", run / fork := true)
+  .settings(name := "endless-example", run / fork := true, publish / skip := true)
 
 lazy val root = project
   .in(file("."))
