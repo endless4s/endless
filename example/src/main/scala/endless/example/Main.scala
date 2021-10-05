@@ -23,6 +23,8 @@ import org.http4s.HttpRoutes
 import org.http4s.blaze.server.BlazeServerBuilder
 import org.http4s.circe.CirceEntityCodec._
 import org.http4s.dsl.io._
+import org.typelevel.log4cats.SelfAwareStructuredLogger
+import org.typelevel.log4cats.slf4j.Slf4jLogger
 
 import java.util.UUID
 import scala.concurrent.duration._
@@ -96,20 +98,25 @@ object Main extends IOApp {
     implicit val bookingEntityNameProvider: EntityNameProvider[BookingID] = () => "booking"
     implicit val idEncoder: EntityIDEncoder[BookingID] = _.id.toString
     implicit val askTimeout: Timeout = Timeout(10.seconds)
-    deployEntity[IO, Option[
-      Booking
-    ], BookingEvent, BookingID, BookingAlg, BookingRepositoryAlg](
-      BookingEntity(_),
-      BookingRepository(_),
-      Option.empty[Booking]
-    ).map { case (bookingRepository, _) =>
-      httpService(bookingRepository)
-    }.flatMap(service =>
-      BlazeServerBuilder[IO]
-        .bindHttp(8080, "localhost")
-        .withHttpApp(service)
-        .resource
-    ).use(_ => IO.fromFuture(IO(actorSystem.whenTerminated)))
+
+    Slf4jLogger
+      .create[IO]
+      .flatMap(implicit logger =>
+        deployEntity[IO, Option[
+          Booking
+        ], BookingEvent, BookingID, BookingAlg, BookingRepositoryAlg](
+          BookingEntity(_),
+          BookingRepository(_),
+          Option.empty[Booking]
+        ).map { case (bookingRepository, _) =>
+          httpService(bookingRepository)
+        }.flatMap(service =>
+          BlazeServerBuilder[IO]
+            .bindHttp(8080, "localhost")
+            .withHttpApp(service)
+            .resource
+        ).use(_ => IO.fromFuture(IO(actorSystem.whenTerminated)))
+      )
       .as(ExitCode.Success)
   }
 
