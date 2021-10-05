@@ -24,7 +24,8 @@ inThisBuild(
     ),
     sonatypeCredentialHost := "s01.oss.sonatype.org",
     scalaVersion := "2.13.3",
-    Global / onChangedBuildSource := ReloadOnSourceChanges
+    Global / onChangedBuildSource := ReloadOnSourceChanges,
+    PB.protocVersion := "3.17.3" // works on Apple Silicon
   )
 )
 
