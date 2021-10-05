@@ -9,9 +9,9 @@ class BookingEventApplier extends EventApplier[Option[Booking], BookingEvent] {
   def apply(state: Option[Booking], event: BookingEvent): String \/ Option[Booking] =
     event match {
       case BookingEvent.BookingPlaced(bookingID, origin, destination, passengerCount) =>
-        Option(
-          Booking(bookingID, origin, destination, passengerCount)
-        ).asRight
+        state
+          .toLeft(Option(Booking(bookingID, origin, destination, passengerCount)))
+          .leftMap(_ => "Booking already exists")
       case BookingEvent.OriginChanged(newOrigin) =>
         state
           .toRight("Attempt to change unknown booking")
