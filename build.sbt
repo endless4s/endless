@@ -37,7 +37,7 @@ lazy val core = (project in file("core"))
 lazy val runtime = (project in file("runtime"))
   .dependsOn(core)
   .settings(commonSettings: _*)
-  .settings(libraryDependencies ++= catsEffectStd ++ akka)
+  .settings(libraryDependencies ++= catsEffectStd ++ akka ++ log4cats)
   .settings(
     Compile / PB.targets := Seq(
       scalapb.gen() -> (Compile / sourceManaged).value / "scalapb"
@@ -54,7 +54,7 @@ lazy val circeHelpers = (project in file("circe"))
 lazy val example = (project in file("example"))
   .dependsOn(core, runtime, circeHelpers)
   .settings(commonSettings: _*)
-  .settings(libraryDependencies ++= catsEffect ++ http4s ++ akkaTest ++ logback)
+  .settings(libraryDependencies ++= catsEffect ++ http4s ++ akkaTest ++ logback ++ log4catsSlf4j)
   .settings(name := "endless-example", run / fork := true)
 
 lazy val root = project

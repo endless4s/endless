@@ -10,8 +10,10 @@ import cats.~>
 import endless.core.typeclass.entity.EntityNameProvider
 import endless.core.typeclass.protocol.{CommandRouter, EntityIDEncoder, OutgoingCommand}
 import endless.runtime.akka.data.{Command, Reply}
+import org.typelevel.log4cats.Logger
+import cats.syntax.show._
 
-private[akka] final class ShardingCommandRouter[F[_], ID](implicit
+private[akka] final class ShardingCommandRouter[F[_]: Logger, ID](implicit
     sharding: ClusterSharding,
     actorSystem: ActorSystem[_],
     askTimeout: Timeout,
@@ -23,19 +25,24 @@ private[akka] final class ShardingCommandRouter[F[_], ID](implicit
     new (OutgoingCommand[*] ~> F) {
       def apply[A](fa: OutgoingCommand[A]): F[A] = {
         F.fromFuture {
-          F.delay {
-            sharding.entityRefFor(
-              EntityTypeKey[Command](nameProvider()),
-              idEncoder(id)
-            ) ? Command(idEncoder(id), fa.payload)
-          }
-        } >>= { case Reply(payload) => fa.replyDecoder.decode(payload).pure[F] }
+          Logger[F].debug(show"Sending command to ${nameProvider()} entity ${idEncoder(id)}") >> F
+            .delay {
+              sharding.entityRefFor(
+                EntityTypeKey[Command](nameProvider()),
+                idEncoder(id)
+              ) ? Command(idEncoder(id), fa.payload)
+            }
+        } >>= { case Reply(payload) =>
+          Logger[F].debug(
+            show"Got reply from ${nameProvider()} entity ${idEncoder(id)}"
+          ) >> fa.replyDecoder.decode(payload).pure[F]
+        }
       }
     }
 }
 
 object ShardingCommandRouter {
-  implicit def apply[F[_], ID](implicit
+  implicit def apply[F[_]: Logger, ID](implicit
       sharding: ClusterSharding,
       actorSystem: ActorSystem[_],
       askTimeout: Timeout,

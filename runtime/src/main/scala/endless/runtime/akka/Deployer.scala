@@ -6,7 +6,7 @@ import akka.cluster.sharding.typed.scaladsl.{ClusterSharding, EntityTypeKey}
 import akka.persistence.typed.PersistenceId
 import akka.persistence.typed.scaladsl.{Effect, EventSourcedBehavior}
 import akka.util.Timeout
-import cats.Functor
+import cats.{Functor, Monad}
 import cats.effect.kernel.{Async, Resource}
 import cats.effect.std.Dispatcher
 import cats.tagless.FunctorK
@@ -16,11 +16,14 @@ import endless.core.typeclass.event.EventApplier
 import endless.core.typeclass.protocol.{CommandProtocol, EntityIDEncoder}
 import endless.runtime.akka.data._
 import ShardingCommandRouter._
-import cats.syntax.functor._
+import cats.syntax.flatMap._
+import cats.syntax.applicative._
+import cats.syntax.show._
 import endless.core.interpret.RepositoryT
+import org.typelevel.log4cats.Logger
 
 trait Deployer {
-  def deployEntity[F[_]: Functor, S, E, ID, Alg[_[_]]: FunctorK, RepositoryAlg[_[_]]](
+  def deployEntity[F[_]: Monad: Logger, S, E, ID, Alg[_[_]]: FunctorK, RepositoryAlg[_[_]]](
       createEntity: Entity[EntityT[F, S, E, *], S, E] => Alg[EntityT[F, S, E, *]],
       createRepository: Repository[F, ID, Alg] => RepositoryAlg[F],
       emptyState: S
@@ -48,19 +51,27 @@ trait Deployer {
           commandHandler = (state, command) => {
             val incomingCommand =
               commandProtocol.server[EntityT[F, S, E, *]].decode(command.payload)
-            val effect = RepositoryT.apply
+            val effect = Logger[F].debug(
+              show"Handling command for ${nameProvider()} entity ${command.id}"
+            ) >> RepositoryT.apply
               .runCommand(state, incomingCommand)
-              .map {
-                case Left(error) => throw new RunCommandException(error)
+              .flatMap {
+                case Left(error) =>
+                  Logger[F].warn(error) >> Effect.unhandled[E, S].thenNoReply().pure
                 case Right((events, reply)) =>
-                  Effect.persist(events.toList).thenReply(command.replyTo) { _: S =>
-                    Reply(incomingCommand.replyEncoder.encode(reply))
-                  }
+                  Effect
+                    .persist(events.toList)
+                    .thenReply(command.replyTo) { _: S =>
+                      Reply(incomingCommand.replyEncoder.encode(reply))
+                    }
+                    .pure
               }
             dispatcher.unsafeRunSync(effect)
           },
           eventHandler = eventApplier.apply(_, _) match {
-            case Left(error)     => throw new EventApplierException(error)
+            case Left(error) =>
+              dispatcher.unsafeRunSync(Logger[F].warn(error))
+              throw new EventApplierException(error)
             case Right(newState) => newState
           }
         )
@@ -68,6 +79,5 @@ trait Deployer {
       (createRepository(RepositoryT.apply[F, S, E, ID, Alg]), sharding.init(akkaEntity))
     }
 
-  final class RunCommandException(error: String) extends RuntimeException(error)
   final class EventApplierException(error: String) extends RuntimeException(error)
 }
