@@ -19,11 +19,10 @@ import endless.example.logic.{BookingEntity, BookingEventApplier, BookingReposit
 import endless.example.protocol.BookingCommandProtocol
 import endless.runtime.akka.syntax.deploy._
 import io.circe.generic.auto._
-import org.http4s.HttpRoutes
+import org.http4s.{HttpRoutes, Request}
 import org.http4s.blaze.server.BlazeServerBuilder
 import org.http4s.circe.CirceEntityCodec._
 import org.http4s.dsl.io._
-import org.typelevel.log4cats.SelfAwareStructuredLogger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
 
 import java.util.UUID
@@ -35,54 +34,64 @@ object Main extends IOApp {
 
   private def httpService(bookingRepository: BookingRepositoryAlg[IO]) = HttpRoutes
     .of[IO] {
-      case req @ POST -> Root / "booking" =>
-        for {
-          bookingRequest <- req.as[BookingRequest]
-          bookingID <- IO(UUID.randomUUID()).map(BookingID)
-          reply <- bookingRepository
-            .bookingFor(bookingID)
-            .place(
-              bookingID,
-              bookingRequest.passengerCount,
-              bookingRequest.origin,
-              bookingRequest.destination
-            )
-          result <- reply match {
-            case Left(alreadyExists) =>
-              BadRequest(show"Booking with ${alreadyExists.bookingID.id} already exists")
-            case Right(_) => Accepted(bookingID)
-          }
-        } yield result
-      case GET -> Root / "booking" / UUIDVar(id) =>
-        bookingRepository.bookingFor(BookingID(id)).get.flatMap {
-          case Right(booking) => Ok(booking)
-          case Left(_)        => BadRequest(show"Booking with $id doesn't exist")
-        }
-      case req @ PATCH -> Root / "booking" / UUIDVar(id) =>
-        for {
-          bookingPatch <- req.as[BookingPatch]
-          bookingID = BookingID(id)
-          reply <- (bookingPatch.origin, bookingPatch.destination) match {
-            case (Some(newOrigin), Some(newDestination)) =>
-              bookingRepository
-                .bookingFor(bookingID)
-                .changeOriginAndDestination(newOrigin, newDestination)
-            case (Some(newOrigin), None) =>
-              bookingRepository
-                .bookingFor(bookingID)
-                .changeOrigin(newOrigin)
-            case (None, Some(newDestination)) =>
-              bookingRepository.bookingFor(bookingID).changeDestination(newDestination)
-            case (None, None) => ().asRight.pure[IO]
-          }
-          result <- reply match {
-            case Left(_) =>
-              BadRequest(show"Booking with $id doesn't exist")
-            case Right(_) => Ok()
-          }
-        } yield result
+      case req @ POST -> Root / "booking"                => postBooking(bookingRepository, req)
+      case GET -> Root / "booking" / UUIDVar(id)         => getBooking(bookingRepository, id)
+      case req @ PATCH -> Root / "booking" / UUIDVar(id) => patchBooking(bookingRepository, req, id)
     }
     .orNotFound
+
+  private def postBooking(bookingRepository: BookingRepositoryAlg[IO], req: Request[IO]) =
+    for {
+      bookingRequest <- req.as[BookingRequest]
+      bookingID <- IO(UUID.randomUUID()).map(BookingID)
+      reply <- bookingRepository
+        .bookingFor(bookingID)
+        .place(
+          bookingID,
+          bookingRequest.passengerCount,
+          bookingRequest.origin,
+          bookingRequest.destination
+        )
+      result <- reply match {
+        case Left(alreadyExists) =>
+          BadRequest(show"Booking with ${alreadyExists.bookingID.id} already exists")
+        case Right(_) => Accepted(bookingID)
+      }
+    } yield result
+
+  private def getBooking(bookingRepository: BookingRepositoryAlg[IO], id: UUID) =
+    bookingRepository.bookingFor(BookingID(id)).get.flatMap {
+      case Right(booking) => Ok(booking)
+      case Left(_)        => BadRequest(show"Booking with $id doesn't exist")
+    }
+
+  private def patchBooking(
+      bookingRepository: BookingRepositoryAlg[IO],
+      req: Request[IO],
+      id: UUID
+  ) =
+    for {
+      bookingPatch <- req.as[BookingPatch]
+      bookingID = BookingID(id)
+      reply <- (bookingPatch.origin, bookingPatch.destination) match {
+        case (Some(newOrigin), Some(newDestination)) =>
+          bookingRepository
+            .bookingFor(bookingID)
+            .changeOriginAndDestination(newOrigin, newDestination)
+        case (Some(newOrigin), None) =>
+          bookingRepository
+            .bookingFor(bookingID)
+            .changeOrigin(newOrigin)
+        case (None, Some(newDestination)) =>
+          bookingRepository.bookingFor(bookingID).changeDestination(newDestination)
+        case (None, None) => ().asRight.pure[IO]
+      }
+      result <- reply match {
+        case Left(_) =>
+          BadRequest(show"Booking with $id doesn't exist")
+        case Right(_) => Ok()
+      }
+    } yield result
 
   def run(args: List[String]): IO[ExitCode] = {
     implicit val actorSystem: ActorSystem[Nothing] =
