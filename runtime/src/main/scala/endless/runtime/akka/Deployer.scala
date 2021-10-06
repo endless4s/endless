@@ -26,7 +26,12 @@ trait Deployer {
   def deployEntity[F[_]: Monad: Logger, S, E, ID, Alg[_[_]]: FunctorK, RepositoryAlg[_[_]]](
       createEntity: Entity[EntityT[F, S, E, *], S, E] => Alg[EntityT[F, S, E, *]],
       createRepository: Repository[F, ID, Alg] => RepositoryAlg[F],
-      emptyState: S
+      emptyState: S,
+      customizeBehavior: EventSourcedBehavior[Command, E, S] => EventSourcedBehavior[
+        Command,
+        E,
+        S
+      ] = identity[EventSourcedBehavior[Command, E, S]](_)
   )(implicit
       sharding: ClusterSharding,
       actorSystem: ActorSystem[_],
@@ -37,7 +42,7 @@ trait Deployer {
       askTimeout: Timeout,
       F: Async[F]
   ): Resource[F, (RepositoryAlg[F], ActorRef[ShardingEnvelope[Command]])] =
-    Dispatcher[F].map { dispatcher =>
+    Dispatcher[F].map { implicit dispatcher =>
       implicit val interpretedEntityAlg: Alg[EntityT[F, S, E, *]] = createEntity(
         EntityT.instance
       )
@@ -45,39 +50,61 @@ trait Deployer {
       val akkaEntity = akka.cluster.sharding.typed.scaladsl.Entity(
         EntityTypeKey[Command](nameProvider())
       ) { context =>
-        EventSourcedBehavior.withEnforcedReplies[Command, E, S](
-          PersistenceId(entityTypeKey.name, context.entityId),
-          emptyState,
-          commandHandler = (state, command) => {
-            val incomingCommand =
-              commandProtocol.server[EntityT[F, S, E, *]].decode(command.payload)
-            val effect = Logger[F].debug(
-              show"Handling command for ${nameProvider()} entity ${command.id}"
-            ) >> RepositoryT.apply
-              .runCommand(state, incomingCommand)
-              .flatMap {
-                case Left(error) =>
-                  Logger[F].warn(error) >> Effect.unhandled[E, S].thenNoReply().pure
-                case Right((events, reply)) =>
-                  Effect
-                    .persist(events.toList)
-                    .thenReply(command.replyTo) { _: S =>
-                      Reply(incomingCommand.replyEncoder.encode(reply))
-                    }
-                    .pure
-              }
-            dispatcher.unsafeRunSync(effect)
-          },
-          eventHandler = eventApplier.apply(_, _) match {
-            case Left(error) =>
-              dispatcher.unsafeRunSync(Logger[F].warn(error))
-              throw new EventApplierException(error)
-            case Right(newState) => newState
-          }
+        customizeBehavior(
+          EventSourcedBehavior.withEnforcedReplies[Command, E, S](
+            PersistenceId(entityTypeKey.name, context.entityId),
+            emptyState,
+            commandHandler = handleCommand[RepositoryAlg, Alg, ID, E, S, F],
+            eventHandler = handleEvent[E, S, F]
+          )
         )
       }
       (createRepository(RepositoryT.apply[F, S, E, ID, Alg]), sharding.init(akkaEntity))
     }
+
+  private def handleEvent[E, S, F[_]: Logger](state: S, event: E)(implicit
+      eventApplier: EventApplier[S, E],
+      dispatcher: Dispatcher[F]
+  ) = eventApplier.apply(state, event) match {
+    case Left(error) =>
+      dispatcher.unsafeRunSync(Logger[F].warn(error))
+      throw new EventApplierException(error)
+    case Right(newState) => newState
+  }
+
+  private def handleCommand[RepositoryAlg[_[_]], Alg[_[_]]: FunctorK, ID, E, S, F[
+      _
+  ]: Monad: Logger](state: S, command: Command)(implicit
+      nameProvider: EntityNameProvider[ID],
+      commandProtocol: CommandProtocol[Alg],
+      eventApplier: EventApplier[S, E],
+      dispatcher: Dispatcher[F],
+      interpretedEntity: Alg[EntityT[F, S, E, *]],
+      askTimeout: Timeout,
+      sharding: ClusterSharding,
+      actorSystem: ActorSystem[_],
+      idEncoder: EntityIDEncoder[ID],
+      F: Async[F]
+  ) = {
+    val incomingCommand =
+      commandProtocol.server[EntityT[F, S, E, *]].decode(command.payload)
+    val effect = Logger[F].debug(
+      show"Handling command for ${nameProvider()} entity ${command.id}"
+    ) >> RepositoryT.apply
+      .runCommand(state, incomingCommand)
+      .flatMap {
+        case Left(error) =>
+          Logger[F].warn(error) >> Effect.unhandled[E, S].thenNoReply().pure
+        case Right((events, reply)) =>
+          Effect
+            .persist(events.toList)
+            .thenReply(command.replyTo) { _: S =>
+              Reply(incomingCommand.replyEncoder.encode(reply))
+            }
+            .pure
+      }
+    dispatcher.unsafeRunSync(effect)
+  }
 
   final class EventApplierException(error: String) extends RuntimeException(error)
 }

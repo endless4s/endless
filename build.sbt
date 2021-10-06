@@ -5,7 +5,7 @@ val commonSettings = Seq(
   addCompilerPlugin("org.typelevel" % "kind-projector" % "0.13.2" cross CrossVersion.full),
   wartremoverExcluded += sourceManaged.value,
   Compile / wartremoverErrors ++= Warts
-    .allBut(Wart.Any, Wart.Nothing, Wart.ImplicitParameter, Wart.Throw),
+    .allBut(Wart.Any, Wart.Nothing, Wart.ImplicitParameter, Wart.Throw, Wart.DefaultArguments),
   coverageExcludedPackages := "<empty>;endless.test.*"
 )
 
