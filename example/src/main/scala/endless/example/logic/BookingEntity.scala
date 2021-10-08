@@ -6,6 +6,7 @@ import cats.syntax.either._
 import cats.syntax.eq._
 import cats.syntax.flatMap._
 import cats.syntax.functor._
+import cats.syntax.show._
 import endless.\/
 import endless.core.typeclass.entity.Entity
 import endless.example.algebra.BookingAlg
@@ -13,9 +14,11 @@ import endless.example.algebra.BookingAlg.{BookingAlreadyExists, BookingUnknown}
 import endless.example.data.Booking._
 import endless.example.data.BookingEvent._
 import endless.example.data.{Booking, BookingEvent}
+import org.typelevel.log4cats.Logger
 
-final case class BookingEntity[F[_]: Monad](entity: Entity[F, Option[Booking], BookingEvent])
-    extends BookingAlg[F] {
+final case class BookingEntity[F[_]: Monad: Logger](
+    entity: Entity[F, Option[Booking], BookingEvent]
+) extends BookingAlg[F] {
   import entity._
 
   def place(
@@ -27,7 +30,9 @@ final case class BookingEntity[F[_]: Monad](entity: Entity[F, Option[Booking], B
     read >>= {
       case Some(_) => BookingAlreadyExists(bookingID).asLeft.pure
       case None =>
-        write(BookingPlaced(bookingID, origin, destination, passengerCount))
+        Logger[F].info(show"Creating booking with ID $bookingID") >> write(
+          BookingPlaced(bookingID, origin, destination, passengerCount)
+        )
           .map(_.asRight)
     }
 

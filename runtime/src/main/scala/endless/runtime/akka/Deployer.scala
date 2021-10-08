@@ -20,12 +20,16 @@ import cats.syntax.flatMap._
 import cats.syntax.applicative._
 import cats.syntax.show._
 import endless.core.interpret.RepositoryT
+import endless.core.typeclass.effect.Effector
 import org.typelevel.log4cats.Logger
+
+import cats.data.ReaderT
 
 trait Deployer {
   def deployEntity[F[_]: Monad: Logger, S, E, ID, Alg[_[_]]: FunctorK, RepositoryAlg[_[_]]](
       createEntity: Entity[EntityT[F, S, E, *], S, E] => Alg[EntityT[F, S, E, *]],
       createRepository: Repository[F, ID, Alg] => RepositoryAlg[F],
+      createEffector: StateReader[ReaderT[F, S, *], S] => Effector[ReaderT[F, S, *]],
       emptyState: S,
       customizeBehavior: EventSourcedBehavior[Command, E, S] => EventSourcedBehavior[
         Command,
@@ -46,6 +50,8 @@ trait Deployer {
       implicit val interpretedEntityAlg: Alg[EntityT[F, S, E, *]] = createEntity(
         EntityT.instance
       )
+      implicit val interpretedEffector: ReaderT[F, S, Unit] =
+        createEffector(StateReaderT.instance).afterPersist
       val entityTypeKey = EntityTypeKey[Command](nameProvider())
       val akkaEntity = akka.cluster.sharding.typed.scaladsl.Entity(
         EntityTypeKey[Command](nameProvider())
@@ -80,6 +86,7 @@ trait Deployer {
       eventApplier: EventApplier[S, E],
       dispatcher: Dispatcher[F],
       interpretedEntity: Alg[EntityT[F, S, E, *]],
+      interpretedEffector: ReaderT[F, S, Unit],
       askTimeout: Timeout,
       sharding: ClusterSharding,
       actorSystem: ActorSystem[_],
@@ -98,6 +105,7 @@ trait Deployer {
         case Right((events, reply)) =>
           Effect
             .persist(events.toList)
+            .thenRun((state: S) => dispatcher.unsafeRunSync(interpretedEffector.run(state)))
             .thenReply(command.replyTo) { _: S =>
               Reply(incomingCommand.replyEncoder.encode(reply))
             }
