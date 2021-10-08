@@ -9,13 +9,17 @@ import cats.syntax.applicative._
 import cats.syntax.either._
 import cats.syntax.show._
 import com.typesafe.config.ConfigFactory
-import endless.core.interpret.EntityT._
 import endless.core.typeclass.entity.EntityNameProvider
 import endless.core.typeclass.protocol.EntityIDEncoder
 import endless.example.algebra.{BookingAlg, BookingRepositoryAlg}
 import endless.example.data.Booking.{BookingID, LatLon}
 import endless.example.data.{Booking, BookingEvent}
-import endless.example.logic.{BookingEntity, BookingEventApplier, BookingRepository}
+import endless.example.logic.{
+  BookingEffector,
+  BookingEntity,
+  BookingEventApplier,
+  BookingRepository
+}
 import endless.example.protocol.BookingCommandProtocol
 import endless.runtime.akka.syntax.deploy._
 import io.circe.generic.auto._
@@ -24,7 +28,6 @@ import org.http4s.blaze.server.BlazeServerBuilder
 import org.http4s.circe.CirceEntityCodec._
 import org.http4s.dsl.io._
 import org.typelevel.log4cats.slf4j.Slf4jLogger
-
 import java.util.UUID
 import scala.concurrent.duration._
 
@@ -43,7 +46,7 @@ object Main extends IOApp {
   private def postBooking(bookingRepository: BookingRepositoryAlg[IO], req: Request[IO]) =
     for {
       bookingRequest <- req.as[BookingRequest]
-      bookingID <- IO(UUID.randomUUID()).map(BookingID)
+      bookingID <- IO(UUID.randomUUID()).map(BookingID(_))
       reply <- bookingRepository
         .bookingFor(bookingID)
         .place(
@@ -116,6 +119,7 @@ object Main extends IOApp {
         ], BookingEvent, BookingID, BookingAlg, BookingRepositoryAlg](
           BookingEntity(_),
           BookingRepository(_),
+          BookingEffector(_),
           Option.empty[Booking]
         ).map { case (bookingRepository, _) =>
           httpService(bookingRepository)
