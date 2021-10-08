@@ -33,7 +33,8 @@ trait EventWriter[F[_], E] {
 }
 trait Entity[F[_], S, E] extends StateReader[F, S] with EventWriter[F, E] with Monad[F]
 ```
-`Entity` is parametrized with entity state `S` and events `E`. It's essentially a reader-writer monad, allowing to read the state and write events. The monadic chain represents event sequencing and according evolution of the state. 
+`Entity` is parametrized with entity state `S` and events `E`. It essentially represents reader-writer monad capabilities for `F`, allowing to read the state and write events. The monadic chain represents event sequencing and according evolution of the state.
+`StateReader` is the equivalent of [`Ask`](https://typelevel.org/cats-mtl/mtl-classes/ask.html) in cats MTL, and similarly  `EventWriter` is the equivalent of [`Tell`](https://typelevel.org/cats-mtl/mtl-classes/tell.html).
 
 ### EventApplier
 ```scala
