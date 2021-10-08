@@ -1,5 +1,5 @@
 package endless.runtime.akka
 
 package object syntax {
-  object deploy extends Deployer
+  object deploy extends Deployer with LoggerLiftingHelpers
 }
