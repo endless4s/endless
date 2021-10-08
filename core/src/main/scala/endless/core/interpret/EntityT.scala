@@ -5,7 +5,8 @@ import cats.data.{Chain, NonEmptyChain}
 import cats.syntax.applicative._
 import cats.syntax.either._
 import cats.syntax.flatMap._
-import cats.{Applicative, Monad}
+import cats.syntax.functor._
+import cats.{Applicative, Functor, Monad}
 import endless.core.data.EventsFolder
 import endless.core.data.Folded
 
@@ -46,6 +47,9 @@ object EntityT extends EntityRunFunctions {
   def purr[F[_]: Applicative, S, E, A](a: A): EntityT[F, S, E, A] = new EntityT((_, events) =>
     pure(a)(events)
   )
+
+  def liftF[F[_]: Functor, S, E, A](fa: F[A]): EntityT[F, S, E, A] =
+    new EntityT((_, events) => fa.map(a => (events, a).asRight))
 
   def reader[F[_]: Monad, S, E]: EntityT[F, S, E, S] = new EntityT(read[F, S, E])
 

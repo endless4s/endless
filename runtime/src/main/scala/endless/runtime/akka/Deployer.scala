@@ -6,7 +6,7 @@ import akka.cluster.sharding.typed.scaladsl.{ClusterSharding, EntityTypeKey}
 import akka.persistence.typed.PersistenceId
 import akka.persistence.typed.scaladsl.{Effect, EventSourcedBehavior}
 import akka.util.Timeout
-import cats.{Functor, Monad}
+import cats.{Functor, Monad, ~>}
 import cats.effect.kernel.{Async, Resource}
 import cats.effect.std.Dispatcher
 import cats.tagless.FunctorK
@@ -22,7 +22,6 @@ import cats.syntax.show._
 import endless.core.interpret.RepositoryT
 import endless.core.typeclass.effect.Effector
 import org.typelevel.log4cats.Logger
-
 import cats.data.ReaderT
 
 trait Deployer {
