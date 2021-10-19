@@ -57,7 +57,7 @@ object EntityT extends EntityRunFunctions {
   def liftF[F[_]: Functor, S, E, A](fa: F[A]): EntityT[F, S, E, A] =
     new EntityT((_, events) => fa.map(a => (events, a).asRight))
 
-  def reader[F[_]: Monad, S, E]: EntityT[F, S, E, S] = new EntityT(read[F, S, E])
+  def reader[F[_]: Monad, S, E]: EntityT[F, S, E, Option[S]] = new EntityT(read[F, S, E])
 
   implicit def instance[F[_], S, E](implicit
       monad0: Monad[F]

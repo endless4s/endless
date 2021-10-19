@@ -16,7 +16,7 @@ trait EntityRunFunctions {
   def read[F[_]: Monad, S, E](
       folder: EventsFolder[S, E],
       events: Chain[E]
-  ): F[Folded[E, S]] = folder.applyOnFoldable(events).map((events, _)).pure
+  ): F[Folded[E, Option[S]]] = folder.applyOnFoldable(events).map((events, _)).pure
 
   def write[F[_]: Applicative, S, E](
       newEvents: NonEmptyChain[E]

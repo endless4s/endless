@@ -114,13 +114,10 @@ object Main extends IOApp {
     Slf4jLogger
       .create[IO]
       .flatMap(implicit logger =>
-        deployEntity[IO, Option[
-          Booking
-        ], BookingEvent, BookingID, BookingAlg, BookingRepositoryAlg](
+        deployEntity[IO, Booking, BookingEvent, BookingID, BookingAlg, BookingRepositoryAlg](
           BookingEntity(_),
           BookingRepository(_),
-          BookingEffector(_),
-          Option.empty[Booking]
+          BookingEffector(_)
         ).map { case (bookingRepository, _) =>
           httpService(bookingRepository)
         }.flatMap(service =>

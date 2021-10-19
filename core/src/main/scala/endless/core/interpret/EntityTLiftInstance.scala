@@ -10,7 +10,7 @@ import cats.syntax.functor._
 
 trait EntityTLiftInstance[F[_], S, E] extends EntityLift[EntityT[F, S, E, *], F, S, E] {
   protected implicit def monad: Monad[F]
-  override def read: EntityT[F, S, E, S] = EntityT.reader[F, S, E]
+  override def read: EntityT[F, S, E, Option[S]] = EntityT.reader[F, S, E]
 
   def pure[A](a: A): EntityT[F, S, E, A] = EntityT.purr(a)
 

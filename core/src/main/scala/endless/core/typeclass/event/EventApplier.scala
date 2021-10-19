@@ -9,4 +9,4 @@ import endless.\/
   * @tparam E
   *   event
   */
-trait EventApplier[S, E] extends ((S, E) => String \/ S)
+trait EventApplier[S, E] extends ((Option[S], E) => String \/ Option[S])
