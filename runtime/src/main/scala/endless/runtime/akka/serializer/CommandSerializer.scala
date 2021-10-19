@@ -9,6 +9,10 @@ import com.google.protobuf.ByteString
 
 import java.io.NotSerializableException
 
+/** Internal command carrier serializer, configured in reference.conf
+  * @param system
+  *   actor system
+  */
 class CommandSerializer(val system: akka.actor.ExtendedActorSystem)
     extends SerializerWithStringManifest
     with BaseSerializer {

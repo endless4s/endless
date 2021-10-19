@@ -10,10 +10,16 @@ import cats.{Applicative, Functor, Monad}
 import endless.core.data.EventsFolder
 import endless.core.data.Folded
 
-/** This monad transformer implements the capability to run a sequence of computations within a
-  * context equipped with an event application function and a chain of events. It provides the
-  * implementations of `read` of `StateReader` and `write` of `EventWriter` allowing to run monadic
-  * chains making use of the `Entity` typeclass.
+/** 'EntityT[F, S, E, A]' is data type implementing the `Entity[F, S, E]` state reader and event
+  * writer abilities. It is a monad transformer used as an interpreter for functional chains
+  * involving calls to 'Entity' `read` and `write`, turning them into a result value of `F[Folded[E,
+  * A]]`. `Folded[E, A]` is either an error or a list of events bundled together with a result
+  * value.
+  *
+  * `EntityT` interpretation runs with an instance of `EventsFolder[S, E]` which is a tuple of
+  * current state of type `S` together with event application function `EventApplier[S, E]`.
+  * Interpretation essentially accumulates the written events into a `Chain[E]` and applies these
+  * events to initial state whenever a `read` is required.
   * @param runAcc
   *   Event folding function
   * @tparam F

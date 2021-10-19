@@ -9,7 +9,7 @@ import endless.core.typeclass.protocol.Decoder
 import java.nio.charset.StandardCharsets
 
 class CirceDecoder[+A](implicit decoder: io.circe.Decoder[A]) extends Decoder[A] {
-  def decode(payload: Array[Byte]): A =
+  def apply(payload: Array[Byte]): A =
     parse(new String(payload, StandardCharsets.UTF_8))
       .leftMap(new ParsingException(_))
       .flatMap(decoder.decodeJson(_).leftMap(new DecodingException(_)))

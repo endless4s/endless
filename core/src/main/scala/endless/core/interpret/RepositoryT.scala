@@ -9,6 +9,35 @@ import endless.core.typeclass.entity.Repository
 import endless.core.typeclass.event.EventApplier
 import endless.core.typeclass.protocol.{CommandProtocol, IncomingCommand}
 
+/** `RepositoryT[F, S, E, ID, Alg]` is a data type implementing the `Repository[F, ID, Alg]` entity
+  * access ability.
+  *
+  * It assembles the client command protocol together with the command router natural transformation
+  * on `OutgoingCommand[*]` to deliver an instance of `Alg[F]` allowing to interact with the
+  * specific entity in the cluster.
+  *
+  * For the server-side it provides capability of running an incoming command via interpretation of
+  * the algebra with `EntityT`.
+  *
+  * @param entity
+  *   interpreted command handler entity algebra
+  * @param commandProtocol
+  *   command protocol used to issue commands to entities in the cluster
+  * @param commandRouter
+  *   command routing natural transformation
+  * @param eventApplier
+  *   event application function
+  * @tparam F
+  *   context
+  * @tparam S
+  *   state
+  * @tparam E
+  *   event
+  * @tparam ID
+  *   entity id
+  * @tparam Alg
+  *   entity algebra
+  */
 final class RepositoryT[F[_], S, E, ID, Alg[_[_]]: FunctorK](implicit
     entity: Alg[EntityT[F, S, E, *]],
     commandProtocol: CommandProtocol[Alg],

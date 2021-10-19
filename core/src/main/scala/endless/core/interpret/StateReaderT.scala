@@ -4,6 +4,9 @@ import cats.Applicative
 import cats.data.ReaderT
 import endless.core.typeclass.entity.StateReader
 
+/** `StateReaderT` lifts `cats.data.ReaderT.ask` as `read` to equip `F` with the ability to read
+  * from a shared environment
+  */
 object StateReaderT {
   trait StateReaderLift[G[_], F[_], S] extends StateReader[G, S]
 

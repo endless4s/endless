@@ -5,6 +5,9 @@ import cats.{Functor, ~>}
 import endless.core.interpret.EntityT
 import org.typelevel.log4cats.Logger
 
+/** Helpers to lift instances of `Logger[F]` into [[EntityT]] and [[ReaderT]] monad transformers,
+  * required for execution as the library makes uses of [[Logger]] for some built-in logging
+  */
 trait LoggerLiftingHelpers {
   implicit def loggerForEntityT[F[_]: Functor, S, E](implicit
       logger: Logger[F]

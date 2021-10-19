@@ -1,5 +1,7 @@
 package endless.core.typeclass.protocol
 
-trait Decoder[+A] {
-  def decode(payload: Array[Byte]): A
-}
+/** Function to decode binary payload
+  * @tparam A
+  *   decoded type
+  */
+trait Decoder[+A] extends (Array[Byte] => A)

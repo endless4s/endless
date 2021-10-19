@@ -6,6 +6,10 @@ import akka.serialization.{BaseSerializer, SerializerWithStringManifest}
 
 import java.io.NotSerializableException
 
+/** Internal reply carrier serializer, configured in reference.conf
+  * @param system
+  *   actor system
+  */
 class ReplySerializer(val system: akka.actor.ExtendedActorSystem)
     extends SerializerWithStringManifest
     with BaseSerializer {
