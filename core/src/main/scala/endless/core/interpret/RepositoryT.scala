@@ -47,7 +47,7 @@ final class RepositoryT[F[_], S, E, ID, Alg[_[_]]: FunctorK](implicit
   def entityFor(id: ID): Alg[F] = commandProtocol.client.mapK(commandRouter.routerForID(id))
 
   def runCommand(
-      state: S,
+      state: Option[S],
       command: IncomingCommand[EntityT[F, S, E, *], Alg]
   ): F[Folded[E, command.Reply]] =
     command.runWith(entity).run(EventsFolder(state, eventApplier))

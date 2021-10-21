@@ -15,7 +15,8 @@ import endless.\/
   * @tparam E
   *   event
   */
-final case class EventsFolder[S, E](state: S, applier: EventApplier[S, E]) {
-  def applyOnFoldable[G[_]: Foldable](foldable: G[E]): String \/ S =
+final case class EventsFolder[S, E](state: Option[S], applier: EventApplier[S, E]) {
+  @SuppressWarnings(Array("org.wartremover.warts.OptionPartial"))
+  def applyOnFoldable[G[_]: Foldable](foldable: G[E]): String \/ Option[S] =
     foldable.foldM(state)(applier.apply)
 }

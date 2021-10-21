@@ -5,22 +5,20 @@ import endless.\/
 import endless.core.typeclass.event.EventApplier
 import endless.example.data.{Booking, BookingEvent}
 
-class BookingEventApplier extends EventApplier[Option[Booking], BookingEvent] {
+class BookingEventApplier extends EventApplier[Booking, BookingEvent] {
   def apply(state: Option[Booking], event: BookingEvent): String \/ Option[Booking] =
-    event match {
+    (event match {
       case BookingEvent.BookingPlaced(bookingID, origin, destination, passengerCount) =>
         state
-          .toLeft(Option(Booking(bookingID, origin, destination, passengerCount)))
+          .toLeft(Booking(bookingID, origin, destination, passengerCount))
           .leftMap(_ => "Booking already exists")
       case BookingEvent.OriginChanged(newOrigin) =>
         state
           .toRight("Attempt to change unknown booking")
           .map(_.copy(origin = newOrigin))
-          .map(Some(_))
       case BookingEvent.DestinationChanged(newDestination) =>
         state
           .toRight("Attempt to change unknown booking")
           .map(_.copy(destination = newDestination))
-          .map(Some(_))
-    }
+    }).map(Option(_))
 }

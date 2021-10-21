@@ -61,8 +61,6 @@ trait Deployer {
     * @param createEffector
     *   creator for effector accepting an instance of [[Effector]], interpreted with [[ReaderT]].
     *   Use [[Effector.unit]] if no post-persistence side-effects are required
-    * @param emptyState
-    *   empty state
     * @param customizeBehavior
     *   hook to further customize Akka [[EventSourcedBehavior]]. By default the behavior enforces
     *   replies and is configured with command handler and event handler and triggers the effector
@@ -102,13 +100,14 @@ trait Deployer {
   ]]](
       createEntity: Entity[EntityT[F, S, E, *], S, E] => Alg[EntityT[F, S, E, *]],
       createRepository: Repository[F, ID, Alg] => RepositoryAlg[F],
-      createEffector: StateReader[ReaderT[F, S, *], S] => Effector[ReaderT[F, S, *]],
-      emptyState: S,
-      customizeBehavior: EventSourcedBehavior[Command, E, S] => EventSourcedBehavior[
+      createEffector: StateReader[ReaderT[F, Option[S], *], S] => Effector[
+        ReaderT[F, Option[S], *]
+      ],
+      customizeBehavior: EventSourcedBehavior[Command, E, Option[S]] => EventSourcedBehavior[
         Command,
         E,
-        S
-      ] = identity[EventSourcedBehavior[Command, E, S]](_)
+        Option[S]
+      ] = identity[EventSourcedBehavior[Command, E, Option[S]]](_)
   )(implicit
       sharding: ClusterSharding,
       actorSystem: ActorSystem[_],
@@ -122,7 +121,6 @@ trait Deployer {
       createEntity,
       createRepository,
       createEffector,
-      emptyState,
       customizeBehavior
     ).apply
 
@@ -133,9 +131,14 @@ trait Deployer {
   ]]](
       createEntity: Entity[EntityT[F, S, E, *], S, E] => Alg[EntityT[F, S, E, *]],
       createRepository: Repository[F, ID, Alg] => RepositoryAlg[F],
-      createEffector: StateReader[ReaderT[F, S, *], S] => Effector[ReaderT[F, S, *]],
-      emptyState: S,
-      customizeBehavior: EventSourcedBehavior[Command, E, S] => EventSourcedBehavior[Command, E, S]
+      createEffector: StateReader[ReaderT[F, Option[S], *], S] => Effector[
+        ReaderT[F, Option[S], *]
+      ],
+      customizeBehavior: EventSourcedBehavior[Command, E, Option[S]] => EventSourcedBehavior[
+        Command,
+        E,
+        Option[S]
+      ]
   )(implicit
       sharding: ClusterSharding,
       actorSystem: ActorSystem[_],
@@ -148,7 +151,7 @@ trait Deployer {
     private implicit val interpretedEntityAlg: Alg[EntityT[F, S, E, *]] = createEntity(
       EntityT.instance
     )
-    private implicit val interpretedEffector: ReaderT[F, S, Unit] = createEffector(
+    private implicit val interpretedEffector: ReaderT[F, Option[S], Unit] = createEffector(
       StateReaderT.instance
     ).afterPersist
     private val entityTypeKey = EntityTypeKey[Command](nameProvider())
@@ -161,9 +164,9 @@ trait Deployer {
         ) { context =>
           customizeBehavior(
             EventSourcedBehavior
-              .withEnforcedReplies[Command, E, S](
+              .withEnforcedReplies[Command, E, Option[S]](
                 PersistenceId(entityTypeKey.name, context.entityId),
-                emptyState,
+                Option.empty[S],
                 commandHandler = handleCommand,
                 eventHandler = handleEvent
               )
@@ -186,7 +189,7 @@ trait Deployer {
         (createRepository(RepositoryT.apply[F, S, E, ID, Alg]), sharding.init(akkaEntity))
       }
 
-    private def handleEvent(state: S, event: E)(implicit
+    private def handleEvent(state: Option[S], event: E)(implicit
         eventApplier: EventApplier[S, E],
         dispatcher: Dispatcher[F]
     ) = eventApplier.apply(state, event) match {
@@ -196,7 +199,9 @@ trait Deployer {
       case Right(newState) => newState
     }
 
-    private def handleCommand(state: S, command: Command)(implicit dispatcher: Dispatcher[F]) = {
+    private def handleCommand(state: Option[S], command: Command)(implicit
+        dispatcher: Dispatcher[F]
+    ) = {
       val incomingCommand =
         commandProtocol.server[EntityT[F, S, E, *]].decode(command.payload)
       val effect = Logger[F].debug(
@@ -205,12 +210,14 @@ trait Deployer {
         .runCommand(state, incomingCommand)
         .flatMap {
           case Left(error) =>
-            Logger[F].warn(error) >> Effect.unhandled[E, S].thenNoReply().pure
+            Logger[F].warn(error) >> Effect.unhandled[E, Option[S]].thenNoReply().pure
           case Right((events, reply)) =>
             Effect
               .persist(events.toList)
-              .thenRun((state: S) => dispatcher.unsafeRunSync(interpretedEffector.run(state)))
-              .thenReply(command.replyTo) { _: S =>
+              .thenRun((state: Option[S]) =>
+                dispatcher.unsafeRunSync(interpretedEffector.run(state))
+              )
+              .thenReply(command.replyTo) { _: Option[S] =>
                 Reply(incomingCommand.replyEncoder.encode(reply))
               }
               .pure

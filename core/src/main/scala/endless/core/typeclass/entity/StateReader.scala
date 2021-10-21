@@ -13,9 +13,9 @@ package endless.core.typeclass.entity
   */
 trait StateReader[F[_], S] {
 
-  /** Read the state from the environment
+  /** Read the state from the environment, returns None if the entity doesn't yet exist
     * @return
-    *   state in `F` context
+    *   optional state in `F` context
     */
-  def read: F[S]
+  def read: F[Option[S]]
 }
