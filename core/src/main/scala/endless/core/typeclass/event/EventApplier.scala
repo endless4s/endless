@@ -2,6 +2,11 @@ package endless.core.typeclass.event
 
 import endless.\/
 
-trait EventApplier[S, E] extends ((S, E) => String \/ S) {
-  def apply(state: S, event: E): String \/ S
-}
+/** Function that defines transition of the state given an event (or invalid event for the given
+  * state)
+  * @tparam S
+  *   state
+  * @tparam E
+  *   event
+  */
+trait EventApplier[S, E] extends ((S, E) => String \/ S)

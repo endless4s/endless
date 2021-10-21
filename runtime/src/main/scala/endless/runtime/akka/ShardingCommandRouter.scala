@@ -13,6 +13,24 @@ import endless.runtime.akka.data.{Command, Reply}
 import org.typelevel.log4cats.Logger
 import cats.syntax.show._
 
+/** Implementation of [[CommandRouter]] for Akka cluster sharding
+  *
+  * Retrieves the entity ref and asks the command, then decodes the reply and lifts it into `F`
+  * @param sharding
+  *   Akka cluster sharding extension
+  * @param actorSystem
+  *   actor system
+  * @param askTimeout
+  *   Akka ask timeout
+  * @param idEncoder
+  *   entity ID encoder
+  * @param nameProvider
+  *   entity name provider
+  * @tparam F
+  *   context, supports [[Async]] for bridging with `Future`
+  * @tparam ID
+  *   entity ID
+  */
 private[akka] final class ShardingCommandRouter[F[_]: Logger, ID](implicit
     sharding: ClusterSharding,
     actorSystem: ActorSystem[_],
