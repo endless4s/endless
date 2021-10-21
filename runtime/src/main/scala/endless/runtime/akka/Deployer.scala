@@ -198,7 +198,7 @@ trait Deployer {
 
     private def handleCommand(state: S, command: Command)(implicit dispatcher: Dispatcher[F]) = {
       val incomingCommand =
-        commandProtocol.server[EntityT[F, S, E, *]](command.payload)
+        commandProtocol.server[EntityT[F, S, E, *]].decode(command.payload)
       val effect = Logger[F].debug(
         show"Handling command for ${nameProvider()} entity ${command.id}"
       ) >> RepositoryT.apply
@@ -211,7 +211,7 @@ trait Deployer {
               .persist(events.toList)
               .thenRun((state: S) => dispatcher.unsafeRunSync(interpretedEffector.run(state)))
               .thenReply(command.replyTo) { _: S =>
-                Reply(incomingCommand.replyEncoder(reply))
+                Reply(incomingCommand.replyEncoder.encode(reply))
               }
               .pure
         }

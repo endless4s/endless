@@ -53,7 +53,7 @@ private[akka] final class ShardingCommandRouter[F[_]: Logger, ID](implicit
         } >>= { case Reply(payload) =>
           Logger[F].debug(
             show"Got reply from ${nameProvider()} entity ${idEncoder(id)}"
-          ) >> fa.replyDecoder(payload).pure[F]
+          ) >> fa.replyDecoder.decode(payload).pure[F]
         }
       }
     }

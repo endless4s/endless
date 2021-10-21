@@ -6,7 +6,7 @@ import endless.core.typeclass.protocol.Decoder
 final class CirceOutgoingCommand[C, +R: io.circe.Decoder](command: C)(implicit
     commandEncoder: io.circe.Encoder[C]
 ) extends OutgoingCommand[R] {
-  def payload: Array[Byte] = CirceEncoder[C].apply(command)
+  def payload: Array[Byte] = CirceEncoder[C].encode(command)
   def replyDecoder: Decoder[R] = CirceDecoder[R]
 }
 

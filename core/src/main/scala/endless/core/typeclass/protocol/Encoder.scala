@@ -1,5 +1,12 @@
 package endless.core.typeclass.protocol
 
-/** Function to encode a value of type `A` into binary array
-  */
-trait Encoder[-A] extends (A => Array[Byte])
+trait Encoder[-A] {
+
+  /** Encode value of type `A` into a binary array
+    * @param a
+    *   value
+    * @return
+    *   corresponding byte array
+    */
+  def encode(a: A): Array[Byte]
+}
