@@ -6,7 +6,7 @@ import cats.syntax.applicative._
 import cats.syntax.either._
 import cats.syntax.flatMap._
 import cats.syntax.functor._
-import cats.{Applicative, Functor, Monad}
+import cats.{Applicative, Eq, Functor, Monad}
 import endless.core.data.EventsFolder
 import endless.core.data.Folded
 
