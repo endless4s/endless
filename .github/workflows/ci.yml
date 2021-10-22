@@ -6,10 +6,11 @@ on:
   pull_request:
 jobs:
   build:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2.3.4
         with:
           fetch-depth: 0
       - uses: olafurpg/setup-scala@v13
-      - run: sbt compile versionPolicyCheck
+      - run: sbt compile coverage test coverageReport coverageAggregate versionPolicyCheck
+      - uses: codecov/codecov-action@v2
