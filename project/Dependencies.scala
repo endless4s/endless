@@ -26,6 +26,8 @@ object Dependencies {
       "org.typelevel" %% "cats-kernel"
     ).map(_ % catsVersion)
 
+  lazy val catsLaws = Seq("org.typelevel" %% "cats-laws" % catsVersion)
+  lazy val catsTestkit = Seq("org.typelevel" %% "cats-testkit" % catsVersion)
   lazy val catsTaglessVersion = "0.14.0"
   lazy val catsTagless = Seq("org.typelevel" %% "cats-tagless-macros" % catsTaglessVersion)
 
@@ -56,4 +58,12 @@ object Dependencies {
   lazy val log4catsSlf4j = Seq(
     "org.typelevel" %% "log4cats-slf4j" % log4catsVersion
   )
+
+  lazy val mUnitVersion = "0.7.29"
+  lazy val disciplineMUnitVersion = "1.0.9"
+  lazy val mUnit =
+    Seq("org.scalameta" %% "munit", "org.scalameta" %% "munit-scalacheck").map(
+      _ % mUnitVersion
+    ) ++ Seq("org.typelevel" %% "discipline-munit" % disciplineMUnitVersion)
+
 }
