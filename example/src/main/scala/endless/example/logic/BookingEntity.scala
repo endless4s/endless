@@ -16,6 +16,7 @@ import endless.example.data.BookingEvent._
 import endless.example.data.{Booking, BookingEvent}
 import org.typelevel.log4cats.Logger
 
+//#definition
 final case class BookingEntity[F[_]: Monad: Logger](entity: Entity[F, Booking, BookingEvent])
     extends BookingAlg[F] {
   import entity._
@@ -51,3 +52,4 @@ final case class BookingEntity[F[_]: Monad: Logger](entity: Entity[F, Booking, B
   ): F[BookingUnknown.type \/ Unit] = changeOrigin(newOrigin) >> changeDestination(newDestination)
 
 }
+//#definition

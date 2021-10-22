@@ -6,6 +6,7 @@ import endless.example.data.Booking
 import endless.example.data.Booking.{BookingID, LatLon}
 import cats.tagless.{Derive, FunctorK}
 
+//#definition
 trait BookingAlg[F[_]] {
   def place(
       bookingID: BookingID,
@@ -21,6 +22,7 @@ trait BookingAlg[F[_]] {
       newDestination: LatLon
   ): F[BookingUnknown.type \/ Unit]
 }
+//#definition
 
 object BookingAlg {
   final case class BookingAlreadyExists(bookingID: BookingID)
