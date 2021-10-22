@@ -36,7 +36,9 @@ inThisBuild(
 
 lazy val core = (project in file("core"))
   .settings(commonSettings: _*)
-  .settings(libraryDependencies ++= cats ++ catsTagless)
+  .settings(
+    libraryDependencies ++= cats ++ catsTagless ++ (catsLaws ++ catsTestkit ++ mUnit).map(_ % Test)
+  )
   .settings(name := "endless-core")
 
 lazy val runtime = (project in file("runtime"))
