@@ -23,6 +23,7 @@ inThisBuild(
       )
     ),
     sonatypeCredentialHost := "s01.oss.sonatype.org",
+    sonatypeProjectHosting := Some(xerial.sbt.Sonatype.GitHubHosting("endless4s", "endless", "me@jonaschapuis.com")),
     scalaVersion := "2.13.6",
     Global / onChangedBuildSource := ReloadOnSourceChanges,
     PB.protocVersion := "3.17.3", // works on Apple Silicon,
@@ -60,6 +61,46 @@ lazy val example = (project in file("example"))
   .settings(commonSettings: _*)
   .settings(libraryDependencies ++= catsEffect ++ http4s ++ akkaTest ++ logback ++ log4catsSlf4j)
   .settings(name := "endless-example", run / fork := true, publish / skip := true)
+
+// Generate API documentation per module, as documented in https://www.scala-sbt.org/sbt-site/api-documentation.html#scaladoc-from-multiple-projects
+
+// Create one configuration per module
+val Core    = config("core")
+val Circe   = config("circe")
+val Runtime = config("runtime")
+
+// For each module define its package prefix and path in documentation API
+val scaladocSiteProjects = List(
+  core         -> (Core,    "endless",         "core"),
+  circeHelpers -> (Circe,   "endless.circe",   "circe"),
+  runtime      -> (Runtime, "endless.runtime", "runtime")
+)
+
+lazy val documentation = (project in file("documentation"))
+  .enablePlugins(ParadoxMaterialThemePlugin, ParadoxPlugin, ParadoxSitePlugin, SiteScaladocPlugin)
+  .settings(
+    paradoxProperties ++= (
+      scaladocSiteProjects.map { case (_, (_, pkg, path)) =>
+        s"scaladoc.${pkg}.base_url" -> s"api/${path}"
+      }
+      .toMap
+    ),
+    scaladocSiteProjects.flatMap { case (project, (conf, _, path)) =>
+      SiteScaladocPlugin.scaladocSettings(
+        conf,
+        project / Compile / packageDoc / mappings,
+        s"api/${path}"
+      )
+    },
+    Compile / paradoxMaterialTheme := {
+        val theme = (Compile / paradoxMaterialTheme).value
+        val repository =
+          (ThisBuild / sonatypeProjectHosting).value.get.scmInfo.browseUrl.toURI
+        theme
+          .withRepository(repository)
+          .withSocial(repository)
+      }
+  )
 
 lazy val root = project
   .in(file("."))
