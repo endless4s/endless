@@ -1,11 +1,12 @@
 package endless.runtime.akka.serializer
 
+import akka.actor.typed.ActorRefResolver
+import akka.actor.typed.scaladsl.adapter.ClassicActorSystemOps
 import akka.serialization.{BaseSerializer, SerializerWithStringManifest}
-import endless.runtime.akka.data.Command
-import endless.runtime.akka.serializer.CommandSerializer.ManifestKey
-import endless.runtime.akka.serializer.proto
 import cats.syntax.show._
 import com.google.protobuf.ByteString
+import endless.runtime.akka.data.Command
+import endless.runtime.akka.serializer.CommandSerializer.ManifestKey
 
 import java.io.NotSerializableException
 
@@ -16,6 +17,8 @@ import java.io.NotSerializableException
 class CommandSerializer(val system: akka.actor.ExtendedActorSystem)
     extends SerializerWithStringManifest
     with BaseSerializer {
+  private implicit val actorRefResolver: ActorRefResolver = ActorRefResolver(system.toTyped)
+
   def manifest(o: AnyRef): String = o match {
     case _: Command => ManifestKey
     case _ =>
@@ -27,14 +30,22 @@ class CommandSerializer(val system: akka.actor.ExtendedActorSystem)
   def toBinary(o: AnyRef): Array[Byte] = o match {
     case command: Command =>
       proto.command
-        .Command(command.id, ByteString.copyFrom(command.payload))
+        .Command(
+          command.id,
+          ByteString.copyFrom(command.payload),
+          actorRefResolver.toSerializationFormat(command.replyTo)
+        )
         .toByteArray
     case _ =>
       throw new IllegalArgumentException(s"Cannot serialize object of type [${o.getClass.getName}]")
   }
 
   def fromBinary(bytes: Array[Byte], manifest: String): AnyRef = manifest match {
-    case ManifestKey => proto.command.Command.parseFrom(bytes)
+    case ManifestKey =>
+      val protoCommand = proto.command.Command.parseFrom(bytes)
+      Command(protoCommand.id, protoCommand.payload.toByteArray)(
+        actorRefResolver.resolveActorRef(protoCommand.replyTo)
+      )
     case _ =>
       throw new NotSerializableException(
         s"Unimplemented deserialization of message with manifest [$manifest] in [${getClass.getName}]"

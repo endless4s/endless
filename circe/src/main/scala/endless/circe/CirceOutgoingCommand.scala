@@ -1,7 +1,6 @@
 package endless.circe
 
 import endless.core.typeclass.protocol.{Decoder, OutgoingCommand}
-import endless.core.typeclass.protocol.Decoder
 
 final class CirceOutgoingCommand[C, +R: io.circe.Decoder](command: C)(implicit
     commandEncoder: io.circe.Encoder[C]
