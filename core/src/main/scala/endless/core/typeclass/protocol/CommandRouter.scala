@@ -3,7 +3,7 @@ package endless.core.typeclass.protocol
 import cats.~>
 
 /** `CommandRouter[F, ID]` provides a natural transformation to route an outgoing command to where
-  * the entity resides and decode the reply as a simple value in the `F` context
+  * the entity resides and decode the reply as a simple value in the `F` context.
   * @tparam F
   *   context
   * @tparam ID
@@ -11,8 +11,8 @@ import cats.~>
   */
 trait CommandRouter[F[_], ID] {
 
-  /** Return a natural transformation to route an outgoing command to the entity with this
-    * particular ID
+  /** Returns a natural transformation to route an outgoing command to the entity with this
+    * particular ID.
     * @param id
     *   entity ID
     */

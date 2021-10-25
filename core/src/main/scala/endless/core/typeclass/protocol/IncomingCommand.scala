@@ -1,7 +1,7 @@
 package endless.core.typeclass.protocol
 
 /** Represents an incoming entity command. Embeds the `Reply` type, the ability to run it on the
-  * entity algebra in `F` context and specifies the encoder to be used to encode the reply
+  * entity algebra in `F` context and specifies the encoder to be used to encode the reply.
   * @tparam F
   *   context
   * @tparam Alg

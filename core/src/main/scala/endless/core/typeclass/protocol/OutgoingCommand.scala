@@ -1,7 +1,7 @@
 package endless.core.typeclass.protocol
 
 /** Represents an outgoing command. Embeds the binary payload and indicates the decoder to use for
-  * the reply of type `R`
+  * the reply of type `R`.
   * @tparam R
   *   reply
   */

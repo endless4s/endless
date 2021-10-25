@@ -1,5 +1,9 @@
 package endless.core.typeclass.protocol
 
+/** Generic binary encoder
+  * @tparam A
+  *   value
+  */
 trait Encoder[-A] {
 
   /** Encode value of type `A` into a binary array

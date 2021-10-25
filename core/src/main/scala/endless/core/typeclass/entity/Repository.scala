@@ -1,6 +1,6 @@
 package endless.core.typeclass.entity
 
-/** 'Repository' represents the entity repository and allows accessing an entity instance, i.e. an
+/** `Repository` represents the entity repository and allows accessing an entity instance, i.e. an
   * instance of the corresponding algebra
   * @tparam F
   *   context

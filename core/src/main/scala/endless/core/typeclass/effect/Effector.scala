@@ -4,7 +4,9 @@ import cats.Applicative
 import endless.core.typeclass.entity.StateReader
 
 /** `Effector` is the ability to carry out a side effect in the system after successful event
-  * persistence (e.g. asynchronous message write or request to some external system)
+  * persistence
+  *
+  * (e.g. asynchronous message write or request to some external system)
   */
 trait Effector[F[_]] {
   def afterPersist: F[Unit]
