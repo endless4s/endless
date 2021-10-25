@@ -61,7 +61,10 @@ lazy val circeHelpers = (project in file("circe"))
 lazy val example = (project in file("example"))
   .dependsOn(core, runtime, circeHelpers)
   .settings(commonSettings: _*)
-  .settings(libraryDependencies ++= catsEffect ++ http4s ++ akkaTest ++ logback ++ log4catsSlf4j)
+  .settings(
+    libraryDependencies ++= catsEffect ++ http4s ++ akkaTest ++ logback ++ log4catsSlf4j ++ (mUnit ++ catsEffectMUnit)
+      .map(_ % Test)
+  )
   .settings(name := "endless-example", run / fork := true, publish / skip := true)
 
 // Generate API documentation per module, as documented in https://www.scala-sbt.org/sbt-site/api-documentation.html#scaladoc-from-multiple-projects
