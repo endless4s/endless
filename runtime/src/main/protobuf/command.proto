@@ -6,4 +6,5 @@ option optimize_for = SPEED;
 message Command {
   required string id = 1;
   required bytes payload = 2;
+  required string reply_to = 3;
 }

@@ -1,7 +1,6 @@
 package endless.circe
 
 import endless.core.typeclass.protocol.{CommandProtocol, Decoder, IncomingCommand, OutgoingCommand}
-import endless.core.typeclass.protocol._
 
 trait CirceCommandProtocol[Alg[_[_]]] extends CommandProtocol[Alg] {
   override def server[F[_]]: Decoder[IncomingCommand[F, Alg]]

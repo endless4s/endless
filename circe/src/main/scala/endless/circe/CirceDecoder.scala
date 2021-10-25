@@ -1,10 +1,10 @@
 package endless.circe
 
-import CirceDecoder.{DecodingException, ParsingException}
-import io.circe.{DecodingFailure, Json, ParsingFailure}
-import io.circe.parser.parse
 import cats.syntax.either._
+import endless.circe.CirceDecoder.{DecodingException, ParsingException}
 import endless.core.typeclass.protocol.Decoder
+import io.circe.parser.parse
+import io.circe.{DecodingFailure, ParsingFailure}
 
 import java.nio.charset.StandardCharsets
 
