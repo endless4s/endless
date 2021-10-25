@@ -10,9 +10,9 @@ import cats.{Applicative, Functor, Monad}
 import endless.core.data.EventsFolder
 import endless.core.data.Folded
 
-/** 'EntityT[F, S, E, A]' is data type implementing the `Entity[F, S, E]` state reader and event
+/** `EntityT[F, S, E, A]`` is data type implementing the `Entity[F, S, E]` state reader and event
   * writer abilities. It is a monad transformer used as an interpreter for functional chains
-  * involving calls to 'Entity' `read` and `write`, turning them into a result value of `F[Folded[E,
+  * involving calls to `Entity` read` and `write`, turning them into a result value of `F[Folded[E,
   * A]]`. `Folded[E, A]` is either an error or a list of events bundled together with a result
   * value.
   *

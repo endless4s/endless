@@ -38,7 +38,7 @@ trait Deployer {
     * akka).
     *
     * [[Logger]] is also required as the library supports some basic logging capabilities. Entity
-    * algebra `Alg` must be equipped with an instance of `FunctorK` to support natural
+    * algebra `Alg` must also be equipped with an instance of `FunctorK` to support natural
     * transformations.
     *
     * First parameters of the function are constructor functions for instances of entity &
@@ -49,6 +49,12 @@ trait Deployer {
     * All remaining typeclass instances for entity operation are pulled from implicit scope: entity
     * name provider, entity ID encoder, command protocol, event application function in addition to
     * the usual akka ask timeout, actor system and cluster sharding extension.
+    *
+    * Although its signature looks complicated, in practice usage of this method isn't difficut with
+    * the proper implicits and definitions: refer to the sample application for example usage:
+    *
+    * ```scala deployEntity[IO, Booking, BookingEvent, BookingID, BookingAlg, BookingRepositoryAlg](
+    * BookingEntity(_), BookingRepository(_), BookingEffector(_) )```
     *
     * '''Important''': `deployEntity` needs to be called upon application startup, before joining
     * the cluster as the [[ClusterSharding]] extension needs to know about the various entity types
@@ -63,8 +69,8 @@ trait Deployer {
     *   Use [[Effector.unit]] if no post-persistence side-effects are required
     * @param customizeBehavior
     *   hook to further customize Akka [[EventSourcedBehavior]]. By default the behavior enforces
-    *   replies and is configured with command handler and event handler and triggers the effector
-    *   upon successful recovery as well as logs in warning upon recovery failure
+    *   replies, and is configured with command handler and event handler. It also triggers the
+    *   effector upon successful recovery as well as logs in warning upon recovery failure.
     * @param sharding
     *   Akka cluster sharding extension
     * @param actorSystem
