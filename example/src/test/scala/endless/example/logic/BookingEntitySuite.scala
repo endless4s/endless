@@ -5,20 +5,21 @@ import endless.core.data.EventsFolder
 import endless.core.interpret.EntityT
 import endless.core.interpret.EntityT._
 import endless.example.algebra.BookingAlg.{BookingAlreadyExists, BookingUnknown}
-import endless.example.data.Booking.{BookingID, LatLon}
+import endless.example.data.Booking.LatLon
 import endless.example.data.BookingEvent.{BookingPlaced, DestinationChanged, OriginChanged}
 import endless.example.data.{Booking, BookingEvent}
-import endless.example.logic.BookingEntitySuite._
-import org.scalacheck.effect.PropF
-import org.scalacheck.{Arbitrary, Gen}
+import org.scalacheck.effect.PropF._
 import org.typelevel.log4cats.testing.TestingLogger
 
-class BookingEntitySuite extends munit.CatsEffectSuite with munit.ScalaCheckEffectSuite {
+class BookingEntitySuite
+    extends munit.CatsEffectSuite
+    with munit.ScalaCheckEffectSuite
+    with Generators {
   implicit private val logger = TestingLogger.impl[IO]()
   private val bookingAlg = BookingEntity(EntityT.instance[IO, Booking, BookingEvent])
 
   test("place booking") {
-    PropF.forAllF { booking: Booking =>
+    forAllF { booking: Booking =>
       bookingAlg
         .place(booking.id, booking.passengerCount, booking.origin, booking.destination)
         .run(EventsFolder(state = None, new BookingEventApplier))
@@ -42,7 +43,7 @@ class BookingEntitySuite extends munit.CatsEffectSuite with munit.ScalaCheckEffe
   }
 
   test("place booking when it already exists") {
-    PropF.forAllF { booking: Booking =>
+    forAllF { booking: Booking =>
       bookingAlg
         .place(booking.id, booking.passengerCount, booking.origin, booking.destination)
         .run(
@@ -62,7 +63,7 @@ class BookingEntitySuite extends munit.CatsEffectSuite with munit.ScalaCheckEffe
   }
 
   test("get booking") {
-    PropF.forAllF { booking: Booking =>
+    forAllF { booking: Booking =>
       bookingAlg.get
         .run(EventsFolder(state = Some(booking), new BookingEventApplier))
         .map {
@@ -84,7 +85,7 @@ class BookingEntitySuite extends munit.CatsEffectSuite with munit.ScalaCheckEffe
   }
 
   test("change origin") {
-    PropF.forAllF { (booking: Booking, newOrigin: LatLon) =>
+    forAllF { (booking: Booking, newOrigin: LatLon) =>
       bookingAlg
         .changeOrigin(newOrigin)
         .run(EventsFolder(Some(booking), new BookingEventApplier))
@@ -97,7 +98,7 @@ class BookingEntitySuite extends munit.CatsEffectSuite with munit.ScalaCheckEffe
   }
 
   test("change origin when unknown") {
-    PropF.forAllF { newOrigin: LatLon =>
+    forAllF { newOrigin: LatLon =>
       bookingAlg
         .changeOrigin(newOrigin)
         .run(EventsFolder(None, new BookingEventApplier))
@@ -109,7 +110,7 @@ class BookingEntitySuite extends munit.CatsEffectSuite with munit.ScalaCheckEffe
   }
 
   test("change destination") {
-    PropF.forAllF { (booking: Booking, newDestination: LatLon) =>
+    forAllF { (booking: Booking, newDestination: LatLon) =>
       bookingAlg
         .changeDestination(newDestination)
         .run(EventsFolder(Some(booking), new BookingEventApplier))
@@ -122,7 +123,7 @@ class BookingEntitySuite extends munit.CatsEffectSuite with munit.ScalaCheckEffe
   }
 
   test("change destination when unknown") {
-    PropF.forAllF { newDestination: LatLon =>
+    forAllF { newDestination: LatLon =>
       bookingAlg
         .changeDestination(newDestination)
         .run(EventsFolder(None, new BookingEventApplier))
@@ -134,7 +135,7 @@ class BookingEntitySuite extends munit.CatsEffectSuite with munit.ScalaCheckEffe
   }
 
   test("change origin and destination") {
-    PropF.forAllF { (booking: Booking, newOrigin: LatLon, newDestination: LatLon) =>
+    forAllF { (booking: Booking, newOrigin: LatLon, newDestination: LatLon) =>
       bookingAlg
         .changeOriginAndDestination(newOrigin, newDestination)
         .run(EventsFolder(Some(booking), new BookingEventApplier))
@@ -151,7 +152,7 @@ class BookingEntitySuite extends munit.CatsEffectSuite with munit.ScalaCheckEffe
   }
 
   test("change origin and destination when unknown") {
-    PropF.forAllF { (newOrigin: LatLon, newDestination: LatLon) =>
+    forAllF { (newOrigin: LatLon, newDestination: LatLon) =>
       bookingAlg
         .changeOriginAndDestination(newOrigin, newDestination)
         .run(EventsFolder(None, new BookingEventApplier))
@@ -162,20 +163,4 @@ class BookingEntitySuite extends munit.CatsEffectSuite with munit.ScalaCheckEffe
     }
   }
 
-}
-
-object BookingEntitySuite {
-  implicit val latLonGen: Gen[LatLon] = for {
-    latitude <- Gen.double
-    longitude <- Gen.double
-  } yield LatLon(latitude, longitude)
-  implicit val bookingIDGen: Gen[BookingID] = Gen.uuid.map(BookingID(_))
-  implicit val bookingGen: Gen[Booking] = for {
-    id <- bookingIDGen
-    origin <- latLonGen
-    destination <- latLonGen
-    passengerCount <- Gen.posNum[Int]
-  } yield Booking(id, origin, destination, passengerCount)
-  implicit val arbBooking: Arbitrary[Booking] = Arbitrary(bookingGen)
-  implicit val arbLatLon: Arbitrary[LatLon] = Arbitrary(latLonGen)
 }
