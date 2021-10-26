@@ -37,7 +37,8 @@ inThisBuild(
 lazy val core = (project in file("core"))
   .settings(commonSettings: _*)
   .settings(
-    libraryDependencies ++= cats ++ catsTagless ++ (catsLaws ++ catsTestkit ++ mUnit).map(_ % Test)
+    libraryDependencies ++= cats ++ catsTagless ++ log4cats ++ (catsLaws ++ catsTestkit ++ mUnit)
+      .map(_ % Test)
   )
   .settings(name := "endless-core")
 
@@ -62,7 +63,7 @@ lazy val example = (project in file("example"))
   .dependsOn(core, runtime, circeHelpers)
   .settings(commonSettings: _*)
   .settings(
-    libraryDependencies ++= catsEffect ++ http4s ++ akkaTest ++ logback ++ log4catsSlf4j ++ (mUnit ++ catsEffectMUnit)
+    libraryDependencies ++= catsEffect ++ http4s ++ akkaTest ++ logback ++ log4catsSlf4j ++ (mUnit ++ catsEffectMUnit ++ scalacheckEffect ++ log4catsTesting)
       .map(_ % Test)
   )
   .settings(name := "endless-example", run / fork := true, publish / skip := true)

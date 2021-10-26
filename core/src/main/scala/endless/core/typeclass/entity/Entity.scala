@@ -46,7 +46,9 @@ trait Entity[F[_], S, E] extends StateReader[F, S] with EventWriter[F, E] with M
     */
   def ifUnknown[A, Error](fa: => F[A])(ifKnown: S => Error): F[Error \/ A] =
     flatMap(read) {
-      case None        => map(fa)(_.asRight)
-      case Some(state) => pure(ifKnown(state).asLeft)
+      case None =>
+        map(fa)(_.asRight)
+      case Some(state) =>
+        pure(ifKnown(state).asLeft)
     }
 }

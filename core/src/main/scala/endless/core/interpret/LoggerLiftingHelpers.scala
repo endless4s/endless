@@ -1,8 +1,7 @@
-package endless.runtime.akka
+package endless.core.interpret
 
 import cats.data.ReaderT
 import cats.{Functor, ~>}
-import endless.core.interpret.EntityT
 import org.typelevel.log4cats.Logger
 
 /** Helpers to lift instances of `Logger[F]` into [[EntityT]] and [[ReaderT]] monad transformers,
