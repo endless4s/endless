@@ -16,6 +16,7 @@ src_managed/
 project/boot/
 project/plugins/project/
 .bsp/
+.DS_Store
 
 # Scala-IDE specific
 .scala_dependencies
