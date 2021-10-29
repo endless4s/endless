@@ -47,6 +47,9 @@ class BookingCommandProtocol extends CirceCommandProtocol[BookingAlg] {
         outgoingCommand[BookingCommand, BookingUnknown.type \/ Unit](
           ChangeOriginAndDestination(newOrigin, newDestination)
         )
+
+      override def cancel: OutgoingCommand[BookingUnknown.type \/ Unit] =
+        outgoingCommand[BookingCommand, BookingUnknown.type \/ Unit](Cancel)
     }
 
   override def server[F[_]]: Decoder[IncomingCommand[F, BookingAlg]] =
@@ -69,5 +72,6 @@ class BookingCommandProtocol extends CirceCommandProtocol[BookingAlg] {
         incomingCommand[F, BookingUnknown.type \/ Unit](
           _.changeOriginAndDestination(newOrigin, newDestination)
         )
+      case Cancel => incomingCommand[F, BookingUnknown.type \/ Unit](_.cancel)
     })
 }

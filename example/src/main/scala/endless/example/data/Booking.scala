@@ -9,7 +9,8 @@ final case class Booking(
     id: BookingID,
     origin: LatLon,
     destination: LatLon,
-    passengerCount: Int
+    passengerCount: Int,
+    cancelled: Boolean = false
 )
 
 object Booking {
