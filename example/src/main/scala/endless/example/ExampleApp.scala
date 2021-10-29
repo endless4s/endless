@@ -2,12 +2,14 @@ package endless.example
 
 import akka.Done
 import akka.actor.typed.ActorSystem
+import akka.actor.typed.scaladsl.Behaviors
 import akka.cluster.sharding.typed.scaladsl.ClusterSharding
 import akka.util.Timeout
 import cats.effect._
 import cats.syntax.applicative._
 import cats.syntax.either._
 import cats.syntax.show._
+import endless.core.interpret.EffectorT
 import endless.core.typeclass.entity.EntityNameProvider
 import endless.core.typeclass.protocol.EntityIDEncoder
 import endless.example.algebra.{BookingAlg, BookingRepositoryAlg}
@@ -70,6 +72,7 @@ object ExampleApp {
       case req @ POST -> Root / "booking"                => postBooking(bookingRepository, req)
       case GET -> Root / "booking" / UUIDVar(id)         => getBooking(bookingRepository, id)
       case req @ PATCH -> Root / "booking" / UUIDVar(id) => patchBooking(bookingRepository, req, id)
+      case POST -> Root / "booking" / UUIDVar(id) / "cancel" => cancelBooking(bookingRepository, id)
     }
     .orNotFound
 
@@ -96,6 +99,12 @@ object ExampleApp {
     bookingRepository.bookingFor(BookingID(id)).get.flatMap {
       case Right(booking) => Ok(booking)
       case Left(_)        => BadRequest(show"Booking with $id doesn't exist")
+    }
+
+  private def cancelBooking(bookingRepository: BookingRepositoryAlg[IO], id: UUID) =
+    bookingRepository.bookingFor(BookingID(id)).cancel.flatMap {
+      case Right(_) => Ok()
+      case Left(_)  => BadRequest(show"Booking with $id doesn't exist")
     }
 
   private def patchBooking(

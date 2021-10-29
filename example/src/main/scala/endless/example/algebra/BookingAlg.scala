@@ -21,6 +21,7 @@ trait BookingAlg[F[_]] {
       newOrigin: LatLon,
       newDestination: LatLon
   ): F[BookingUnknown.type \/ Unit]
+  def cancel: F[BookingUnknown.type \/ Unit]
 }
 //#definition
 

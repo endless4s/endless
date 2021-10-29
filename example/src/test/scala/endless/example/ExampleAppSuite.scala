@@ -93,4 +93,32 @@ class ExampleAppSuite extends munit.CatsEffectSuite {
       400
     )
   }
+
+  test("POST bookingID/cancel cancels booking") {
+    val bookingRequest = BookingRequest(1, LatLon(0, 0), LatLon(1, 1))
+    for {
+      bookingID <- client().expect[BookingID](POST(bookingRequest, baseUri))
+      _ <- client().status(POST(baseUri / bookingID.show / "cancel"))
+    } yield assertIO(
+      client().expect[Booking](GET(baseUri / bookingID.show)),
+      Booking(
+        bookingID,
+        bookingRequest.origin,
+        bookingRequest.destination,
+        bookingRequest.passengerCount,
+        cancelled = true
+      )
+    )
+  }
+
+  test("POST bookingID/cancel for unknown ID fails") {
+    assertIO(
+      client()
+        .status(
+          POST(baseUri / BookingID(UUID.randomUUID()).show / "cancel")
+        )
+        .map(_.code),
+      400
+    )
+  }
 }

@@ -15,7 +15,7 @@ class BookingEntitySuite
     extends munit.CatsEffectSuite
     with munit.ScalaCheckEffectSuite
     with Generators {
-  implicit private val logger = TestingLogger.impl[IO]()
+  implicit private val logger: TestingLogger[IO] = TestingLogger.impl[IO]()
   private val bookingAlg = BookingEntity(EntityT.instance[IO, Booking, BookingEvent])
 
   test("place booking") {

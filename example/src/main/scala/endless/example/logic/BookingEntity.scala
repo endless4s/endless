@@ -51,5 +51,9 @@ final case class BookingEntity[F[_]: Monad: Logger](entity: Entity[F, Booking, B
       newDestination: LatLon
   ): F[BookingUnknown.type \/ Unit] = changeOrigin(newOrigin) >> changeDestination(newDestination)
 
+  def cancel: F[BookingAlg.BookingUnknown.type \/ Unit] =
+    ifKnown(booking => if (!booking.cancelled) entity.write(BookingCancelled) else ().pure)(
+      BookingUnknown
+    )
 }
 //#definition
