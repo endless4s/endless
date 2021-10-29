@@ -1,20 +1,22 @@
 package endless.runtime.akka
 
-import akka.actor.typed.{ActorRef, ActorSystem}
+import akka.actor.typed.scaladsl.Behaviors
+import akka.actor.typed.{ActorRef, ActorSystem, Behavior}
 import akka.cluster.sharding.typed.ShardingEnvelope
-import akka.cluster.sharding.typed.scaladsl.{ClusterSharding, EntityTypeKey}
+import akka.cluster.sharding.typed.scaladsl.{ClusterSharding, EntityContext, EntityTypeKey}
 import akka.persistence.typed.{PersistenceId, RecoveryCompleted, RecoveryFailed}
 import akka.persistence.typed.scaladsl.{Effect, EventSourcedBehavior}
 import akka.util.Timeout
-import cats.data.ReaderT
 import cats.effect.kernel.{Async, Resource}
 import cats.effect.std.Dispatcher
 import cats.syntax.applicative._
 import cats.syntax.flatMap._
+import cats.syntax.functor._
 import cats.syntax.show._
 import cats.tagless.FunctorK
+import endless.core.interpret.EffectorT
+import endless.core.interpret.EffectorT._
 import endless.core.interpret._
-import endless.core.typeclass.effect.Effector
 import endless.core.typeclass.entity._
 import endless.core.typeclass.event.EventApplier
 import endless.core.typeclass.protocol.{CommandProtocol, CommandRouter, EntityIDEncoder}
@@ -65,8 +67,8 @@ trait Deployer {
     * @param createRepository
     *   creator for repository algebra accepting an instance of [[Repository]]
     * @param createEffector
-    *   creator for effector accepting an instance of [[Effector]], interpreted with [[ReaderT]].
-    *   Use [[Effector.unit]] if no post-persistence side-effects are required
+    *   creator for effector accepting an instance of [[Effector]], interpreted with [[EffectorT]]
+    *   (you can pass in `_ => EntityT.unit` for unit effector)
     * @param customizeBehavior
     *   hook to further customize Akka [[EventSourcedBehavior]]. By default the behavior enforces
     *   replies, and is configured with command handler and event handler. It also triggers the
@@ -106,14 +108,13 @@ trait Deployer {
   ]]](
       createEntity: Entity[EntityT[F, S, E, *], S, E] => Alg[EntityT[F, S, E, *]],
       createRepository: Repository[F, ID, Alg] => RepositoryAlg[F],
-      createEffector: StateReader[ReaderT[F, Option[S], *], S] => Effector[
-        ReaderT[F, Option[S], *]
-      ],
-      customizeBehavior: EventSourcedBehavior[Command, E, Option[S]] => EventSourcedBehavior[
-        Command,
-        E,
-        Option[S]
-      ] = identity[EventSourcedBehavior[Command, E, Option[S]]](_)
+      createEffector: Effector[EffectorT[F, S, *], S] => EffectorT[F, S, Unit],
+      customizeBehavior: (
+          EntityContext[Command],
+          EventSourcedBehavior[Command, E, Option[S]]
+      ) => Behavior[Command] =
+        (_: EntityContext[Command], behavior: EventSourcedBehavior[Command, E, Option[S]]) =>
+          behavior
   )(implicit
       sharding: ClusterSharding,
       actorSystem: ActorSystem[_],
@@ -137,14 +138,11 @@ trait Deployer {
   ]]](
       createEntity: Entity[EntityT[F, S, E, *], S, E] => Alg[EntityT[F, S, E, *]],
       createRepository: Repository[F, ID, Alg] => RepositoryAlg[F],
-      createEffector: StateReader[ReaderT[F, Option[S], *], S] => Effector[
-        ReaderT[F, Option[S], *]
-      ],
-      customizeBehavior: EventSourcedBehavior[Command, E, Option[S]] => EventSourcedBehavior[
-        Command,
-        E,
-        Option[S]
-      ]
+      createEffector: Effector[EffectorT[F, S, *], S] => EffectorT[F, S, Unit],
+      customizeBehavior: (
+          EntityContext[Command],
+          EventSourcedBehavior[Command, E, Option[S]]
+      ) => Behavior[Command]
   )(implicit
       sharding: ClusterSharding,
       actorSystem: ActorSystem[_],
@@ -157,9 +155,9 @@ trait Deployer {
     private implicit val interpretedEntityAlg: Alg[EntityT[F, S, E, *]] = createEntity(
       EntityT.instance
     )
-    private implicit val interpretedEffector: ReaderT[F, Option[S], Unit] = createEffector(
-      StateReaderT.instance
-    ).afterPersist
+    private implicit val interpretedEffector: EffectorT[F, S, Unit] = createEffector(
+      EffectorT.instance
+    )
     private val entityTypeKey = EntityTypeKey[Command](nameProvider())
     private implicit val commandRouter: CommandRouter[F, ID] = ShardingCommandRouter.apply
 
@@ -168,35 +166,40 @@ trait Deployer {
         val akkaEntity = akka.cluster.sharding.typed.scaladsl.Entity(
           EntityTypeKey[Command](nameProvider())
         ) { context =>
-          customizeBehavior(
-            EventSourcedBehavior
-              .withEnforcedReplies[Command, E, Option[S]](
-                PersistenceId(entityTypeKey.name, context.entityId),
-                Option.empty[S],
-                commandHandler = handleCommand,
-                eventHandler = handleEvent
-              )
-              .receiveSignal {
-                case (state, RecoveryCompleted) =>
-                  dispatcher.unsafeRunSync(
-                    Logger[F].info(
-                      show"Recovery of ${nameProvider()} entity ${context.entityId} completed"
-                    ) >> interpretedEffector.run(state)
-                  )
-                case (_, RecoveryFailed(failure)) =>
-                  dispatcher.unsafeRunSync(
-                    Logger[F].warn(
-                      show"Recovery of ${nameProvider()} entity ${context.entityId} failed with error ${failure.getMessage}"
+          Behaviors.setup { actor =>
+            implicit val passivator: EntityPassivator = new EntityPassivator(context, actor)
+            customizeBehavior(
+              context,
+              EventSourcedBehavior
+                .withEnforcedReplies[Command, E, Option[S]](
+                  PersistenceId(entityTypeKey.name, context.entityId),
+                  Option.empty[S],
+                  commandHandler = handleCommand,
+                  eventHandler = handleEvent
+                )
+                .receiveSignal {
+                  case (state, RecoveryCompleted) =>
+                    dispatcher.unsafeRunSync(
+                      Logger[F].info(
+                        show"Recovery of ${nameProvider()} entity ${context.entityId} completed"
+                      ) >> interpretedEffector
+                        .runS(state, PassivationState.Disabled)
+                        .map(passivator.apply)
                     )
-                  )
-              }
-          )
+                  case (_, RecoveryFailed(failure)) =>
+                    dispatcher.unsafeRunSync(
+                      Logger[F].warn(
+                        show"Recovery of ${nameProvider()} entity ${context.entityId} failed with error ${failure.getMessage}"
+                      )
+                    )
+                }
+            )
+          }
         }
         (createRepository(RepositoryT.apply[F, S, E, ID, Alg]), sharding.init(akkaEntity))
       }
 
     private def handleEvent(state: Option[S], event: E)(implicit
-        eventApplier: EventApplier[S, E],
         dispatcher: Dispatcher[F]
     ) = eventApplier.apply(state, event) match {
       case Left(error) =>
@@ -206,7 +209,8 @@ trait Deployer {
     }
 
     private def handleCommand(state: Option[S], command: Command)(implicit
-        dispatcher: Dispatcher[F]
+        dispatcher: Dispatcher[F],
+        passivator: EntityPassivator
     ) = {
       val incomingCommand =
         commandProtocol.server[EntityT[F, S, E, *]].decode(command.payload)
@@ -221,7 +225,9 @@ trait Deployer {
             Effect
               .persist(events.toList)
               .thenRun((state: Option[S]) =>
-                dispatcher.unsafeRunSync(interpretedEffector.run(state))
+                dispatcher.unsafeRunSync(
+                  interpretedEffector.runS(state, PassivationState.Disabled).map(passivator.apply)
+                )
               )
               .thenReply(command.replyTo) { _: Option[S] =>
                 Reply(incomingCommand.replyEncoder.encode(reply))
