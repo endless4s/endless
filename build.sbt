@@ -1,10 +1,10 @@
 import Dependencies._
 
 val commonSettings = Seq(
-  Compile / scalacOptions --= Seq("-language:implicitConversions", "-Xsource:2.14"),
+  scalacOptions ++= Seq("-Xfatal-warnings"),
   addCompilerPlugin("org.typelevel" % "kind-projector" % "0.13.2" cross CrossVersion.full),
   wartremoverExcluded += sourceManaged.value,
-  Compile / wartremoverErrors ++= Warts
+  Compile / compile / wartremoverErrors ++= Warts
     .allBut(Wart.Any, Wart.Nothing, Wart.ImplicitParameter, Wart.Throw, Wart.DefaultArguments),
   coverageExcludedPackages := "<empty>;endless.test.*"
 )
