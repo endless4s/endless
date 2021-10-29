@@ -15,14 +15,6 @@ import org.scalacheck.Arbitrary._
 import org.scalacheck.Arbitrary
 import cats.syntax.flatMap._
 
-@SuppressWarnings(
-  Array(
-    "org.wartremover.warts.NonUnitStatements",
-    "org.wartremover.warts.OptionPartial",
-    "org.wartremover.warts.TraversableOps",
-    "org.wartremover.warts.PublicInference"
-  )
-)
 class EntityTSuite extends DisciplineSuite {
   type State = Chain[Event] // state simply accumulates events for test purposes
   type Event = String

@@ -19,7 +19,6 @@ import org.http4s.implicits._
 
 import java.util.UUID
 
-@SuppressWarnings(Array("org.wartremover.warts.GlobalExecutionContext"))
 class ExampleAppSuite extends munit.CatsEffectSuite {
   implicit val actorSystem: ActorSystem[Nothing] =
     ActorSystem.wrap(
