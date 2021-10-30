@@ -109,7 +109,7 @@ lazy val documentation = (project in file("documentation"))
         .withLogo("logo-symbol-only.svg")
         .withFavicon("favicon.png")
         .withSocial(repository)
-        .withColor("blue grey", "red")
+    .withColor("blue grey", "red")
     }
   )
 
