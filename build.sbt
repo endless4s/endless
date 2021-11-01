@@ -26,7 +26,7 @@ inThisBuild(
     sonatypeProjectHosting := Some(
       xerial.sbt.Sonatype.GitHubHosting("endless4s", "endless", "me@jonaschapuis.com")
     ),
-    scalaVersion := "2.13.6",
+    scalaVersion := "2.13.7",
     Global / onChangedBuildSource := ReloadOnSourceChanges,
     PB.protocVersion := "3.17.3", // works on Apple Silicon,
     versionPolicyIntention := Compatibility.None,
