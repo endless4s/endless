@@ -1,4 +1,4 @@
-<img src="https://github.com/endless4s/endless/blob/master/logo/with-label/transparent/1x/logo%20endless.png" width="200">
+# Endless   <img src="https://github.com/endless4s/endless/blob/master/logo/symbol-only/transparent/1x/logo.png" width="100">
 
 [![Release](https://github.com/endless4s/endless/actions/workflows/release.yml/badge.svg?branch=master)](https://github.com/endless4s/endless/actions/workflows/release.yml)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.github.endless4s/endless-core_2.13/badge.svg)](https://maven-badges.herokuapp.com/maven-central/io.github.endless4s/endless-core_2.13)
