@@ -5,6 +5,7 @@ import endless.example.data.Booking.LatLon
 import endless.example.data.BookingEvent.{BookingPlaced, DestinationChanged, OriginChanged}
 import org.scalacheck.Prop._
 
+//#example
 class BookingEventApplierSuite extends munit.ScalaCheckSuite with Generators {
   property("booking placed when unknown") {
     forAll { booking: Booking =>
@@ -47,3 +48,4 @@ class BookingEventApplierSuite extends munit.ScalaCheckSuite with Generators {
     }
   }
 }
+//#example

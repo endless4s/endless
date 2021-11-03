@@ -37,45 +37,22 @@ In this simple example, events essentially set fields in the state:
 ## Protocol
 Command and reply encoding/decoding on client and server side is done by interpreting the entity algebra with `IncomingCommand` and `OutgoingCommand` contexts respectively:
 
-```scala
-class BookingCommandProtocol extends CirceCommandProtocol[BookingAlg] {
-  override def client: BookingAlg[OutgoingCommand[*]] =
-    new BookingAlg[OutgoingCommand[*]] {
-      def place(
-          bookingID: BookingID,
-          passengerCount: Int,
-          origin: LatLon,
-          destination: LatLon
-      ): OutgoingCommand[BookingAlreadyExists \/ Unit] =
-        outgoingCommand[BookingCommand, BookingAlreadyExists \/ Unit](
-          PlaceBooking(bookingID, passengerCount, origin, destination)
-        )
-
-      def get: OutgoingCommand[BookingUnknown.type \/ Booking] =
-        outgoingCommand[BookingCommand, BookingUnknown.type \/ Booking](Get)
-
-      //...
-    }
-
-  override def server[F[_]]: Decoder[IncomingCommand[F, BookingAlg]] =
-    CirceDecoder(io.circe.Decoder[BookingCommand].map {
-      case PlaceBooking(
-            rideID: BookingID,
-            passengerCount: Int,
-            origin: LatLon,
-            destination: LatLon
-          ) =>
-        incomingCommand[F, BookingAlreadyExists \/ Unit](
-          _.place(rideID, passengerCount, origin, destination)
-        )
-      case Get => incomingCommand[F, BookingUnknown.type \/ Booking](_.get)
-          
-      //..
-    })
-}
-```
+@@snip [BookingCommandProtocol](/example/src/main/scala/endless/example/protocol/BookingCommandProtocol.scala) { #example-client }
+@@snip [BookingCommandProtocol](/example/src/main/scala/endless/example/protocol/BookingCommandProtocol.scala) { #example-server }
 
 ## Side-effects
 We passivate bookings immediately upon cancellation, and after an hour delay for any other interaction:
 
 @@snip [BookingEffector](/example/src/main/scala/endless/example/logic/BookingEffector.scala) { #definition }
+
+## Testing
+
+Unit testing for entity algebra implementation, event handling and effector is easy thanks to the parametric nature of `F`:   
+
+@@snip [BookingEntitySuite](/example/src/test/scala/endless/example/logic/BookingEntitySuite.scala) { #example }
+
+@@snip [BookingEventApplierSuite](/example/src/test/scala/endless/example/logic/BookingEventApplierSuite.scala) { #example }
+
+@@snip [BookingEffectorSuite](/example/src/test/scala/endless/example/logic/BookingEffectorSuite.scala) { #example }
+
+`CommandProtocol` is more effectively covered via component tests as it is mostly about serialization and switchboard boilerplate.

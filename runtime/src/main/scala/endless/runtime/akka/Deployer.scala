@@ -27,19 +27,19 @@ trait Deployer {
 
   /** This function brings everything together and delivers a `Resource` with the repository
     * instance in context `F` bundled with the ref to the shard region actor returned by the call to
-    * [[ClusterSharding.init]].
+    * `ClusterSharding`.
     *
     * The function is parameterized with the context `F` and the various involved types: `S` for
     * entity state, `E` for events, `ID` for entity ID and `Alg` & `RepositoryAlg` for entity and
     * repository algebras respectively (both higher-kinded type constructors).
     *
     * In order to bridge Akka's implicit asynchronicity with the side-effect free context `F` used
-    * for algebras, it requires [[Async]] from `F`. This makes it possible to use the [[Dispatcher]]
+    * for algebras, it requires `Async` from `F`. This makes it possible to use the `Dispatcher`
     * mechanism for running the command handling monadic chain "seemingly" synchronously (but in
     * fact submitting for execution and blocking for completion from within a thread managed by
     * akka).
     *
-    * [[Logger]] is also required as the library supports some basic logging capabilities. Entity
+    * `Logger` is also required as the library supports some basic logging capabilities. Entity
     * algebra `Alg` must also be equipped with an instance of `FunctorK` to support natural
     * transformations.
     *
@@ -59,18 +59,18 @@ trait Deployer {
     * BookingEntity(_), BookingRepository(_), BookingEffector(_) )```
     *
     * '''Important''': `deployEntity` needs to be called upon application startup, before joining
-    * the cluster as the [[ClusterSharding]] extension needs to know about the various entity types
+    * the cluster as the `ClusterSharding` extension needs to know about the various entity types
     * beforehand.
     *
     * @param createEntity
-    *   creator for entity algebra accepting an instance of [[Entity]], interpreted with [[EntityT]]
+    *   creator for entity algebra accepting an instance of `Entity`, interpreted with `EntityT`
     * @param createRepository
-    *   creator for repository algebra accepting an instance of [[Repository]]
+    *   creator for repository algebra accepting an instance of `Repository`
     * @param createEffector
-    *   creator for effector accepting an instance of [[Effector]], interpreted with [[EffectorT]]
-    *   (you can pass in `_ => EntityT.unit` for unit effector)
+    *   creator for effector accepting an instance of `Effector`, interpreted with `EffectorT` (you
+    *   can pass in `_ => EntityT.unit` for unit effector)
     * @param customizeBehavior
-    *   hook to further customize Akka [[EventSourcedBehavior]]. By default the behavior enforces
+    *   hook to further customize Akka `EventSourcedBehavior`. By default the behavior enforces
     *   replies, and is configured with command handler and event handler. It also triggers the
     *   effector upon successful recovery as well as logs in warning upon recovery failure.
     * @param sharding

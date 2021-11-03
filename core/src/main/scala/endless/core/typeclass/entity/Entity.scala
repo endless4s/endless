@@ -25,7 +25,7 @@ import cats.syntax.either._
 trait Entity[F[_], S, E] extends StateReader[F, S] with EventWriter[F, E] with Monad[F] {
 
   /** Convenience function which applies `fa` on the state if entity exists and wraps this in a
-    * [[Right]], otherwise returns a [[Left]] with the provided error value.
+    * `Right`, otherwise returns a `Left` with the provided error value.
     * @param fa
     *   function to apply on state
     * @param ifUnknown
@@ -38,7 +38,7 @@ trait Entity[F[_], S, E] extends StateReader[F, S] with EventWriter[F, E] with M
     }
 
   /** Convenience function which invokes `fa` if entity doesn't yet exist and wraps this in a
-    * [[Right]], otherwise calls `ifKnown` with the state and wraps this in a [[Left]].
+    * `Right`, otherwise calls `ifKnown` with the state and wraps this in a `Left`.
     * @param fa
     *   success value when entity doesn't exist yet
     * @param ifKnown
