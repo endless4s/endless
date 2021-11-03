@@ -183,7 +183,7 @@ trait Deployer {
                       Logger[F].info(
                         show"Recovery of ${nameProvider()} entity ${context.entityId} completed"
                       ) >> interpretedEffector
-                        .runS(state, PassivationState.Disabled)
+                        .runS(state)
                         .map(passivator.apply)
                     )
                   case (_, RecoveryFailed(failure)) =>
@@ -225,9 +225,7 @@ trait Deployer {
             Effect
               .persist(events.toList)
               .thenRun((state: Option[S]) =>
-                dispatcher.unsafeRunSync(
-                  interpretedEffector.runS(state, PassivationState.Disabled).map(passivator.apply)
-                )
+                dispatcher.unsafeRunSync(interpretedEffector.runS(state).map(passivator.apply))
               )
               .thenReply(command.replyTo) { _: Option[S] =>
                 Reply(incomingCommand.replyEncoder.encode(reply))

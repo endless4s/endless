@@ -22,6 +22,12 @@ object EffectorT extends LoggerLiftingHelpers {
     */
   type EffectorT[F[_], S, A] = ReaderWriterStateT[F, Option[S], Unit, PassivationState, A]
 
+  implicit class EffectorTRunHelpers[F[_]: Monad, S, A](val effectorT: EffectorT[F, S, A]) {
+    def runA(entityState: Option[S]): F[A] = effectorT.runA(entityState, PassivationState.Disabled)
+    def runS(entityState: Option[S]): F[PassivationState] =
+      effectorT.runS(entityState, PassivationState.Disabled)
+  }
+
   sealed trait PassivationState
   object PassivationState {
     final case class After(duration: FiniteDuration) extends PassivationState
