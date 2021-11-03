@@ -9,6 +9,7 @@ import org.scalacheck.effect.PropF._
 import org.typelevel.log4cats.testing.TestingLogger
 import scala.concurrent.duration._
 
+//#example
 class BookingEffectorSuite
     extends munit.CatsEffectSuite
     with munit.ScalaCheckEffectSuite
@@ -47,3 +48,4 @@ class BookingEffectorSuite
     }
   }
 }
+//#example

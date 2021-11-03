@@ -5,8 +5,8 @@ import cats.{Applicative, Functor, ~>}
 import endless.core.interpret.EffectorT.{EffectorT, PassivationState}
 import org.typelevel.log4cats.Logger
 
-/** Helpers to lift instances of `Logger[F]` into [[EntityT]] and [[EffectorT]] monad transformers,
-  * required for execution as the library makes uses of [[Logger]] for some built-in logging
+/** Helpers to lift instances of `Logger[F]` into `EntityT` and `EffectorT` monad transformers,
+  * required for execution as the library makes uses of `Logger` for some built-in logging
   */
 trait LoggerLiftingHelpers {
   implicit def loggerForEntityT[F[_]: Functor, S, E](implicit

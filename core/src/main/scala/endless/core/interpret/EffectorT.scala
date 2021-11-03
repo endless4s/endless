@@ -10,9 +10,9 @@ object EffectorT extends LoggerLiftingHelpers {
   def unit[F[_]: Applicative, S]: EffectorT[F, S, Unit] =
     ReaderWriterStateT.liftF(Applicative[F].unit)
 
-  /** `EffectorT[F, S, A]` is a type alias for [[ReaderWriterStateT]] monad transformer from cats.
-    * It uses `Reader` to allow access to ready-only entity state and `State` to update the
-    * passivation activation schedule (`Writer` is unused)
+  /** `EffectorT[F, S, A]` is a type alias for `ReaderWriterStateT` monad transformer from cats. It
+    * uses `Reader` to allow access to ready-only entity state and `State` to update the passivation
+    * activation schedule (`Writer` is unused)
     * @tparam F
     *   context
     * @tparam S

@@ -11,6 +11,7 @@ import endless.example.data.{Booking, BookingEvent}
 import org.scalacheck.effect.PropF._
 import org.typelevel.log4cats.testing.TestingLogger
 
+//#example
 class BookingEntitySuite
     extends munit.CatsEffectSuite
     with munit.ScalaCheckEffectSuite
@@ -41,6 +42,23 @@ class BookingEntitySuite
         .flatMap(_ => assertIOBoolean(logger.logged.map(_.nonEmpty)))
     }
   }
+
+  test("change origin and destination") {
+    forAllF { (booking: Booking, newOrigin: LatLon, newDestination: LatLon) =>
+      bookingAlg
+        .changeOriginAndDestination(newOrigin, newDestination)
+        .run(EventsFolder(Some(booking), new BookingEventApplier))
+        .map {
+          case Right((events, _)) =>
+            assertEquals(
+              events,
+              Chain[BookingEvent](OriginChanged(newOrigin), DestinationChanged(newDestination))
+            )
+          case _ => fail("unexpected")
+        }
+    }
+  }
+//#example
 
   test("place booking when it already exists") {
     forAllF { booking: Booking =>
@@ -130,23 +148,6 @@ class BookingEntitySuite
         .map {
           case Right((_, Left(unknown))) => assertEquals(unknown, BookingUnknown)
           case _                         => fail("unexpected")
-        }
-    }
-  }
-
-  test("change origin and destination") {
-    forAllF { (booking: Booking, newOrigin: LatLon, newDestination: LatLon) =>
-      bookingAlg
-        .changeOriginAndDestination(newOrigin, newDestination)
-        .run(EventsFolder(Some(booking), new BookingEventApplier))
-        .map {
-          case Right((events, _)) =>
-            assertEquals(
-              events,
-              Chain[BookingEvent](OriginChanged(newOrigin), DestinationChanged(newDestination))
-            )
-          case _ => fail("unexpected")
-
         }
     }
   }
