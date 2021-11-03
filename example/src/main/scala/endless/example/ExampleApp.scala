@@ -38,6 +38,7 @@ object ExampleApp {
   final case class BookingRequest(passengerCount: Int, origin: LatLon, destination: LatLon)
   final case class BookingPatch(origin: Option[LatLon], destination: Option[LatLon])
 
+  //#main
   def apply(implicit actorSystem: ActorSystem[Nothing]): IO[Resource[IO, Server]] = {
     implicit val clusterSharding: ClusterSharding = ClusterSharding(actorSystem)
     implicit val commandProtocol: BookingCommandProtocol = new BookingCommandProtocol
@@ -66,7 +67,9 @@ object ExampleApp {
         )
       )
   }
+  //#main
 
+  //#api
   private def httpService(bookingRepository: BookingRepositoryAlg[IO]): HttpApp[IO] = HttpRoutes
     .of[IO] {
       case req @ POST -> Root / "booking"                => postBooking(bookingRepository, req)
@@ -75,6 +78,7 @@ object ExampleApp {
       case POST -> Root / "booking" / UUIDVar(id) / "cancel" => cancelBooking(bookingRepository, id)
     }
     .orNotFound
+  //#api
 
   private def postBooking(bookingRepository: BookingRepositoryAlg[IO], req: Request[IO]) =
     for {

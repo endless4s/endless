@@ -6,6 +6,7 @@ import endless.core.typeclass.event.EventApplier
 import endless.example.data.{Booking, BookingEvent}
 import BookingEvent._
 
+//#definition
 class BookingEventApplier extends EventApplier[Booking, BookingEvent] {
   def apply(state: Option[Booking], event: BookingEvent): String \/ Option[Booking] =
     (event match {
@@ -25,3 +26,4 @@ class BookingEventApplier extends EventApplier[Booking, BookingEvent] {
         state.toRight("Attempt to cancel unknown booking").map(_.copy(cancelled = true))
     }).map(Option(_))
 }
+//#definition

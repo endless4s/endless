@@ -23,7 +23,9 @@ inThisBuild(
       )
     ),
     sonatypeCredentialHost := "s01.oss.sonatype.org",
-    sonatypeProjectHosting := Some(xerial.sbt.Sonatype.GitHubHosting("endless4s", "endless", "me@jonaschapuis.com")),
+    sonatypeProjectHosting := Some(
+      xerial.sbt.Sonatype.GitHubHosting("endless4s", "endless", "me@jonaschapuis.com")
+    ),
     scalaVersion := "2.13.6",
     Global / onChangedBuildSource := ReloadOnSourceChanges,
     PB.protocVersion := "3.17.3", // works on Apple Silicon,
@@ -71,15 +73,15 @@ lazy val example = (project in file("example"))
 // Generate API documentation per module, as documented in https://www.scala-sbt.org/sbt-site/api-documentation.html#scaladoc-from-multiple-projects
 
 // Create one configuration per module
-val Core    = config("core")
-val Circe   = config("circe")
+val Core = config("core")
+val Circe = config("circe")
 val Runtime = config("runtime")
 
 // For each module define its package prefix and path in documentation API
 val scaladocSiteProjects = List(
-  core         -> (Core,    "endless",         "core"),
-  circeHelpers -> (Circe,   "endless.circe",   "circe"),
-  runtime      -> (Runtime, "endless.runtime", "runtime")
+  core -> (Core, "endless", "core"),
+  circeHelpers -> (Circe, "endless.circe", "circe"),
+  runtime -> (Runtime, "endless.runtime", "runtime")
 )
 
 lazy val documentation = (project in file("documentation"))
@@ -88,8 +90,7 @@ lazy val documentation = (project in file("documentation"))
     paradoxProperties ++= (
       scaladocSiteProjects.map { case (_, (_, pkg, path)) =>
         s"scaladoc.${pkg}.base_url" -> s"api/${path}"
-      }
-      .toMap
+      }.toMap
     ),
     scaladocSiteProjects.flatMap { case (project, (conf, _, path)) =>
       SiteScaladocPlugin.scaladocSettings(
@@ -99,13 +100,17 @@ lazy val documentation = (project in file("documentation"))
       )
     },
     Compile / paradoxMaterialTheme := {
-        val theme = (Compile / paradoxMaterialTheme).value
-        val repository =
-          (ThisBuild / sonatypeProjectHosting).value.get.scmInfo.browseUrl.toURI
-        theme
-          .withRepository(repository)
-          .withSocial(repository)
-      }
+      val theme = (Compile / paradoxMaterialTheme).value
+      val repository =
+        (ThisBuild / sonatypeProjectHosting).value.get.scmInfo.browseUrl.toURI
+      theme
+        .withRepository(repository)
+        .withFont("Overpass", "Overpass Mono")
+        .withLogo("logo-symbol-only.svg")
+        .withFavicon("favicon.png")
+        .withSocial(repository)
+        .withColor("blue grey", "red")
+    }
   )
 
 lazy val root = project
