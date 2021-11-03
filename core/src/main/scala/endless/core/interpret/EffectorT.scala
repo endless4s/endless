@@ -1,6 +1,6 @@
 package endless.core.interpret
 
-import cats.Applicative
+import cats.{Applicative, Monad}
 import cats.data.ReaderWriterStateT
 import endless.core.typeclass.entity.Effector
 

@@ -10,6 +10,7 @@ import endless.example.data.Booking
 import org.typelevel.log4cats.Logger
 import scala.concurrent.duration._
 
+//#definition
 object BookingEffector {
   def apply[F[_]: Logger: Monad](effector: Effector[F, Booking]): F[Unit] = {
     import effector._
@@ -26,3 +27,4 @@ object BookingEffector {
 
   private val passivationDelay = 1.hour
 }
+//#definition
