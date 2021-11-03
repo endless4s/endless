@@ -8,13 +8,13 @@ All definitions make use of the following type parameters:
  - `E`: entity event, e.g. @github[BookingEvent](/example/src/main/scala/endless/example/data/BookingEvent.scala)
 
 @@@ index
-* [Repository](typeclasses/repository.md)
-* [Entity](typeclasses/entity.md)
-* [EventApplier](typeclasses/applier.md)
-* [CommandProtocol](typeclasses/protocol.md)
-* [CommandRouter](typeclasses/router.md)
-* [Effector](typeclasses/effector.md)
-* [NameProvider](typeclasses/name.md)
-* [IDEncoder](typeclasses/id.md)
+* [Repository](repository.md)
+* [Entity](entity.md)
+* [EventApplier](applier.md)
+* [CommandProtocol](protocol.md)
+* [CommandRouter](router.md)
+* [Effector](effector.md)
+* [NameProvider](name.md)
+* [IDEncoder](id.md)
 @@@
 

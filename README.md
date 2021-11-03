@@ -7,4 +7,4 @@
 
 *endless* is a Scala library to describe event sourced entities using tagless-final algebras, running with built-in implementations for Akka.
 
-See the [documentation](https://endless4s.github.io) to learn more.
+Head to the [documentation](https://endless4s.github.io/endless/index.html) to learn more.
