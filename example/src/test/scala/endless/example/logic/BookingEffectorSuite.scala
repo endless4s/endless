@@ -18,14 +18,14 @@ class BookingEffectorSuite
 
   test("empty state log") {
     effector
-      .run(None, PassivationState.Disabled)
+      .runA(None)
       .flatMap(_ => assertIO(logger.logged.map(_.map(_.message).head), "State is empty"))
   }
 
   test("some state log") {
     forAllF { booking: Booking =>
       effector
-        .run(Some(booking), PassivationState.Disabled)
+        .runA(Some(booking))
         .flatMap(_ =>
           assertIOBoolean(logger.logged.map(_.map(_.message).contains(show"State is now $booking")))
         )
@@ -34,18 +34,14 @@ class BookingEffectorSuite
 
   test("some state passivate after one hour") {
     forAllF { booking: Booking =>
-      assertIO(
-        effector.runS(Some(booking), PassivationState.Disabled),
-        PassivationState.After(1.hour)
-      )
+      assertIO(effector.runS(Some(booking)), PassivationState.After(1.hour))
     }
   }
 
   test("passivate immediately when cancelled") {
     forAllF { booking: Booking =>
       assertIO(
-        effector
-          .runS(Some(booking.copy(cancelled = true)), PassivationState.Disabled),
+        effector.runS(Some(booking.copy(cancelled = true))),
         PassivationState.After(Duration.Zero)
       )
     }

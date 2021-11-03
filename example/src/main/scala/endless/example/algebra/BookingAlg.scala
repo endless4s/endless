@@ -29,6 +29,5 @@ object BookingAlg {
   final case class BookingAlreadyExists(bookingID: BookingID)
   case object BookingUnknown
 
-  implicit def functorKInstance: FunctorK[BookingAlg] =
-    Derive.functorK[BookingAlg]
+  implicit lazy val functorKInstance: FunctorK[BookingAlg] = Derive.functorK[BookingAlg]
 }
