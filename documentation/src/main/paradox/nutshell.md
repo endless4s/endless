@@ -6,7 +6,7 @@ Implementations for various aspects of an entity are provided via abstract inter
 
  - @ref:[Repository](repository.md): represents the ability to interact with a specific entity in the cluster
  - @ref:[Entity](entity.md): ability to process a command by reading the state, writing events affecting the state and producing a reply
- - @ref:[EventApplier](applier.md): ability to [*fold*](https://en.wikipedia.org/wiki/Fold_(higher-order_function)) events over entity state
+ - @ref:[EventApplier](applier.md): ability to [*fold*](https://en.wikipedia.org/wiki/Fold_\(higher-order_function\)) events over entity state
  - @ref:[CommandProtocol](protocol.md): ability to translate entity algebra invocations into serializable commands and replies
  - @ref:[Effector](effector.md): ability to produce side effects after event persistence, including passivation of the entity itself
 
