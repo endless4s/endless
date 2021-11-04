@@ -25,7 +25,7 @@ In order to bridge Akka's implicit asynchronicity with the side-effect free cont
 
 ### Protocol
 Thanks to the @ref:[CommandProtocol](protocol.md) instance, entity algebra calls can be "materialized" into concrete commands and replies which are carried in an internal protobuf binary format @github:[command.proto](/runtime/src/main/protobuf/command.proto).
-@scaladoc[ShardingCommandRouter](endless.runtime.akka.ShardingCommandRouter) takes care of delivering the commands to the right entity and returning the reply simply by using Akka's `ask`.
+[ShardingCommandRouter](/runtime/src/main/scala/endless/runtime/akka/ShardingCommandRouter.scala) takes care of delivering the commands to the right entity and returning the reply simply by using Akka's `ask`.
 
 ### Deployer
 Internally, @github[deployEntity](/runtime/src/main/scala/endless/runtime/akka/Deployer.scala) uses Akka @link:[EventSourcedBehavior](https://doc.akka.io/docs/akka/current/typed/persistence.html#example-and-core-api) { open=new } DSL to configure the entity in the following way:
