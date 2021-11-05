@@ -47,7 +47,7 @@ lazy val core = (project in file("core"))
 lazy val runtime = (project in file("runtime"))
   .dependsOn(core)
   .settings(commonSettings: _*)
-  .settings(libraryDependencies ++= catsEffectStd ++ akka ++ log4cats)
+  .settings(libraryDependencies ++= catsEffectStd ++ akkaProvided ++ log4cats)
   .settings(
     Compile / PB.targets := Seq(
       scalapb.gen() -> (Compile / sourceManaged).value / "scalapb"
@@ -65,7 +65,7 @@ lazy val example = (project in file("example"))
   .dependsOn(core, runtime, circeHelpers)
   .settings(commonSettings: _*)
   .settings(
-    libraryDependencies ++= catsEffect ++ http4s ++ akkaTest ++ logback ++ log4catsSlf4j ++ (mUnit ++ catsEffectMUnit ++ scalacheckEffect ++ log4catsTesting)
+    libraryDependencies ++= catsEffect ++ http4s ++ akka ++ akkaTest ++ logback ++ log4catsSlf4j ++ (mUnit ++ catsEffectMUnit ++ scalacheckEffect ++ log4catsTesting)
       .map(_ % Test)
   )
   .settings(name := "endless-example", run / fork := true, publish / skip := true)
@@ -109,7 +109,7 @@ lazy val documentation = (project in file("documentation"))
         .withLogo("logo-symbol-only.svg")
         .withFavicon("favicon.png")
         .withSocial(repository)
-    .withColor("blue grey", "red")
+        .withColor("blue grey", "red")
     }
   )
 

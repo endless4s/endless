@@ -17,6 +17,8 @@ object Dependencies {
       akkaPersistenceTyped
     ).map(_ % akkaVersion)
 
+  lazy val akkaProvided = akka.map(_ % Provided)
+
   lazy val akkaTest = Seq(akkaPersistenceTestkit).map(_ % akkaVersion)
 
   lazy val catsVersion = "2.6.1"
