@@ -48,5 +48,5 @@ The built-in behavior is further customizable via a `customizeBehavior` function
 @@@
 
 @@@ warning { title="Compatibility" }
-Since Akka [does not allow mixed versions](https://doc.akka.io/docs/akka/current/common/binary-compatibility-rules.html#mixed-versioning-is-not-allowed) in a project, Akka dependencies of `endless-runtime-akka` are marked a `Provided`. This means that your application `libraryDependencies` needs to directly include Akka as well.  
+Since Akka [does not allow mixed versions](https://doc.akka.io/docs/akka/current/common/binary-compatibility-rules.html#mixed-versioning-is-not-allowed) in a project, Akka dependencies of `endless-runtime-akka` are marked a `Provided`. This means that your application `libraryDependencies` needs to directly include Akka as a dependency. The minimal supported Akka version is $akka.min.version$.  
 @@@
