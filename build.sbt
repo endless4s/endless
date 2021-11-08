@@ -111,6 +111,7 @@ lazy val documentation = (project in file("documentation"))
         .withFavicon("favicon.png")
         .withSocial(repository)
         .withColor("blue grey", "red")
+        .withGoogleAnalytics("G-KKHFXG4VB4")
     }
   )
 
