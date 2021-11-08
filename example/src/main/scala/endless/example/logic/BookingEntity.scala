@@ -27,21 +27,21 @@ final case class BookingEntity[F[_]: Monad: Logger](entity: Entity[F, Booking, B
       origin: LatLon,
       destination: LatLon
   ): F[BookingAlreadyExists \/ Unit] =
-    ifUnknown(
+    ifUnknownF(
       Logger[F].info(show"Creating booking with ID $bookingID") >> write(
         BookingPlaced(bookingID, origin, destination, passengerCount)
       )
     )(_ => BookingAlreadyExists(bookingID))
 
-  def get: F[BookingUnknown.type \/ Booking] = ifKnown(_.pure)(BookingUnknown)
+  def get: F[BookingUnknown.type \/ Booking] = ifKnown(identity)(BookingUnknown)
 
   def changeOrigin(newOrigin: LatLon): F[BookingUnknown.type \/ Unit] =
-    ifKnown(booking =>
+    ifKnownF(booking =>
       if (booking.origin =!= newOrigin) entity.write(OriginChanged(newOrigin)) else ().pure
     )(BookingUnknown)
 
   def changeDestination(newDestination: LatLon): F[BookingUnknown.type \/ Unit] =
-    ifKnown(booking =>
+    ifKnownF(booking =>
       if (booking.destination =!= newDestination) entity.write(DestinationChanged(newDestination))
       else ().pure
     )(BookingUnknown)
@@ -52,7 +52,7 @@ final case class BookingEntity[F[_]: Monad: Logger](entity: Entity[F, Booking, B
   ): F[BookingUnknown.type \/ Unit] = changeOrigin(newOrigin) >> changeDestination(newDestination)
 
   def cancel: F[BookingAlg.BookingUnknown.type \/ Unit] =
-    ifKnown(booking => if (!booking.cancelled) entity.write(BookingCancelled) else ().pure)(
+    ifKnownF(booking => if (!booking.cancelled) entity.write(BookingCancelled) else ().pure)(
       BookingUnknown
     )
 }
