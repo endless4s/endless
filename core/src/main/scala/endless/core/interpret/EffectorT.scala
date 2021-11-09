@@ -1,14 +1,16 @@
 package endless.core.interpret
 
-import cats.{Applicative, Monad}
+import cats.{Applicative, Functor, Monad, ~>}
 import cats.data.ReaderWriterStateT
+import cats.tagless.FunctorK
+import cats.tagless.syntax.functorK._
 import endless.core.typeclass.entity.Effector
 
 import scala.concurrent.duration.FiniteDuration
 
-object EffectorT extends LoggerLiftingHelpers {
+object EffectorT extends LoggerLiftingHelper {
   def unit[F[_]: Applicative, S]: EffectorT[F, S, Unit] =
-    ReaderWriterStateT.liftF(Applicative[F].unit)
+    liftF(Applicative[F].unit)
 
   /** `EffectorT[F, S, A]` is a type alias for `ReaderWriterStateT` monad transformer from cats. It
     * uses `Reader` to allow access to ready-only entity state and `State` to update the passivation
@@ -47,4 +49,14 @@ object EffectorT extends LoggerLiftingHelpers {
         ReaderWriterStateT.set(PassivationState.Disabled)
     }
 
+  def liftF[F[_]: Applicative, S, A](fa: F[A]): EffectorT[F, S, A] =
+    ReaderWriterStateT.liftF(fa)
+
+  implicit def liftAlgebra[F[_]: Applicative, S, E, Alg[_[_]]: FunctorK](implicit
+      alg: Alg[F[*]]
+  ): Alg[EffectorT[F, S, *]] =
+    alg.mapK(new (F ~> EffectorT[F, S, *]) {
+      override def apply[A](fa: F[A]): EffectorT[F, S, A] =
+        EffectorT.liftF[F, S, A](fa)
+    })
 }

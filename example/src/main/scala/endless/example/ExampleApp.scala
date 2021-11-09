@@ -1,15 +1,12 @@
 package endless.example
 
-import akka.Done
 import akka.actor.typed.ActorSystem
-import akka.actor.typed.scaladsl.Behaviors
 import akka.cluster.sharding.typed.scaladsl.ClusterSharding
 import akka.util.Timeout
 import cats.effect._
 import cats.syntax.applicative._
 import cats.syntax.either._
 import cats.syntax.show._
-import endless.core.interpret.EffectorT
 import endless.core.typeclass.entity.EntityNameProvider
 import endless.core.typeclass.protocol.EntityIDEncoder
 import endless.example.algebra.{BookingAlg, BookingRepositoryAlg}
@@ -38,7 +35,7 @@ object ExampleApp {
   final case class BookingRequest(passengerCount: Int, origin: LatLon, destination: LatLon)
   final case class BookingPatch(origin: Option[LatLon], destination: Option[LatLon])
 
-  //#main
+  // #main
   def apply(implicit actorSystem: ActorSystem[Nothing]): IO[Resource[IO, Server]] = {
     implicit val clusterSharding: ClusterSharding = ClusterSharding(actorSystem)
     implicit val commandProtocol: BookingCommandProtocol = new BookingCommandProtocol
@@ -67,9 +64,9 @@ object ExampleApp {
         )
       )
   }
-  //#main
+  // #main
 
-  //#api
+  // #api
   private def httpService(bookingRepository: BookingRepositoryAlg[IO]): HttpApp[IO] = HttpRoutes
     .of[IO] {
       case req @ POST -> Root / "booking"                => postBooking(bookingRepository, req)
@@ -78,7 +75,7 @@ object ExampleApp {
       case POST -> Root / "booking" / UUIDVar(id) / "cancel" => cancelBooking(bookingRepository, id)
     }
     .orNotFound
-  //#api
+  // #api
 
   private def postBooking(bookingRepository: BookingRepositoryAlg[IO], req: Request[IO]) =
     for {

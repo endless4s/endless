@@ -216,7 +216,8 @@ trait Deployer {
         commandProtocol.server[EntityT[F, S, E, *]].decode(command.payload)
       val effect = Logger[F].debug(
         show"Handling command for ${nameProvider()} entity ${command.id}"
-      ) >> RepositoryT.apply
+      ) >> RepositoryT
+        .apply[F, S, E, ID, Alg]
         .runCommand(state, incomingCommand)
         .flatMap {
           case Left(error) =>

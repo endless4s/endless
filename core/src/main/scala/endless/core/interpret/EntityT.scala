@@ -6,7 +6,9 @@ import cats.syntax.applicative._
 import cats.syntax.either._
 import cats.syntax.flatMap._
 import cats.syntax.functor._
-import cats.{Applicative, Eq, Functor, Monad}
+import cats.tagless.FunctorK
+import cats.tagless.syntax.functorK._
+import cats.{Applicative, Eq, Functor, Monad, ~>}
 import endless.core.data.EventsFolder
 import endless.core.data.Folded
 
@@ -46,7 +48,7 @@ final class EntityT[F[_], S, E, A](
     })
 }
 
-object EntityT extends EntityRunFunctions with LoggerLiftingHelpers {
+object EntityT extends EntityRunFunctions with LoggerLiftingHelper {
   def writer[F[_]: Applicative, S, E](newEvents: NonEmptyChain[E]): EntityT[F, S, E, Unit] =
     new EntityT((_, existing) => write(newEvents)(existing))
 
@@ -65,4 +67,12 @@ object EntityT extends EntityRunFunctions with LoggerLiftingHelpers {
     new EntityTLiftInstance[F, S, E] {
       override protected implicit def monad: Monad[F] = monad0
     }
+
+  implicit def liftAlgebra[F[_]: Functor, S, E, Alg[_[_]]: FunctorK](implicit
+      alg: Alg[F[*]]
+  ): Alg[EntityT[F, S, E, *]] =
+    alg.mapK(new (F ~> EntityT[F, S, E, *]) {
+      override def apply[A](fa: F[A]): EntityT[F, S, E, A] =
+        EntityT.liftF[F, S, E, A](fa)
+    })
 }
