@@ -11,6 +11,7 @@ import cats.tagless.syntax.functorK._
 import cats.{Applicative, Eq, Functor, Monad, ~>}
 import endless.core.data.EventsFolder
 import endless.core.data.Folded
+import endless.core.typeclass.event.EventApplier
 
 /** `EntityT[F, S, E, A]`` is data type implementing the `Entity[F, S, E]` state reader and event
   * writer abilities. It is a monad transformer used as an interpreter for functional chains
@@ -36,7 +37,11 @@ import endless.core.data.Folded
 final class EntityT[F[_], S, E, A](
     val runAcc: (EventsFolder[S, E], Chain[E]) => F[Folded[E, A]]
 ) extends AnyVal {
-  def run(folder: EventsFolder[S, E]): F[Folded[E, A]] =
+  def run(state: Option[S])(implicit applier: EventApplier[S, E]): F[Folded[E, A]] = runWithFolder(
+    EventsFolder(state, applier)
+  )
+
+  private def runWithFolder(folder: EventsFolder[S, E]): F[Folded[E, A]] =
     runAcc(folder, Chain.empty)
 
   def flatMap[B](f: A => EntityT[F, S, E, B])(implicit monad: Monad[F]): EntityT[F, S, E, B] =
