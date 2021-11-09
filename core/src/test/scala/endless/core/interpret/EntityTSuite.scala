@@ -4,16 +4,15 @@ import cats.data.{Chain, NonEmptyChain}
 import cats.laws.discipline.MonadTests
 import cats.syntax.either._
 import cats.syntax.eq._
+import cats.syntax.flatMap._
 import cats.tests.ListWrapper
 import cats.tests.ListWrapper._
 import cats.{Applicative, Eq, Functor, Monad}
-import endless.core.data.EventsFolder
 import endless.core.interpret.EntityT._
 import endless.core.typeclass.event.EventApplier
 import munit.DisciplineSuite
-import org.scalacheck.Arbitrary._
 import org.scalacheck.Arbitrary
-import cats.syntax.flatMap._
+import org.scalacheck.Arbitrary._
 
 class EntityTSuite extends DisciplineSuite {
   type State = Chain[Event] // state simply accumulates events for test purposes
@@ -22,15 +21,14 @@ class EntityTSuite extends DisciplineSuite {
   val event1 = "event 1"
   val event2 = "event 2"
   val event3 = "event 3"
-  val eventApplier: EventApplier[State, Event] = (state: Option[State], event: Event) =>
+  implicit val eventApplier: EventApplier[State, Event] = (state: Option[State], event: Event) =>
     state.map(_ :+ event).asRight
-  val folder = EventsFolder(Some(Chain.empty), eventApplier)
 
   implicit val F: Monad[ListWrapper] = ListWrapper.monad // ListWrapper is cat's base testing effect
 
   implicit def eqEntityT[A: Eq]: Eq[EntityT[ListWrapper, State, Event, A]] =
     (x: EntityT[ListWrapper, State, Event, A], y: EntityT[ListWrapper, State, Event, A]) =>
-      x.run(folder) === y.run(folder)
+      x.run(Some(Chain.empty)) === y.run(Some(Chain.empty))
 
   implicit def arbitrary[F[_]: Monad, A](implicit
       F: Arbitrary[F[A]]
@@ -63,7 +61,7 @@ class EntityTSuite extends DisciplineSuite {
       .writer[ListWrapper, State, Event](
         NonEmptyChain(event1, event2, event3)
       ) >> EntityT.reader)
-      .run(folder)
+      .run(Some(Chain.empty))
       .list
 
     assert(events === Chain(event1, event2, event3))
@@ -73,7 +71,7 @@ class EntityTSuite extends DisciplineSuite {
   test("failing folder fails when reader is involved") {
     val List(Left(error)) = (EntityT
       .writer[ListWrapper, State, Event](NonEmptyChain.one(event1)) >> EntityT.reader)
-      .run(EventsFolder(Some(Chain.empty), (_: Option[State], _: Event) => "error".asLeft))
+      .run(Some(Chain.empty))((_: Option[State], _: Event) => "error".asLeft)
       .list
 
     assert(error === "error")

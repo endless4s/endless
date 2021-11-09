@@ -49,8 +49,7 @@ final class RepositoryT[F[_], S, E, ID, Alg[_[_]]: FunctorK](implicit
   def runCommand(
       state: Option[S],
       command: IncomingCommand[EntityT[F, S, E, *], Alg]
-  ): F[Folded[E, command.Reply]] =
-    command.runWith(entity).run(EventsFolder(state, eventApplier))
+  ): F[Folded[E, command.Reply]] = command.runWith(entity).run(state)
 }
 
 object RepositoryT {

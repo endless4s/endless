@@ -1,7 +1,6 @@
 package endless.example.logic
 import cats.data.Chain
 import cats.effect.IO
-import endless.core.data.EventsFolder
 import endless.core.interpret.EntityT
 import endless.core.interpret.EntityT._
 import endless.example.algebra.BookingAlg.{BookingAlreadyExists, BookingUnknown}
@@ -18,12 +17,13 @@ class BookingEntitySuite
     with Generators {
   implicit private val logger: TestingLogger[IO] = TestingLogger.impl[IO]()
   private val bookingAlg = BookingEntity(EntityT.instance[IO, Booking, BookingEvent])
+  private implicit val eventApplier: BookingEventApplier = new BookingEventApplier
 
   test("place booking") {
     forAllF { booking: Booking =>
       bookingAlg
         .place(booking.id, booking.passengerCount, booking.origin, booking.destination)
-        .run(EventsFolder(state = None, new BookingEventApplier))
+        .run(None)
         .map {
           case Right((events, _)) =>
             assertEquals(
@@ -47,7 +47,7 @@ class BookingEntitySuite
     forAllF { (booking: Booking, newOrigin: LatLon, newDestination: LatLon) =>
       bookingAlg
         .changeOriginAndDestination(newOrigin, newDestination)
-        .run(EventsFolder(Some(booking), new BookingEventApplier))
+        .run(Some(booking))
         .map {
           case Right((events, _)) =>
             assertEquals(
@@ -65,11 +65,8 @@ class BookingEntitySuite
       bookingAlg
         .place(booking.id, booking.passengerCount, booking.origin, booking.destination)
         .run(
-          EventsFolder(
-            state = Some(
-              Booking(booking.id, booking.origin, booking.destination, booking.passengerCount)
-            ),
-            new BookingEventApplier
+          Some(
+            Booking(booking.id, booking.origin, booking.destination, booking.passengerCount)
           )
         )
         .map {
@@ -83,7 +80,7 @@ class BookingEntitySuite
   test("get booking") {
     forAllF { booking: Booking =>
       bookingAlg.get
-        .run(EventsFolder(state = Some(booking), new BookingEventApplier))
+        .run(Some(booking))
         .map {
           case Right((events, Right(state))) =>
             assert(events.isEmpty)
@@ -95,7 +92,7 @@ class BookingEntitySuite
 
   test("get booking when unknown") {
     bookingAlg.get
-      .run(EventsFolder(state = None, new BookingEventApplier))
+      .run(None)
       .map {
         case Right((_, Left(unknown))) => assertEquals(unknown, BookingUnknown)
         case _                         => fail("unexpected")
@@ -106,7 +103,7 @@ class BookingEntitySuite
     forAllF { (booking: Booking, newOrigin: LatLon) =>
       bookingAlg
         .changeOrigin(newOrigin)
-        .run(EventsFolder(Some(booking), new BookingEventApplier))
+        .run(Some(booking))
         .map {
           case Right((events, _)) =>
             assertEquals(events, Chain(OriginChanged(newOrigin)))
@@ -119,7 +116,7 @@ class BookingEntitySuite
     forAllF { newOrigin: LatLon =>
       bookingAlg
         .changeOrigin(newOrigin)
-        .run(EventsFolder(None, new BookingEventApplier))
+        .run(None)
         .map {
           case Right((_, Left(unknown))) => assertEquals(unknown, BookingUnknown)
           case _                         => fail("unexpected")
@@ -131,7 +128,7 @@ class BookingEntitySuite
     forAllF { (booking: Booking, newDestination: LatLon) =>
       bookingAlg
         .changeDestination(newDestination)
-        .run(EventsFolder(Some(booking), new BookingEventApplier))
+        .run(Some(booking))
         .map {
           case Right((events, _)) =>
             assertEquals(events, Chain(DestinationChanged(newDestination)))
@@ -144,7 +141,7 @@ class BookingEntitySuite
     forAllF { newDestination: LatLon =>
       bookingAlg
         .changeDestination(newDestination)
-        .run(EventsFolder(None, new BookingEventApplier))
+        .run(None)
         .map {
           case Right((_, Left(unknown))) => assertEquals(unknown, BookingUnknown)
           case _                         => fail("unexpected")
@@ -156,12 +153,11 @@ class BookingEntitySuite
     forAllF { (newOrigin: LatLon, newDestination: LatLon) =>
       bookingAlg
         .changeOriginAndDestination(newOrigin, newDestination)
-        .run(EventsFolder(None, new BookingEventApplier))
+        .run(None)
         .map {
           case Right((_, Left(unknown))) => assertEquals(unknown, BookingUnknown)
           case _                         => fail("unexpected")
         }
     }
   }
-
 }
