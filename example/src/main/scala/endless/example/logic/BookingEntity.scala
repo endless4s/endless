@@ -2,10 +2,8 @@ package endless.example.logic
 
 import cats.Monad
 import cats.syntax.applicative._
-import cats.syntax.either._
 import cats.syntax.eq._
 import cats.syntax.flatMap._
-import cats.syntax.functor._
 import cats.syntax.show._
 import endless.\/
 import endless.core.typeclass.entity.Entity
