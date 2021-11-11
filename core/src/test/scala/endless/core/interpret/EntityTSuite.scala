@@ -13,6 +13,7 @@ import endless.core.typeclass.event.EventApplier
 import munit.DisciplineSuite
 import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary._
+import org.typelevel.log4cats.Logger
 
 class EntityTSuite extends DisciplineSuite {
   type State = Chain[Event] // state simply accumulates events for test purposes
@@ -75,5 +76,11 @@ class EntityTSuite extends DisciplineSuite {
       .list
 
     assert(error === "error")
+  }
+
+  test("liftK is resolved by Logger auto-derive") {
+    implicit val logger: Logger[ListWrapper] = new DummyTestLogger
+    class SomeLoggingAlgebra[F[_]: Logger]
+    new SomeLoggingAlgebra[EntityT[ListWrapper, State, Event, *]]
   }
 }
