@@ -13,6 +13,14 @@ object EffectorT extends LoggerLiftingHelper {
   def unit[F[_]: Applicative, S]: EffectorT[F, S, Unit] =
     liftF(Applicative[F].unit)
 
+  def reader[F[_]: Applicative, S]: EffectorT[F, S, Option[S]] = ReaderWriterStateT.ask
+
+  def passivationEnabler[F[_]: Applicative, S](after: FiniteDuration): EffectorT[F, S, Unit] =
+    ReaderWriterStateT.set(PassivationState.After(after))
+
+  def passivationDisabler[F[_]: Applicative, S]: EffectorT[F, S, Unit] =
+    ReaderWriterStateT.set(PassivationState.Disabled)
+
   /** `EffectorT[F, S, A]` is a type alias for `ReaderWriterStateT` monad transformer from cats. It
     * uses `Reader` to allow access to ready-only entity state and `State` to update the passivation
     * activation schedule (`Writer` is unused)
@@ -41,13 +49,11 @@ object EffectorT extends LoggerLiftingHelper {
 
   implicit def instance[F[_]: Applicative, S]: EffectorLift[EffectorT[F, S, *], F, S] =
     new EffectorLift[EffectorT[F, S, *], F, S] {
-      def read: EffectorT[F, S, Option[S]] = ReaderWriterStateT.ask
-
-      def enablePassivation(after: FiniteDuration): EffectorT[F, S, Unit] =
-        ReaderWriterStateT.set(PassivationState.After(after))
-
-      def disablePassivation: EffectorT[F, S, Unit] =
-        ReaderWriterStateT.set(PassivationState.Disabled)
+      def read: EffectorT[F, S, Option[S]] = reader
+      def enablePassivation(after: FiniteDuration): EffectorT[F, S, Unit] = passivationEnabler(
+        after
+      )
+      def disablePassivation: EffectorT[F, S, Unit] = passivationDisabler
     }
 
   def liftF[F[_]: Applicative, S, A](fa: F[A]): EffectorT[F, S, A] =
