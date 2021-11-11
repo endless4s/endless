@@ -64,6 +64,11 @@ object EntityT extends EntityRunFunctions with LoggerLiftingHelper {
   def liftF[F[_]: Functor, S, E, A](fa: F[A]): EntityT[F, S, E, A] =
     new EntityT((_, events) => fa.map(a => (events, a).asRight))
 
+  implicit def liftK[F[_]: Functor, S, E, A]: F ~> EntityT[F, S, E, *] =
+    new (F ~> EntityT[F, S, E, *]) {
+      def apply[B](fa: F[B]): EntityT[F, S, E, B] = liftF(fa)
+    }
+
   def reader[F[_]: Monad, S, E]: EntityT[F, S, E, Option[S]] = new EntityT(read[F, S, E])
 
   implicit def instance[F[_], S, E](implicit
