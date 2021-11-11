@@ -53,13 +53,5 @@ object EffectorT extends LoggerLiftingHelper {
   def liftF[F[_]: Applicative, S, A](fa: F[A]): EffectorT[F, S, A] =
     ReaderWriterStateT.liftF(fa)
 
-  implicit def liftK[F[_]: Applicative, S, A]: F ~> EffectorT[F, S,  *] = ReaderWriterStateT.liftK
-
-  implicit def liftAlgebra[F[_]: Applicative, S, E, Alg[_[_]]: FunctorK](implicit
-      alg: Alg[F[*]]
-  ): Alg[EffectorT[F, S, *]] =
-    alg.mapK(new (F ~> EffectorT[F, S, *]) {
-      override def apply[A](fa: F[A]): EffectorT[F, S, A] =
-        EffectorT.liftF[F, S, A](fa)
-    })
+  implicit def liftK[F[_]: Applicative, S, A]: F ~> EffectorT[F, S, *] = ReaderWriterStateT.liftK
 }
