@@ -4,6 +4,7 @@ import cats.{Applicative, Functor, Monad, ~>}
 import cats.data.ReaderWriterStateT
 import cats.tagless.FunctorK
 import cats.tagless.syntax.functorK._
+import endless.core.interpret.EntityT.liftF
 import endless.core.typeclass.entity.Effector
 
 import scala.concurrent.duration.FiniteDuration
@@ -51,6 +52,8 @@ object EffectorT extends LoggerLiftingHelper {
 
   def liftF[F[_]: Applicative, S, A](fa: F[A]): EffectorT[F, S, A] =
     ReaderWriterStateT.liftF(fa)
+
+  implicit def liftK[F[_]: Applicative, S, A]: F ~> EffectorT[F, S,  *] = ReaderWriterStateT.liftK
 
   implicit def liftAlgebra[F[_]: Applicative, S, E, Alg[_[_]]: FunctorK](implicit
       alg: Alg[F[*]]
