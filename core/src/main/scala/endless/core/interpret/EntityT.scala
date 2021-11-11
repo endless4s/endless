@@ -77,12 +77,4 @@ object EntityT extends EntityRunFunctions with LoggerLiftingHelper {
     new EntityTLiftInstance[F, S, E] {
       override protected implicit def monad: Monad[F] = monad0
     }
-
-  implicit def liftAlgebra[F[_]: Functor, S, E, Alg[_[_]]: FunctorK](implicit
-      alg: Alg[F[*]]
-  ): Alg[EntityT[F, S, E, *]] =
-    alg.mapK(new (F ~> EntityT[F, S, E, *]) {
-      override def apply[A](fa: F[A]): EntityT[F, S, E, A] =
-        EntityT.liftF[F, S, E, A](fa)
-    })
 }
