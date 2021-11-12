@@ -25,7 +25,7 @@ class BookingCommandProtocol extends CirceCommandProtocol[BookingAlg] {
         )
 
       // ...
-      //#example-client
+      // #example-client
 
       def get: OutgoingCommand[BookingUnknown.type \/ Booking] =
         outgoingCommand[BookingCommand, BookingUnknown.type \/ Booking](Get)
@@ -68,7 +68,7 @@ class BookingCommandProtocol extends CirceCommandProtocol[BookingAlg] {
         incomingCommand[F, BookingAlreadyExists \/ Unit](
           _.place(rideID, passengerCount, origin, destination)
         )
-      //#example-server
+      // #example-server
 
       case Get => incomingCommand[F, BookingUnknown.type \/ Booking](_.get)
       case ChangeOrigin(newOrigin) =>
