@@ -40,5 +40,7 @@ jobs:
         run: sbt documentation/makeSite
       - uses: JamesIves/github-pages-deploy-action@4.1.5
         with:
-          branch: gh-pages
+          repository-name: endless4s/endless4s.github.io
+          branch: master
+          token: ${{ secrets.DOC_GITHUB_TOKEN }}
           folder: documentation/target/site
