@@ -14,5 +14,6 @@ trait CommandProtocol[Alg[_[_]]] {
 In other words, `client` materializes algebra invocations into concrete serializable outgoing commands and `server` acts as a switchboard for incoming commands. See @github[BookingCommandProtocol](/example/src/main/scala/endless/example/protocol/BookingCommandProtocol.scala) for a concrete example.
 
 @@@ note { .info title="Explicit or implicit representations" }
-`CommandProtocol` is the entry point for implementations to map algebra entries to concrete commands and replies. We tend to prefer explicit materialization for migration safety but nothing prevents protocol implementers to opt for automatic binary serialization via macros and e.g. using [scodec](http://scodec.org/). We provide helpers for definition of JSON protocols in `endless-circe-helpers`.     
+`CommandProtocol` is the entry point for implementations to map algebra entries to concrete commands and replies. We tend to prefer explicit materialization for migration safety but nothing prevents protocol implementers to opt for automatic serialization via macros. 
+We provide helpers for definition of binary protocols in `endless-scodec-helpers` and JSON protocols in `endless-circe-helpers`.     
 @@@

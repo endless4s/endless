@@ -58,8 +58,16 @@ lazy val runtime = (project in file("runtime"))
 lazy val circeHelpers = (project in file("circe"))
   .dependsOn(core)
   .settings(commonSettings: _*)
-  .settings(libraryDependencies ++= circe :+ (akkaActorTyped % akkaVersion))
+  .settings(
+    libraryDependencies ++= (circe :+ (akkaActorTyped % akkaVersion)) ++ mUnit.map(_ % Test)
+  )
   .settings(name := "endless-circe-helpers")
+
+lazy val scodecHelpers = (project in file("scodec"))
+  .dependsOn(core)
+  .settings(commonSettings: _*)
+  .settings(libraryDependencies ++= scodecCore ++ mUnit.map(_ % Test))
+  .settings(name := "endless-scodec-helpers")
 
 lazy val example = (project in file("example"))
   .dependsOn(core, runtime, circeHelpers)
@@ -117,7 +125,7 @@ lazy val documentation = (project in file("documentation"))
 
 lazy val root = project
   .in(file("."))
-  .aggregate(core, runtime, circeHelpers, example)
+  .aggregate(core, runtime, circeHelpers, scodecHelpers, example)
   .dependsOn(example)
   .settings(Compile / mainClass := (example / Compile / mainClass).value)
   .settings(commonSettings: _*)
