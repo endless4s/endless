@@ -76,4 +76,6 @@ object Dependencies {
   lazy val scalacheckEffect = Seq(
     "org.typelevel" %% "scalacheck-effect-munit" % scalacheckEffectVersion
   )
+
+  lazy val scodecCore = Seq("org.scodec" %% "scodec-core" % "1.11.9")
 }
