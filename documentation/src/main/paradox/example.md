@@ -55,4 +55,8 @@ Unit testing for entity algebra implementation, event handling and effector is e
 
 @@snip [BookingEffectorSuite](/example/src/test/scala/endless/example/logic/BookingEffectorSuite.scala) { #example }
 
-`CommandProtocol` is more effectively covered via component tests as it is mostly about serialization and switchboard boilerplate.
+Command protocol can be also easily be covered with synchronous round-trip tests:
+
+@@snip [BookingCommandProtocolSuite](/example/src/test/scala/endless/example/protocol/BookingCommandProtocolSuite.scala) { #example }
+
+Component and integration tests using akka testkit are also advisable and work as usual, see @github[ExampleAppSuite](/example/src/test/scala/endless/example/ExampleAppSuite.scala).
