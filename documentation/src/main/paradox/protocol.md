@@ -17,3 +17,7 @@ In other words, `client` materializes algebra invocations into concrete serializ
 `CommandProtocol` is the entry point for implementations to map algebra entries to concrete commands and replies. We tend to prefer explicit materialization for migration safety but nothing prevents protocol implementers to opt for automatic serialization via macros. 
 We provide helpers for definition of binary protocols in `endless-scodec-helpers` and JSON protocols in `endless-circe-helpers`.     
 @@@
+
+@@@ note { .tip title="Testing" }
+Command protocols can be tested in isolation via synchronous round-trip exercise of the journey _client invocation -> command materialization -> command encoding -> command decoding -> behavior invocation -> reply materialization -> reply encoding -> reply decoding_. See @github[BookingCommandProtocolSuite](/example/src/test/scala/endless/example/protocol/BookingCommandProtocolSuite.scala) for an example.
+@@@
