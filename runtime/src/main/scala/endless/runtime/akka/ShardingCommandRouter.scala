@@ -42,17 +42,20 @@ private[akka] final class ShardingCommandRouter[F[_]: Logger, ID](implicit
   def routerForID(id: ID): OutgoingCommand[*] ~> F =
     new (OutgoingCommand[*] ~> F) {
       def apply[A](fa: OutgoingCommand[A]): F[A] = {
+        val encodedID = idEncoder.encode(id)
         F.fromFuture {
-          Logger[F].debug(show"Sending command to ${nameProvider()} entity ${idEncoder(id)}") >> F
+          Logger[F].debug(
+            show"Sending command to ${nameProvider()} entity $encodedID"
+          ) >> F
             .delay {
               sharding.entityRefFor(
                 EntityTypeKey[Command](nameProvider()),
-                idEncoder(id)
-              ) ? Command(idEncoder(id), fa.payload)
+                encodedID
+              ) ? Command(encodedID, fa.payload)
             }
         } >>= { case Reply(payload) =>
           Logger[F].debug(
-            show"Got reply from ${nameProvider()} entity ${idEncoder(id)}"
+            show"Got reply from ${nameProvider()} entity $encodedID"
           ) >> fa.replyDecoder.decode(payload).pure[F]
         }
       }

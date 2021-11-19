@@ -1,7 +1,13 @@
-# EntityIDEncoder
+# EntityIDCodec
 
 ```scala
-trait EntityIDEncoder[-ID] extends (ID => String)
+trait EntityIDEncoder[-ID] {
+  def encode(id: ID): String
+}
+trait EntityIDDecoder[+ID] {
+  def decode(id: String): ID
+}
+trait EntityIDCodec[ID] extends EntityIDEncoder[ID] with EntityIDDecoder[ID]
 ```
 
-@scaladoc[EntityIDEncoder](endless.core.typeclass.protocol.EntityIDEncoder) can encode the entity ID into `String` for transmission over the wire with commands. 
+@scaladoc[EntityIDCodec](endless.core.typeclass.protocol.EntityCodec) can encode/decode the entity ID into/from `String` for transmission over the wire together with commands. 

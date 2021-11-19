@@ -41,7 +41,7 @@ Command and reply encoding/decoding on client and server side is done by interpr
 @@snip [BookingCommandProtocol](/example/src/main/scala/endless/example/protocol/BookingCommandProtocol.scala) { #example-server }
 
 ## Side-effects
-We passivate bookings immediately upon cancellation, and after an hour delay for any other interaction:
+We describe *availability* process as well as explicit entity passivation using `Effector`: 
 
 @@snip [BookingEffector](/example/src/main/scala/endless/example/logic/BookingEffector.scala) { #definition }
 

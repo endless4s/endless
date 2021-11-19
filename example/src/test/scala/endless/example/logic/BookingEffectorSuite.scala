@@ -2,11 +2,14 @@ package endless.example.logic
 
 import cats.effect.IO
 import cats.syntax.show._
+import endless.\/
 import endless.core.interpret.EffectorT
 import endless.core.interpret.EffectorT._
+import endless.example.algebra.BookingAlg
 import endless.example.data.Booking
 import org.scalacheck.effect.PropF._
 import org.typelevel.log4cats.testing.TestingLogger
+
 import scala.concurrent.duration._
 
 //#example
@@ -15,7 +18,7 @@ class BookingEffectorSuite
     with munit.ScalaCheckEffectSuite
     with Generators {
   implicit private val logger: TestingLogger[IO] = TestingLogger.impl[IO]()
-  private val effector = BookingEffector(EffectorT.instance[IO, Booking])
+  private val effector = BookingEffector(EffectorT.instance[IO, Booking, BookingAlg])
 
   test("empty state log") {
     effector

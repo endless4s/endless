@@ -6,13 +6,15 @@ import cats.syntax.functor._
 import cats.syntax.show._
 import cats.syntax.applicative._
 import endless.core.typeclass.entity.Effector
+import endless.example.algebra.BookingAlg
 import endless.example.data.Booking
 import org.typelevel.log4cats.Logger
+
 import scala.concurrent.duration._
 
 //#definition
 object BookingEffector {
-  def apply[F[_]: Logger: Monad](effector: Effector[F, Booking]): F[Unit] = {
+  def apply[F[_]: Logger: Monad](effector: Effector[F, Booking, BookingAlg]): F[Unit] = {
     import effector._
     for {
       maybeBooking <- read

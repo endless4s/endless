@@ -8,7 +8,7 @@ import cats.syntax.applicative._
 import cats.syntax.either._
 import cats.syntax.show._
 import endless.core.typeclass.entity.EntityNameProvider
-import endless.core.typeclass.protocol.EntityIDEncoder
+import endless.core.typeclass.protocol.{EntityIDCodec, EntityIDEncoder}
 import endless.example.algebra.{BookingAlg, BookingRepositoryAlg}
 import endless.example.data.Booking.{BookingID, LatLon}
 import endless.example.data.{Booking, BookingEvent}
@@ -41,7 +41,8 @@ object ExampleApp {
     implicit val commandProtocol: BookingCommandProtocol = new BookingCommandProtocol
     implicit val eventApplier: BookingEventApplier = new BookingEventApplier
     implicit val bookingEntityNameProvider: EntityNameProvider[BookingID] = () => "booking"
-    implicit val idEncoder: EntityIDEncoder[BookingID] = _.id.toString
+    implicit val idEncoder: EntityIDCodec[BookingID] =
+      EntityIDCodec(_.id.toString, BookingID.fromString)
     implicit val askTimeout: Timeout = Timeout(10.seconds)
 
     Slf4jLogger
