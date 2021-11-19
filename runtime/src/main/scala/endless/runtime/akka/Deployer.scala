@@ -4,8 +4,8 @@ import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, ActorSystem, Behavior}
 import akka.cluster.sharding.typed.ShardingEnvelope
 import akka.cluster.sharding.typed.scaladsl.{ClusterSharding, EntityContext, EntityTypeKey}
-import akka.persistence.typed.{PersistenceId, RecoveryCompleted, RecoveryFailed}
 import akka.persistence.typed.scaladsl.{Effect, EventSourcedBehavior}
+import akka.persistence.typed.{PersistenceId, RecoveryCompleted, RecoveryFailed}
 import akka.util.Timeout
 import cats.effect.kernel.{Async, Resource}
 import cats.effect.std.Dispatcher
@@ -14,12 +14,11 @@ import cats.syntax.flatMap._
 import cats.syntax.functor._
 import cats.syntax.show._
 import cats.tagless.FunctorK
-import endless.core.interpret.EffectorT
 import endless.core.interpret.EffectorT._
-import endless.core.interpret._
+import endless.core.interpret.{EffectorT, _}
 import endless.core.typeclass.entity._
 import endless.core.typeclass.event.EventApplier
-import endless.core.typeclass.protocol.{CommandProtocol, CommandRouter, EntityIDEncoder}
+import endless.core.typeclass.protocol.{CommandProtocol, CommandRouter, EntityIDCodec}
 import endless.runtime.akka.data._
 import org.typelevel.log4cats.Logger
 
@@ -52,8 +51,8 @@ trait Deployer {
     * name provider, entity ID encoder, command protocol, event application function in addition to
     * the usual akka ask timeout, actor system and cluster sharding extension.
     *
-    * Although its signature looks complicated, in practice usage of this method isn't difficut with
-    * the proper implicits and definitions: refer to the sample application for example usage:
+    * Although its signature looks complicated, in practice usage of this method isn't difficult
+    * with the proper implicits and definitions: refer to the sample application for example usage:
     *
     * ```scala deployEntity[IO, Booking, BookingEvent, BookingID, BookingAlg, BookingRepositoryAlg](
     * BookingEntity(_), BookingRepository(_), BookingEffector(_) )```
@@ -79,8 +78,6 @@ trait Deployer {
     *   actor system
     * @param nameProvider
     *   entity name provider
-    * @param idEncoder
-    *   entity ID encoder to string
     * @param commandProtocol
     *   instance of command protocol for the algebra (serialization specification)
     * @param eventApplier
@@ -88,27 +85,27 @@ trait Deployer {
     * @param askTimeout
     *   Akka ask timeout
     * @tparam F
-    *   context
+    *   context, requires instances of `Async` and `Logger`
     * @tparam S
     *   state
     * @tparam E
     *   event
     * @tparam ID
-    *   entity ID
+    *   entity ID, requires an instance of `EntityIDCodec`
     * @tparam Alg
     *   entity algebra
     * @tparam RepositoryAlg
-    *   repository algebra
+    *   repository algebra, requires an instance of `FunctorK`
     * @return
     *   resource (with underlying allocated dispatcher) containing the algebra in `F` context to
     *   interact with the entity together with Akka shard region actor ref
     */
-  def deployEntity[F[_]: Async: Logger, S, E, ID, Alg[_[_]]: FunctorK, RepositoryAlg[_[
-      _
-  ]]](
+  def deployEntity[F[_]: Async: Logger, S, E, ID: EntityIDCodec, Alg[_[_]]: FunctorK, RepositoryAlg[
+      _[_]
+  ]](
       createEntity: Entity[EntityT[F, S, E, *], S, E] => Alg[EntityT[F, S, E, *]],
       createRepository: Repository[F, ID, Alg] => RepositoryAlg[F],
-      createEffector: Effector[EffectorT[F, S, *], S] => EffectorT[F, S, Unit],
+      createEffector: Effector[EffectorT[F, S, Alg, *], S, Alg] => EffectorT[F, S, Alg, Unit],
       customizeBehavior: (
           EntityContext[Command],
           EventSourcedBehavior[Command, E, Option[S]]
@@ -119,7 +116,6 @@ trait Deployer {
       sharding: ClusterSharding,
       actorSystem: ActorSystem[_],
       nameProvider: EntityNameProvider[ID],
-      idEncoder: EntityIDEncoder[ID],
       commandProtocol: CommandProtocol[Alg],
       eventApplier: EventApplier[S, E],
       askTimeout: Timeout
@@ -133,12 +129,12 @@ trait Deployer {
 
   final class EventApplierException(error: String) extends RuntimeException(error)
 
-  private class DeployEntity[F[_]: Async: Logger, S, E, ID, Alg[_[_]]: FunctorK, RepositoryAlg[_[
-      _
-  ]]](
+  private class DeployEntity[F[_]: Async: Logger, S, E, ID: EntityIDCodec, Alg[
+      _[_]
+  ]: FunctorK, RepositoryAlg[_[_]]](
       createEntity: Entity[EntityT[F, S, E, *], S, E] => Alg[EntityT[F, S, E, *]],
       createRepository: Repository[F, ID, Alg] => RepositoryAlg[F],
-      createEffector: Effector[EffectorT[F, S, *], S] => EffectorT[F, S, Unit],
+      createEffector: Effector[EffectorT[F, S, Alg, *], S, Alg] => EffectorT[F, S, Alg, Unit],
       customizeBehavior: (
           EntityContext[Command],
           EventSourcedBehavior[Command, E, Option[S]]
@@ -147,7 +143,6 @@ trait Deployer {
       sharding: ClusterSharding,
       actorSystem: ActorSystem[_],
       nameProvider: EntityNameProvider[ID],
-      idEncoder: EntityIDEncoder[ID],
       commandProtocol: CommandProtocol[Alg],
       eventApplier: EventApplier[S, E],
       askTimeout: Timeout
@@ -155,11 +150,12 @@ trait Deployer {
     private implicit val interpretedEntityAlg: Alg[EntityT[F, S, E, *]] = createEntity(
       EntityT.instance
     )
-    private implicit val interpretedEffector: EffectorT[F, S, Unit] = createEffector(
+    private implicit val interpretedEffector: EffectorT[F, S, Alg, Unit] = createEffector(
       EffectorT.instance
     )
-    private val entityTypeKey = EntityTypeKey[Command](nameProvider())
     private implicit val commandRouter: CommandRouter[F, ID] = ShardingCommandRouter.apply
+    private val interpretedRepository: Repository[F, ID, Alg] = RepositoryT.apply[F, S, E, ID, Alg]
+    private val entityTypeKey = EntityTypeKey[Command](nameProvider())
 
     def apply: Resource[F, (RepositoryAlg[F], ActorRef[ShardingEnvelope[Command]])] =
       Dispatcher[F].map { implicit dispatcher =>
@@ -183,7 +179,11 @@ trait Deployer {
                       Logger[F].info(
                         show"Recovery of ${nameProvider()} entity ${context.entityId} completed"
                       ) >> interpretedEffector
-                        .runS(state)
+                        .runS(
+                          state,
+                          interpretedRepository
+                            .entityFor(implicitly[EntityIDCodec[ID]].decode(context.entityId))
+                        )
                         .map(passivator.apply)
                     )
                   case (_, RecoveryFailed(failure)) =>
@@ -196,7 +196,7 @@ trait Deployer {
             )
           }
         }
-        (createRepository(RepositoryT.apply[F, S, E, ID, Alg]), sharding.init(akkaEntity))
+        (createRepository(interpretedRepository), sharding.init(akkaEntity))
       }
 
     private def handleEvent(state: Option[S], event: E)(implicit
@@ -226,7 +226,15 @@ trait Deployer {
             Effect
               .persist(events.toList)
               .thenRun((state: Option[S]) =>
-                dispatcher.unsafeRunSync(interpretedEffector.runS(state).map(passivator.apply))
+                dispatcher.unsafeRunSync(
+                  interpretedEffector
+                    .runS(
+                      state,
+                      interpretedRepository
+                        .entityFor(implicitly[EntityIDCodec[ID]].decode(command.id))
+                    )
+                    .map(passivator.apply)
+                )
               )
               .thenReply(command.replyTo) { _: Option[S] =>
                 Reply(incomingCommand.replyEncoder.encode(reply))

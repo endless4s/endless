@@ -16,6 +16,7 @@ final case class Booking(
 object Booking {
   final case class BookingID(id: UUID) extends AnyVal
   object BookingID {
+    def fromString(str: String): BookingID = BookingID(UUID.fromString(str))
     implicit val show: Show[BookingID] = Show.show(_.id.toString)
   }
   final case class LatLon(lat: Double, lon: Double)

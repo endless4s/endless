@@ -1,7 +1,9 @@
 package endless.core.typeclass.protocol
 
-/** Function to encode an entity ID into a string
+/** Encode an entity ID into a string
   * @tparam ID
   *   entity id
   */
-trait EntityIDEncoder[-ID] extends (ID => String)
+trait EntityIDEncoder[-ID] {
+  def encode(id: ID): String
+}
