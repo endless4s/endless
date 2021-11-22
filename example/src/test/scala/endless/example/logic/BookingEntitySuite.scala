@@ -3,9 +3,9 @@ import cats.data.Chain
 import cats.effect.IO
 import endless.core.interpret.EntityT
 import endless.core.interpret.EntityT._
-import endless.example.algebra.BookingAlg.{BookingAlreadyExists, BookingUnknown}
+import endless.example.algebra.BookingAlg.{BookingAlreadyExists, BookingUnknown, BookingWasRejected}
 import endless.example.data.Booking.LatLon
-import endless.example.data.BookingEvent.{BookingPlaced, DestinationChanged, OriginChanged}
+import endless.example.data.BookingEvent._
 import endless.example.data.{Booking, BookingEvent}
 import org.scalacheck.effect.PropF._
 import org.typelevel.log4cats.testing.TestingLogger
@@ -22,7 +22,13 @@ class BookingEntitySuite
   test("place booking") {
     forAllF { booking: Booking =>
       bookingAlg
-        .place(booking.id, booking.passengerCount, booking.origin, booking.destination)
+        .place(
+          booking.id,
+          booking.time,
+          booking.passengerCount,
+          booking.origin,
+          booking.destination
+        )
         .run(None)
         .map {
           case Right((events, _)) =>
@@ -31,6 +37,7 @@ class BookingEntitySuite
               Chain(
                 BookingPlaced(
                   booking.id,
+                  booking.time,
                   booking.origin,
                   booking.destination,
                   booking.passengerCount
@@ -63,12 +70,14 @@ class BookingEntitySuite
   test("place booking when it already exists") {
     forAllF { booking: Booking =>
       bookingAlg
-        .place(booking.id, booking.passengerCount, booking.origin, booking.destination)
-        .run(
-          Some(
-            Booking(booking.id, booking.origin, booking.destination, booking.passengerCount)
-          )
+        .place(
+          booking.id,
+          booking.time,
+          booking.passengerCount,
+          booking.origin,
+          booking.destination
         )
+        .run(Some(booking))
         .map {
           case Right((_, Left(alreadyExists))) =>
             assertEquals(alreadyExists, BookingAlreadyExists(booking.id))
@@ -158,6 +167,60 @@ class BookingEntitySuite
           case Right((_, Left(unknown))) => assertEquals(unknown, BookingUnknown)
           case _                         => fail("unexpected")
         }
+    }
+  }
+
+  test("cancel booking") {
+    forAllF { booking: Booking =>
+      bookingAlg.cancel.run(Some(booking)).map {
+        case Right((events, _)) =>
+          assertEquals(events, Chain(BookingCancelled))
+        case _ => fail("unexpected")
+      }
+    }
+  }
+
+  test("cancel booking when rejected") {
+    forAllF { booking: Booking =>
+      bookingAlg.cancel.run(Some(booking.copy(status = Booking.Status.Rejected))).map {
+        case Right((_, Left(bookingWasRejected))) =>
+          assertEquals(bookingWasRejected, BookingWasRejected(booking.id))
+        case _ => fail("unexpected")
+      }
+    }
+  }
+
+  test("cancel booking when unknown") {
+    bookingAlg.cancel.run(None).map {
+      case Right((_, Left(unknown))) => assertEquals(unknown, BookingUnknown)
+      case _                         => fail("unexpected")
+    }
+  }
+
+  test("notify capacity available") {
+    forAllF { booking: Booking =>
+      bookingAlg.notifyCapacity(true).run(Some(booking)).map {
+        case Right((events, _)) =>
+          assertEquals(events, Chain(BookingAccepted))
+        case _ => fail("unexpected")
+      }
+    }
+  }
+
+  test("notify capacity available when unknown") {
+    bookingAlg.notifyCapacity(true).run(None).map {
+      case Right((_, Left(unknown))) => assertEquals(unknown, BookingUnknown)
+      case _                         => fail("unexpected")
+    }
+  }
+
+  test("notify capacity unavailable") {
+    forAllF { booking: Booking =>
+      bookingAlg.notifyCapacity(false).run(Some(booking)).map {
+        case Right((events, _)) =>
+          assertEquals(events, Chain(BookingRejected))
+        case _ => fail("unexpected")
+      }
     }
   }
 }

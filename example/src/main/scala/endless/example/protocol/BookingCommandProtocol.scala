@@ -4,11 +4,13 @@ import endless.\/
 import endless.circe.{CirceCommandProtocol, CirceDecoder}
 import endless.core.typeclass.protocol.{Decoder, IncomingCommand, OutgoingCommand}
 import endless.example.algebra.BookingAlg
-import endless.example.algebra.BookingAlg.{BookingAlreadyExists, BookingUnknown}
+import endless.example.algebra.BookingAlg.{BookingAlreadyExists, BookingUnknown, CancelError}
 import endless.example.data.Booking
 import endless.example.data.Booking.{BookingID, LatLon}
 import endless.example.protocol.BookingCommand._
 import io.circe.generic.auto._
+
+import java.time.Instant
 
 //#example-client
 class BookingCommandProtocol extends CirceCommandProtocol[BookingAlg] {
@@ -16,12 +18,13 @@ class BookingCommandProtocol extends CirceCommandProtocol[BookingAlg] {
     new BookingAlg[OutgoingCommand[*]] {
       def place(
           bookingID: BookingID,
+          time: Instant,
           passengerCount: Int,
           origin: LatLon,
           destination: LatLon
       ): OutgoingCommand[BookingAlreadyExists \/ Unit] =
         outgoingCommand[BookingCommand, BookingAlreadyExists \/ Unit](
-          PlaceBooking(bookingID, passengerCount, origin, destination)
+          PlaceBooking(bookingID, time, passengerCount, origin, destination)
         )
 
       // ...
@@ -52,21 +55,27 @@ class BookingCommandProtocol extends CirceCommandProtocol[BookingAlg] {
           ChangeOriginAndDestination(newOrigin, newDestination)
         )
 
-      override def cancel: OutgoingCommand[BookingUnknown.type \/ Unit] =
-        outgoingCommand[BookingCommand, BookingUnknown.type \/ Unit](Cancel)
+      override def cancel: OutgoingCommand[CancelError \/ Unit] =
+        outgoingCommand[BookingCommand, CancelError \/ Unit](Cancel)
+
+      override def notifyCapacity(
+          isAvailable: Boolean
+      ): OutgoingCommand[BookingAlg.BookingUnknown.type \/ Unit] =
+        outgoingCommand[BookingCommand, BookingUnknown.type \/ Unit](NotifyCapacity(isAvailable))
     }
 
 //#example-server
   override def server[F[_]]: Decoder[IncomingCommand[F, BookingAlg]] =
     CirceDecoder(io.circe.Decoder[BookingCommand].map {
       case PlaceBooking(
-            rideID: BookingID,
+            bookingID: BookingID,
+            time: Instant,
             passengerCount: Int,
             origin: LatLon,
             destination: LatLon
           ) =>
         incomingCommand[F, BookingAlreadyExists \/ Unit](
-          _.place(rideID, passengerCount, origin, destination)
+          _.place(bookingID, time, passengerCount, origin, destination)
         )
       // #example-server
 
@@ -79,6 +88,8 @@ class BookingCommandProtocol extends CirceCommandProtocol[BookingAlg] {
         incomingCommand[F, BookingUnknown.type \/ Unit](
           _.changeOriginAndDestination(newOrigin, newDestination)
         )
-      case Cancel => incomingCommand[F, BookingUnknown.type \/ Unit](_.cancel)
+      case Cancel => incomingCommand[F, CancelError \/ Unit](_.cancel)
+      case NotifyCapacity(isAvailable) =>
+        incomingCommand[F, BookingUnknown.type \/ Unit](_.notifyCapacity(isAvailable))
     })
 }

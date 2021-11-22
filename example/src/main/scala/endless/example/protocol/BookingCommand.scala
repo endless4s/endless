@@ -1,12 +1,15 @@
 package endless.example.protocol
 
-import endless.example.data.Booking.{LatLon, BookingID}
+import endless.example.data.Booking.{BookingID, LatLon}
+
+import java.time.Instant
 
 sealed trait BookingCommand
 
 object BookingCommand {
   final case class PlaceBooking(
       bookingID: BookingID,
+      time: Instant,
       passengerCount: Int,
       origin: LatLon,
       destination: LatLon
@@ -17,4 +20,5 @@ object BookingCommand {
   final case class ChangeOriginAndDestination(newOrigin: LatLon, newDestination: LatLon)
       extends BookingCommand
   final case object Cancel extends BookingCommand
+  final case class NotifyCapacity(isAvailable: Boolean) extends BookingCommand
 }

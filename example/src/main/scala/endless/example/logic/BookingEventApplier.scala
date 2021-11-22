@@ -10,9 +10,9 @@ import BookingEvent._
 class BookingEventApplier extends EventApplier[Booking, BookingEvent] {
   def apply(state: Option[Booking], event: BookingEvent): String \/ Option[Booking] =
     (event match {
-      case BookingPlaced(bookingID, origin, destination, passengerCount) =>
+      case BookingPlaced(bookingID, time, origin, destination, passengerCount) =>
         state
-          .toLeft(Booking(bookingID, origin, destination, passengerCount))
+          .toLeft(Booking(bookingID, time, origin, destination, passengerCount))
           .leftMap(_ => "Booking already exists")
       case OriginChanged(newOrigin) =>
         state
@@ -22,8 +22,18 @@ class BookingEventApplier extends EventApplier[Booking, BookingEvent] {
         state
           .toRight("Attempt to change unknown booking")
           .map(_.copy(destination = newDestination))
+      case BookingAccepted =>
+        state
+          .toRight("Attempt to accept unknown booking")
+          .map(_.copy(status = Booking.Status.Accepted))
+      case BookingRejected =>
+        state
+          .toRight("Attempt to reject unknown booking")
+          .map(_.copy(status = Booking.Status.Rejected))
       case BookingCancelled =>
-        state.toRight("Attempt to cancel unknown booking").map(_.copy(cancelled = true))
+        state
+          .toRight("Attempt to cancel unknown booking")
+          .map(_.copy(status = Booking.Status.Cancelled))
     }).map(Option(_))
 }
 //#definition

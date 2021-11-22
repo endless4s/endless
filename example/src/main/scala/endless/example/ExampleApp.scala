@@ -3,13 +3,15 @@ package endless.example
 import akka.actor.typed.ActorSystem
 import akka.cluster.sharding.typed.scaladsl.ClusterSharding
 import akka.util.Timeout
+import cats.Monad
 import cats.effect._
 import cats.syntax.applicative._
 import cats.syntax.either._
+import cats.syntax.flatMap._
 import cats.syntax.show._
 import endless.core.typeclass.entity.EntityNameProvider
-import endless.core.typeclass.protocol.{EntityIDCodec, EntityIDEncoder}
-import endless.example.algebra.{BookingAlg, BookingRepositoryAlg}
+import endless.core.typeclass.protocol.EntityIDCodec
+import endless.example.algebra.{AvailabilityAlg, BookingAlg, BookingRepositoryAlg}
 import endless.example.data.Booking.{BookingID, LatLon}
 import endless.example.data.{Booking, BookingEvent}
 import endless.example.logic.{
@@ -26,13 +28,20 @@ import org.http4s.circe.CirceEntityCodec._
 import org.http4s.dsl.io._
 import org.http4s.server.Server
 import org.http4s.{HttpApp, HttpRoutes, Request}
+import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
 
+import java.time.Instant
 import java.util.UUID
 import scala.concurrent.duration._
 
 object ExampleApp {
-  final case class BookingRequest(passengerCount: Int, origin: LatLon, destination: LatLon)
+  final case class BookingRequest(
+      time: Instant,
+      passengerCount: Int,
+      origin: LatLon,
+      destination: LatLon
+  )
   final case class BookingPatch(origin: Option[LatLon], destination: Option[LatLon])
 
   // #main
@@ -86,6 +95,7 @@ object ExampleApp {
         .bookingFor(bookingID)
         .place(
           bookingID,
+          bookingRequest.time,
           bookingRequest.passengerCount,
           bookingRequest.origin,
           bookingRequest.destination
@@ -136,4 +146,11 @@ object ExampleApp {
         case Right(_) => Ok()
       }
     } yield result
+
+  implicit def alwaysAvailable[F[_]: Logger: Monad]: AvailabilityAlg[F] =
+    (time: Instant, passengerCount: Int) =>
+      Logger[F].info(
+        show"Checking if capacity is available for ${time.toString} and $passengerCount passengers"
+      ) >> true
+        .pure[F]
 }
