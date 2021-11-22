@@ -175,7 +175,7 @@ trait Deployer {
                 )
                 .receiveSignal {
                   case (state, RecoveryCompleted) =>
-                    dispatcher.unsafeRunSync(
+                    dispatcher.unsafeRunAndForget(
                       Logger[F].info(
                         show"Recovery of ${nameProvider()} entity ${context.entityId} completed"
                       ) >> interpretedEffector
@@ -226,7 +226,7 @@ trait Deployer {
             Effect
               .persist(events.toList)
               .thenRun((state: Option[S]) =>
-                dispatcher.unsafeRunSync(
+                dispatcher.unsafeRunAndForget(
                   interpretedEffector
                     .runS(
                       state,
