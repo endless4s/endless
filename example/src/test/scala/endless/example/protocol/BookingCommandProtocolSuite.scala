@@ -7,6 +7,9 @@ import endless.example.data.Booking
 import endless.example.logic.Generators
 import org.scalacheck.Prop.forAll
 import cats.syntax.functor._
+import endless.example.algebra.BookingAlg.CancelError
+
+import java.time.Instant
 
 //#example
 class BookingCommandProtocolSuite extends munit.ScalaCheckSuite with Generators {
@@ -16,6 +19,7 @@ class BookingCommandProtocolSuite extends munit.ScalaCheckSuite with Generators 
     forAll { (booking: Booking, reply: BookingAlg.BookingAlreadyExists \/ Unit) =>
       val outgoingCommand = protocol.client.place(
         booking.id,
+        booking.time,
         booking.passengerCount,
         booking.origin,
         booking.destination
@@ -25,6 +29,7 @@ class BookingCommandProtocolSuite extends munit.ScalaCheckSuite with Generators 
         .runWith(new TestBookingAlg {
           override def place(
               bookingID: Booking.BookingID,
+              time: Instant,
               passengerCount: Int,
               origin: Booking.LatLon,
               destination: Booking.LatLon
@@ -101,12 +106,12 @@ class BookingCommandProtocolSuite extends munit.ScalaCheckSuite with Generators 
   }
 
   test("cancel") {
-    forAll { (reply: BookingAlg.BookingUnknown.type \/ Unit) =>
+    forAll { (reply: CancelError \/ Unit) =>
       val outgoingCommand = protocol.client.cancel
       val incomingCommand = protocol.server[Id].decode(outgoingCommand.payload)
       val encodedReply = incomingCommand
         .runWith(new TestBookingAlg {
-          override def cancel: Id[BookingAlg.BookingUnknown.type \/ Unit] = reply
+          override def cancel: Id[CancelError \/ Unit] = reply
         })
         .map(incomingCommand.replyEncoder.encode(_))
       assertEquals(outgoingCommand.replyDecoder.decode(encodedReply), reply)
@@ -116,6 +121,7 @@ class BookingCommandProtocolSuite extends munit.ScalaCheckSuite with Generators 
   trait TestBookingAlg extends BookingAlg[Id] {
     def place(
         bookingID: Booking.BookingID,
+        time: Instant,
         passengerCount: Int,
         origin: Booking.LatLon,
         destination: Booking.LatLon
@@ -138,8 +144,10 @@ class BookingCommandProtocolSuite extends munit.ScalaCheckSuite with Generators 
     ): Id[BookingAlg.BookingUnknown.type \/ Unit] = throw new RuntimeException(
       "not supposed to be called"
     )
-    def cancel: Id[BookingAlg.BookingUnknown.type \/ Unit] = throw new RuntimeException(
+    def cancel: Id[CancelError \/ Unit] = throw new RuntimeException(
       "not supposed to be called"
     )
+    def notifyCapacity(isAvailable: Boolean): Id[BookingAlg.BookingUnknown.type \/ Unit] =
+      throw new RuntimeException("not supposed to be called")
   }
 }

@@ -3,14 +3,16 @@ package endless.example.data
 import endless.example.data.Booking._
 import cats.{Eq, Show}
 
+import java.time.Instant
 import java.util.UUID
 
 final case class Booking(
     id: BookingID,
+    time: Instant,
     origin: LatLon,
     destination: LatLon,
     passengerCount: Int,
-    cancelled: Boolean = false
+    status: Booking.Status = Booking.Status.Pending
 )
 
 object Booking {
@@ -22,6 +24,13 @@ object Booking {
   final case class LatLon(lat: Double, lon: Double)
   object LatLon {
     implicit val eq: Eq[LatLon] = Eq.fromUniversalEquals
+  }
+  sealed trait Status
+  object Status {
+    case object Pending extends Status
+    case object Accepted extends Status
+    case object Rejected extends Status
+    case object Cancelled extends Status
   }
   implicit val show: Show[Booking] = Show.fromToString
 }

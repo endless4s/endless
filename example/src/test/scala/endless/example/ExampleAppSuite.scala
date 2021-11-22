@@ -16,7 +16,7 @@ import org.http4s.blaze.client.BlazeClientBuilder
 import org.http4s.circe.CirceEntityCodec._
 import org.http4s.client.dsl.io._
 import org.http4s.implicits._
-
+import java.time.Instant
 import java.util.UUID
 
 class ExampleAppSuite extends munit.CatsEffectSuite {
@@ -41,22 +41,24 @@ class ExampleAppSuite extends munit.CatsEffectSuite {
   override def munitFixtures = List(server, client)
 
   test("post booking creates booking") {
-    val bookingRequest = BookingRequest(1, LatLon(0, 0), LatLon(1, 1))
+    val bookingRequest = BookingRequest(Instant.now, 1, LatLon(0, 0), LatLon(1, 1))
     for {
       bookingID <- client().expect[BookingID](POST(bookingRequest, baseUri))
     } yield assertIO(
       client().expect[Booking](GET(baseUri / bookingID.show)),
       Booking(
         bookingID,
+        bookingRequest.time,
         bookingRequest.origin,
         bookingRequest.destination,
-        bookingRequest.passengerCount
+        bookingRequest.passengerCount,
+        Booking.Status.Accepted
       )
     )
   }
 
   test("patch booking modifies booking") {
-    val bookingRequest = BookingRequest(2, LatLon(0, 0), LatLon(1, 1))
+    val bookingRequest = BookingRequest(Instant.now, 2, LatLon(0, 0), LatLon(1, 1))
     for {
       bookingID <- client().expect[BookingID](POST(bookingRequest, baseUri))
       _ <- client().status(
@@ -72,9 +74,11 @@ class ExampleAppSuite extends munit.CatsEffectSuite {
       client().expect[Booking](GET(baseUri / bookingID.show)),
       Booking(
         bookingID,
+        bookingRequest.time,
         LatLon(4, 4),
         LatLon(5, 5),
-        bookingRequest.passengerCount
+        bookingRequest.passengerCount,
+        Booking.Status.Accepted
       )
     )
   }
@@ -95,7 +99,7 @@ class ExampleAppSuite extends munit.CatsEffectSuite {
   }
 
   test("POST bookingID/cancel cancels booking") {
-    val bookingRequest = BookingRequest(1, LatLon(0, 0), LatLon(1, 1))
+    val bookingRequest = BookingRequest(Instant.now, 1, LatLon(0, 0), LatLon(1, 1))
     for {
       bookingID <- client().expect[BookingID](POST(bookingRequest, baseUri))
       _ <- client().status(POST(baseUri / bookingID.show / "cancel"))
@@ -103,10 +107,11 @@ class ExampleAppSuite extends munit.CatsEffectSuite {
       client().expect[Booking](GET(baseUri / bookingID.show)),
       Booking(
         bookingID,
+        bookingRequest.time,
         bookingRequest.origin,
         bookingRequest.destination,
         bookingRequest.passengerCount,
-        cancelled = true
+        Booking.Status.Cancelled
       )
     )
   }

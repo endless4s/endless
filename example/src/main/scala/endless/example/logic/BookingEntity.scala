@@ -1,6 +1,7 @@
 package endless.example.logic
 
 import cats.Monad
+import cats.data.EitherT
 import cats.syntax.applicative._
 import cats.syntax.eq._
 import cats.syntax.flatMap._
@@ -8,11 +9,13 @@ import cats.syntax.show._
 import endless.\/
 import endless.core.typeclass.entity.Entity
 import endless.example.algebra.BookingAlg
-import endless.example.algebra.BookingAlg.{BookingAlreadyExists, BookingUnknown}
+import endless.example.algebra.BookingAlg.{BookingAlreadyExists, BookingUnknown, CancelError}
 import endless.example.data.Booking._
 import endless.example.data.BookingEvent._
 import endless.example.data.{Booking, BookingEvent}
 import org.typelevel.log4cats.Logger
+
+import java.time.Instant
 
 //#definition
 final case class BookingEntity[F[_]: Monad: Logger](entity: Entity[F, Booking, BookingEvent])
@@ -21,13 +24,14 @@ final case class BookingEntity[F[_]: Monad: Logger](entity: Entity[F, Booking, B
 
   def place(
       bookingID: BookingID,
+      time: Instant,
       passengerCount: Int,
       origin: LatLon,
       destination: LatLon
   ): F[BookingAlreadyExists \/ Unit] =
     ifUnknownF(
       Logger[F].info(show"Creating booking with ID $bookingID") >> write(
-        BookingPlaced(bookingID, origin, destination, passengerCount)
+        BookingPlaced(bookingID, time, origin, destination, passengerCount)
       )
     )(_ => BookingAlreadyExists(bookingID))
 
@@ -49,8 +53,24 @@ final case class BookingEntity[F[_]: Monad: Logger](entity: Entity[F, Booking, B
       newDestination: LatLon
   ): F[BookingUnknown.type \/ Unit] = changeOrigin(newOrigin) >> changeDestination(newDestination)
 
-  def cancel: F[BookingAlg.BookingUnknown.type \/ Unit] =
-    ifKnownF(booking => if (!booking.cancelled) entity.write(BookingCancelled) else ().pure)(
+  def cancel: F[CancelError \/ Unit] =
+    ifKnownT[CancelError, Unit](booking =>
+      booking.status match {
+        case Status.Accepted  => EitherT.liftF(entity.write(BookingCancelled))
+        case Status.Pending   => EitherT.liftF(entity.write(BookingCancelled))
+        case Status.Cancelled => EitherT.pure(())
+        case Status.Rejected  => EitherT.leftT[F, Unit](BookingAlg.BookingWasRejected(booking.id))
+      }
+    )(
+      BookingUnknown
+    )
+
+  def notifyCapacity(isAvailable: Boolean): F[BookingAlg.BookingUnknown.type \/ Unit] =
+    ifKnownF(_.status match {
+      case Status.Pending =>
+        if (isAvailable) entity.write(BookingAccepted) else entity.write(BookingRejected)
+      case _ => ().pure
+    })(
       BookingUnknown
     )
 }
