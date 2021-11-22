@@ -9,6 +9,7 @@ import cats.syntax.applicative._
 import cats.syntax.either._
 import cats.syntax.flatMap._
 import cats.syntax.show._
+import endless.core.interpret.EffectorT
 import endless.core.typeclass.entity.EntityNameProvider
 import endless.core.typeclass.protocol.EntityIDCodec
 import endless.example.algebra.{AvailabilityAlg, BookingAlg, BookingRepositoryAlg}
@@ -60,7 +61,7 @@ object ExampleApp {
         deployEntity[IO, Booking, BookingEvent, BookingID, BookingAlg, BookingRepositoryAlg](
           BookingEntity(_),
           BookingRepository(_),
-          BookingEffector(_)
+          (effector, _) => BookingEffector(effector)
         ).map { case (bookingRepository, _) =>
           httpService(bookingRepository)
         }

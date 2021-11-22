@@ -66,8 +66,9 @@ trait Deployer {
     * @param createRepository
     *   creator for repository algebra accepting an instance of `Repository`
     * @param createEffector
-    *   creator for effector accepting an instance of `Effector`, interpreted with `EffectorT` (you
-    *   can pass in `_ => EntityT.unit` for unit effector)
+    *   creator for effector accepting an instance of `Effector` and repository (for scenarios where
+    *   effector processes require access to the repository itself), interpreted with `EffectorT`
+    *   (you can pass in `(_,_) => EntityT.unit` for unit effector)
     * @param customizeBehavior
     *   hook to further customize Akka `EventSourcedBehavior`. By default the behavior enforces
     *   replies, and is configured with command handler and event handler. It also triggers the
@@ -93,9 +94,9 @@ trait Deployer {
     * @tparam ID
     *   entity ID, requires an instance of `EntityIDCodec`
     * @tparam Alg
-    *   entity algebra
+    *   entity algebra, requires an instance of `FunctorK`
     * @tparam RepositoryAlg
-    *   repository algebra, requires an instance of `FunctorK`
+    *   repository algebra
     * @return
     *   resource (with underlying allocated dispatcher) containing the algebra in `F` context to
     *   interact with the entity together with Akka shard region actor ref
@@ -105,7 +106,10 @@ trait Deployer {
   ]](
       createEntity: Entity[EntityT[F, S, E, *], S, E] => Alg[EntityT[F, S, E, *]],
       createRepository: Repository[F, ID, Alg] => RepositoryAlg[F],
-      createEffector: Effector[EffectorT[F, S, Alg, *], S, Alg] => EffectorT[F, S, Alg, Unit],
+      createEffector: (
+          Effector[EffectorT[F, S, Alg, *], S, Alg],
+          RepositoryAlg[F]
+      ) => EffectorT[F, S, Alg, Unit],
       customizeBehavior: (
           EntityContext[Command],
           EventSourcedBehavior[Command, E, Option[S]]
@@ -134,7 +138,10 @@ trait Deployer {
   ]: FunctorK, RepositoryAlg[_[_]]](
       createEntity: Entity[EntityT[F, S, E, *], S, E] => Alg[EntityT[F, S, E, *]],
       createRepository: Repository[F, ID, Alg] => RepositoryAlg[F],
-      createEffector: Effector[EffectorT[F, S, Alg, *], S, Alg] => EffectorT[F, S, Alg, Unit],
+      createEffector: (
+          Effector[EffectorT[F, S, Alg, *], S, Alg],
+          RepositoryAlg[F]
+      ) => EffectorT[F, S, Alg, Unit],
       customizeBehavior: (
           EntityContext[Command],
           EventSourcedBehavior[Command, E, Option[S]]
@@ -150,11 +157,13 @@ trait Deployer {
     private implicit val interpretedEntityAlg: Alg[EntityT[F, S, E, *]] = createEntity(
       EntityT.instance
     )
-    private implicit val interpretedEffector: EffectorT[F, S, Alg, Unit] = createEffector(
-      EffectorT.instance
-    )
     private implicit val commandRouter: CommandRouter[F, ID] = ShardingCommandRouter.apply
     private val interpretedRepository: Repository[F, ID, Alg] = RepositoryT.apply[F, S, E, ID, Alg]
+    private val repository = createRepository(interpretedRepository)
+    private implicit val interpretedEffector: EffectorT[F, S, Alg, Unit] = createEffector(
+      EffectorT.instance,
+      repository
+    )
     private val entityTypeKey = EntityTypeKey[Command](nameProvider())
 
     def apply: Resource[F, (RepositoryAlg[F], ActorRef[ShardingEnvelope[Command]])] =
@@ -196,7 +205,7 @@ trait Deployer {
             )
           }
         }
-        (createRepository(interpretedRepository), sharding.init(akkaEntity))
+        (repository, sharding.init(akkaEntity))
       }
 
     private def handleEvent(state: Option[S], event: E)(implicit
