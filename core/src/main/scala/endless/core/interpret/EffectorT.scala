@@ -46,6 +46,12 @@ object EffectorT extends LoggerLiftingHelper {
       effectorT.runA(Env(entityState, entity), PassivationState.Disabled)
     def runS(entityState: Option[S], entity: Alg[F]): F[PassivationState] =
       effectorT.runS(Env(entityState, entity), PassivationState.Disabled)
+    def run(
+        entityState: Option[S],
+        entity: Alg[F],
+        passivationState: PassivationState
+    ): F[(Unit, PassivationState, A)] =
+      effectorT.run(Env(entityState, entity), passivationState)
   }
 
   final case class Env[S, Alg](state: Option[S], entity: Alg)

@@ -27,8 +27,9 @@ class EffectorTSuite extends DisciplineSuite {
 
   implicit def eqEffectorT[A: Eq]: Eq[EffectorT[ListWrapper, State, Alg, A]] =
     (x: EffectorT[ListWrapper, State, Alg, A], y: EffectorT[ListWrapper, State, Alg, A]) =>
-      x.run(Env(None, algImpl), PassivationState.Disabled) == y.run(
-        Env(None, algImpl),
+      x.run(None, algImpl, PassivationState.Disabled) == y.run(
+        None,
+        algImpl,
         PassivationState.Disabled
       )
 
