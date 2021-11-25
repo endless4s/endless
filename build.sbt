@@ -112,7 +112,7 @@ lazy val documentation = (project in file("documentation"))
     Compile / paradoxProperties ++= Map(
       "project.description" -> "Scala library to describe event sourced entities using tagless-final algebras, running with built-in implementations for Akka.",
       "project.title" -> "Endless4s",
-      "project.image" -> "https://endless4s.github.io/open-graph-logo.png"
+      "project.image" -> "https://endless4s.github.io/logo-open-graph.png"
     ),
     Compile / paradoxMaterialTheme := {
       val theme = (Compile / paradoxMaterialTheme).value
