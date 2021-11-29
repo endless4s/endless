@@ -1,6 +1,6 @@
 package endless.scodec
 
-import endless.core.typeclass.protocol.Decoder
+import endless.core.protocol.Decoder
 import endless.scodec.ScodecDecoder.DecodingException
 import scodec.bits.BitVector
 

@@ -1,4 +1,4 @@
-package endless.core.typeclass.event
+package endless.core.event
 
 /** `EventWriter[F, S]` is the ability to append an event of type `E` to an event log in the context
   * `F`.

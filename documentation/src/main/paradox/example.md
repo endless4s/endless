@@ -20,7 +20,7 @@ You might have spotted the two algebra types in the snippet above, which are def
 @@snip [BookingAlg](/example/src/main/scala/endless/example/algebra/BookingAlg.scala) { #definition }
 
 ## Implementations
-Implementation of the repository algebra is trivial using `Repository` typeclass instance (injected by `deployEntity`):
+Implementation of the repository algebra is trivial using `Repository` instance (injected by `deployEntity`):
 
 @@snip [BookingRepository](/example/src/main/scala/endless/example/logic/BookingRepository.scala) { #definition }
 

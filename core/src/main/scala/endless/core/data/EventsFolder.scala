@@ -2,7 +2,7 @@ package endless.core.data
 
 import cats.Foldable
 import cats.syntax.foldable._
-import endless.core.typeclass.event.EventApplier
+import endless.core.event.EventApplier
 import endless.\/
 
 /** Convenience data type bundling state and event application (folding) function

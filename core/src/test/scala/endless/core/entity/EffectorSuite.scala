@@ -1,4 +1,4 @@
-package endless.core.typeclass.entity
+package endless.core.entity
 
 import cats.Id
 import org.scalacheck.Prop.forAll

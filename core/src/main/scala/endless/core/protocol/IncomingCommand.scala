@@ -1,4 +1,4 @@
-package endless.core.typeclass.protocol
+package endless.core.protocol
 
 /** Represents an incoming entity command. Embeds the `Reply` type, the ability to run it on the
   * entity algebra in `F` context and specifies the encoder to be used to encode the reply.

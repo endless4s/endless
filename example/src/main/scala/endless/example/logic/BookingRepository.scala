@@ -1,7 +1,7 @@
 package endless.example.logic
 
 import cats.Monad
-import endless.core.typeclass.entity.Repository
+import endless.core.entity.Repository
 import endless.example.algebra.{BookingAlg, BookingRepositoryAlg}
 import endless.example.data.Booking.BookingID
 

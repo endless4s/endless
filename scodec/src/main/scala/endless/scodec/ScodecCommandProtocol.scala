@@ -1,6 +1,6 @@
 package endless.scodec
 
-import endless.core.typeclass.protocol.{CommandProtocol, IncomingCommand, OutgoingCommand}
+import endless.core.protocol.{CommandProtocol, IncomingCommand, OutgoingCommand}
 
 trait ScodecCommandProtocol[Alg[_[_]]] extends CommandProtocol[Alg] {
   protected def outgoingCommand[C: scodec.Encoder, R: scodec.Decoder](

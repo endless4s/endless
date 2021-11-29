@@ -10,8 +10,8 @@ import cats.syntax.either._
 import cats.syntax.flatMap._
 import cats.syntax.show._
 import endless.core.interpret.EffectorT
-import endless.core.typeclass.entity.EntityNameProvider
-import endless.core.typeclass.protocol.EntityIDCodec
+import endless.core.entity.EntityNameProvider
+import endless.core.protocol.EntityIDCodec
 import endless.example.algebra.{AvailabilityAlg, BookingAlg, BookingRepositoryAlg}
 import endless.example.data.Booking.{BookingID, LatLon}
 import endless.example.data.{Booking, BookingEvent}

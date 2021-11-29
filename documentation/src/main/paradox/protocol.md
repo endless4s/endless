@@ -7,7 +7,7 @@ trait CommandProtocol[Alg[_[_]]] {
 }
 ```
 
-@scaladoc[CommandProtocol](endless.core.typeclass.protocol.CommandProtocol) is to be implemented for each entity algebra. It provides a `client` interpretation wrapping each function into a @scaladoc[OutgoingCommand](endless.core.typeclass.protocol.OutgoingCommand) context and a `server` decoder which can deserialize an incoming command into @scaladoc[IncomingCommand](endless.core.typeclass.protocol.IncomingCommand).
+@scaladoc[CommandProtocol](endless.core.protocol.CommandProtocol) is to be implemented for each entity algebra. It provides a `client` interpretation wrapping each function into a @scaladoc[OutgoingCommand](endless.core.protocol.OutgoingCommand) context and a `server` decoder which can deserialize an incoming command into @scaladoc[IncomingCommand](endless.core.protocol.IncomingCommand).
 
 `OutgoingCommand` is able to encode the command into a binary representation ready to be sent over the wire and also decode the expected subsequent reply. `IncomingCommand` is able to decode the incoming command, invoke the corresponding handler and encode the reply.
 

@@ -4,7 +4,7 @@ import cats.data.ReaderWriterStateT
 import cats.tagless.FunctorK
 import cats.tagless.syntax.functorK._
 import cats.{Applicative, Monad, ~>}
-import endless.core.typeclass.entity.Effector
+import endless.core.entity.Effector
 
 import scala.concurrent.duration.FiniteDuration
 

@@ -1,4 +1,4 @@
-package endless.core.typeclass.protocol
+package endless.core.protocol
 
 /** Encode an entity ID into a string
   * @tparam ID

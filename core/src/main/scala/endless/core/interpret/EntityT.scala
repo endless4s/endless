@@ -11,7 +11,7 @@ import cats.tagless.syntax.functorK._
 import cats.{Applicative, Eq, Functor, Monad, ~>}
 import endless.core.data.EventsFolder
 import endless.core.data.Folded
-import endless.core.typeclass.event.EventApplier
+import endless.core.event.EventApplier
 
 /** `EntityT[F, S, E, A]`` is data type implementing the `Entity[F, S, E]` state reader and event
   * writer abilities. It is a monad transformer used as an interpreter for functional chains

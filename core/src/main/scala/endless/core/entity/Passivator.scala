@@ -1,4 +1,4 @@
-package endless.core.typeclass.entity
+package endless.core.entity
 
 import scala.concurrent.duration.{Duration, FiniteDuration}
 

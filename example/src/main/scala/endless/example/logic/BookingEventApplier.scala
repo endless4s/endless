@@ -2,7 +2,7 @@ package endless.example.logic
 
 import cats.syntax.either._
 import endless.\/
-import endless.core.typeclass.event.EventApplier
+import endless.core.event.EventApplier
 import endless.example.data.{Booking, BookingEvent}
 import BookingEvent._
 

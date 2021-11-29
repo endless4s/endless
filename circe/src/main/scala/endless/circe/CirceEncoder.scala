@@ -1,6 +1,6 @@
 package endless.circe
 
-import endless.core.typeclass.protocol.Encoder
+import endless.core.protocol.Encoder
 
 import java.nio.charset.StandardCharsets
 

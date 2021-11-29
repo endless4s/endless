@@ -1,4 +1,4 @@
-package endless.core.typeclass.protocol
+package endless.core.protocol
 
 /** Represents an outgoing command. Embeds the binary payload and indicates the decoder to use for
   * the reply of type `R`.

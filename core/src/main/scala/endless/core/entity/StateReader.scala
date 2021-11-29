@@ -1,4 +1,4 @@
-package endless.core.typeclass.entity
+package endless.core.entity
 
 /** `StateReader[F, S]` is the ability to read a value of type `S` from a shared environment in
   * context `F`, where that value is semantically understood as the current state of the entity.

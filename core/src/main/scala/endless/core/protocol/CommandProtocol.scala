@@ -1,4 +1,4 @@
-package endless.core.typeclass.protocol
+package endless.core.protocol
 
 /** `CommandProtocol` represents the serialization aspects of the entity.
   *

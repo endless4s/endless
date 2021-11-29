@@ -10,7 +10,7 @@ trait EventWriter[F[_], E] {
 trait Entity[F[_], S, E] extends StateReader[F, S] with EventWriter[F, E] with Monad[F]
 ```
 
-@scaladoc[Entity](endless.core.typeclass.entity.Entity) is parametrized with entity state `S` and events `E`. It represents reader-writer monad capabilities for `F` with event-sourcing semantics, i.e. the abilities to read current entity state from the context and write events into it. `Entity` is typically used by the entity algebra command handling interpreter (e.g. @github[BookingEntity](/example/src/main/scala/endless/example/logic/BookingEntity.scala)). 
+@scaladoc[Entity](endless.core.entity.Entity) is parametrized with entity state `S` and events `E`. It is a typeclass which represents reader-writer monad capabilities for `F` with event-sourcing semantics, i.e. the abilities to read current entity state from the context and write events into it. `Entity` is typically used by the entity algebra command handling interpreter (e.g. @github[BookingEntity](/example/src/main/scala/endless/example/logic/BookingEntity.scala)). 
 
 ## Functional event sourcing
 *Reader-writer* is a natural fit for describing event sourcing behavior: the monadic chain represents event sequencing and corresponding evolution of the state (see also [here](https://pavkin.ru/aecor-part-2/) and [here](https://www.youtube.com/watch?v=kDkRRkkVlxQ)).

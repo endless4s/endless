@@ -1,7 +1,7 @@
 package endless.circe
 
 import CirceEncoder._
-import endless.core.typeclass.protocol.IncomingCommand
+import endless.core.protocol.IncomingCommand
 import io.circe.Encoder
 
 abstract class CirceIncomingCommand[F[_], Alg[_[_]], R: io.circe.Encoder]

@@ -1,4 +1,4 @@
-package endless.core.typeclass.entity
+package endless.core.entity
 
 /** Self represent the entity itself via its algebra
   * @tparam F

@@ -7,7 +7,7 @@ import cats.syntax.eq._
 import cats.syntax.flatMap._
 import cats.syntax.show._
 import endless.\/
-import endless.core.typeclass.entity.Entity
+import endless.core.entity.Entity
 import endless.example.algebra.BookingAlg
 import endless.example.algebra.BookingAlg.{BookingAlreadyExists, BookingUnknown, CancelError}
 import endless.example.data.Booking._

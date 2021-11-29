@@ -6,7 +6,7 @@ trait CommandRouter[F[_], ID] {
 }
 ```
 
-@scaladoc[CommandRouter](endless.core.typeclass.protocol.CommandRouter) represents the ability to deliver a command to its target entity. It provides a natural transformation for an entity ID type, that can map the entity algebra interpreted by `CommandProtocol.client` into a context `OutgoingCommand[*]` back to `F`. This transformation is precisely sending out the command and retrieving the response.
+@scaladoc[CommandRouter](endless.core.protocol.CommandRouter) represents the ability to deliver a command to its target entity. It provides a natural transformation for an entity ID type, that can map the entity algebra interpreted by `CommandProtocol.client` into a context `OutgoingCommand[*]` back to `F`. This transformation is precisely sending out the command and retrieving the response.
 
 There is a built-in implementation for Akka Cluster Sharding: @github[ShardingCommandRouter](/runtime/src/main/scala/endless/runtime/akka/ShardingCommandRouter.scala)
 
