@@ -1,4 +1,4 @@
-package endless.core.typeclass.event
+package endless.core.event
 
 import endless.\/
 

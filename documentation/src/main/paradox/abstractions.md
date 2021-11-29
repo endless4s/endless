@@ -1,4 +1,4 @@
-# Typeclasses
+# Abstractions
 All definitions make use of the following type parameters: 
 
  - `F[_]`: abstract effectful context `F` encapsulating all values, e.g. `IO[Boolean]`

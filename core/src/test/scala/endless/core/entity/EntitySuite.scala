@@ -1,4 +1,4 @@
-package endless.core.typeclass.entity
+package endless.core.entity
 import cats.data.EitherT
 import cats.syntax.either._
 import cats.{Id, Monad}

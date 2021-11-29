@@ -14,7 +14,7 @@ trait Self[F[_], Alg[_[_]]] {
 trait Effector[F[_], S] extends StateReader[F, S] with Passivator[F] with Self[F]
 ```
 
-@scaladoc[Effector](endless.core.typeclass.entity.Effector) is used to describe side effects occurring **after** event persistence and entity recovery.
+@scaladoc[Effector](endless.core.entity.Effector) is a typeclass used to describe side effects occurring **after** event persistence and entity recovery.
 
 Side-effects are typically asynchronous operations such as kafka writes, outgoing REST requests, and [entity passivation](https://doc.akka.io/docs/akka/current/typed/cluster-sharding.html#passivation) (flushing out of memory). `Effector` is used in a `Effector => F[Unit]` function provided upon entity deployment (e.g. @github[BookingEffector](/example/src/main/scala/endless/example/logic/BookingEffector.scala)). In the provided Akka runtime, the resulting `F[Unit]` is executed in *run & forget* mode so that command reply is not delayed by any lengthy side-effect (`Self` can be used to notify success or failure of asynchronous operations back to the entity).
 
@@ -23,13 +23,13 @@ Defining an effector is entirely optional with the Akka runtime, pass-in `(_, _)
 @@@
 
 ## State-derived side-effects
-@scaladoc[StateReader](endless.core.typeclass.entity.StateReader) allows reading the updated entity state after event persistence or recovery. 
+@scaladoc[StateReader](endless.core.entity.StateReader) allows reading the updated entity state after event persistence or recovery. 
 
 ## Passivation
-@scaladoc[Passivator](endless.core.typeclass.entity.Passivator) allow fine grain control over passivation. In certain domains, entities can evolve into "dormant" states (e.g. after a `BookingCancelled` event) for which it is beneficial to trigger passivation, either immediately or after a certain delay. This enables proactive optimization of cluster resources.
+@scaladoc[Passivator](endless.core.entity.Passivator) allow fine grain control over passivation. In certain domains, entities can evolve into "dormant" states (e.g. after a `BookingCancelled` event) for which it is beneficial to trigger passivation, either immediately or after a certain delay. This enables proactive optimization of cluster resources.
 
 ## Self & process definition
-@scaladoc[Self](endless.core.typeclass.entity.Self) exposes the algebra of the entity within the effector context. This allows definition of asynchronous processes that involve interaction with the very same entity, typically to define entities acting as [process managers](https://www.infoq.com/news/2017/07/process-managers-event-flows/) (see below for more detail).  
+@scaladoc[Self](endless.core.entity.Self) exposes the algebra of the entity within the effector context. This allows definition of asynchronous processes that involve interaction with the very same entity, typically to define entities acting as [process managers](https://www.infoq.com/news/2017/07/process-managers-event-flows/) (see below for more detail).  
 
 @@@ note { .tip title="At least once delivery with zero latency" }
 For most processes, *at least once* delivery guarantees are required. This can be achieved with a projection, however at the cost of some incurred latency. Actual latency depends on the database and event journal implementation used, as well as the projection throughput. One must also make sure to distribute the projection across the cluster to avoid creating a central choke point. Even so, if a projector process gets stalled for some reason, this can create a cascade effect with events pending processing building up. 

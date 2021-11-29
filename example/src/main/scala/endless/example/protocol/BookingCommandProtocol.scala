@@ -2,7 +2,7 @@ package endless.example.protocol
 
 import endless.\/
 import endless.circe.{CirceCommandProtocol, CirceDecoder}
-import endless.core.typeclass.protocol.{Decoder, IncomingCommand, OutgoingCommand}
+import endless.core.protocol.{Decoder, IncomingCommand, OutgoingCommand}
 import endless.example.algebra.BookingAlg
 import endless.example.algebra.BookingAlg.{BookingAlreadyExists, BookingUnknown, CancelError}
 import endless.example.data.Booking

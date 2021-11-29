@@ -1,4 +1,4 @@
-package endless.core.typeclass.entity
+package endless.core.entity
 import cats.{Applicative, Monad}
 import cats.syntax.flatMap._
 

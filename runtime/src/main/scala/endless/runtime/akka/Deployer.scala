@@ -16,9 +16,9 @@ import cats.syntax.show._
 import cats.tagless.FunctorK
 import endless.core.interpret.EffectorT._
 import endless.core.interpret.{EffectorT, _}
-import endless.core.typeclass.entity._
-import endless.core.typeclass.event.EventApplier
-import endless.core.typeclass.protocol.{CommandProtocol, CommandRouter, EntityIDCodec}
+import endless.core.entity._
+import endless.core.event.EventApplier
+import endless.core.protocol.{CommandProtocol, CommandRouter, EntityIDCodec}
 import endless.runtime.akka.data._
 import org.typelevel.log4cats.Logger
 

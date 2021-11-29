@@ -1,6 +1,6 @@
 package endless.scodec
 
-import endless.core.typeclass.protocol.IncomingCommand
+import endless.core.protocol.IncomingCommand
 
 abstract class ScodecIncomingCommand[F[_], Alg[_[_]], R: scodec.Encoder]
     extends IncomingCommand[F, Alg] {

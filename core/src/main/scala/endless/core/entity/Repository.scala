@@ -1,4 +1,4 @@
-package endless.core.typeclass.entity
+package endless.core.entity
 
 /** `Repository` represents the entity repository and allows accessing an entity instance, i.e. an
   * instance of the corresponding algebra

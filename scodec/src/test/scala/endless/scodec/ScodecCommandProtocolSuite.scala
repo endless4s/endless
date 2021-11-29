@@ -1,7 +1,7 @@
 package endless.scodec
 import cats.Id
 import cats.syntax.functor._
-import endless.core.typeclass.protocol.{Decoder, IncomingCommand, OutgoingCommand}
+import endless.core.protocol.{Decoder, IncomingCommand, OutgoingCommand}
 import org.scalacheck.Prop.forAll
 import scodec.Codec
 import scodec.codecs.implicits._

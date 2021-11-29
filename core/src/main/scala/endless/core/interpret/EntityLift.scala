@@ -1,6 +1,6 @@
 package endless.core.interpret
 
-import endless.core.typeclass.entity.Entity
+import endless.core.entity.Entity
 
 /** Any effect of type G[A] can be lifted into F[A] thus enabling entity capability - we typically
   * lift `EntityT` for interpretation

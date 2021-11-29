@@ -7,8 +7,8 @@ import cats.effect.kernel.Async
 import cats.syntax.applicative._
 import cats.syntax.flatMap._
 import cats.~>
-import endless.core.typeclass.entity.EntityNameProvider
-import endless.core.typeclass.protocol.{CommandRouter, EntityIDEncoder, OutgoingCommand}
+import endless.core.entity.EntityNameProvider
+import endless.core.protocol.{CommandRouter, EntityIDEncoder, OutgoingCommand}
 import endless.runtime.akka.data.{Command, Reply}
 import org.typelevel.log4cats.Logger
 import cats.syntax.show._

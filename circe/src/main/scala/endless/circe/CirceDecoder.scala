@@ -2,7 +2,7 @@ package endless.circe
 
 import cats.syntax.either._
 import endless.circe.CirceDecoder.{DecodingException, ParsingException}
-import endless.core.typeclass.protocol.Decoder
+import endless.core.protocol.Decoder
 import io.circe.parser.parse
 import io.circe.{DecodingFailure, ParsingFailure}
 

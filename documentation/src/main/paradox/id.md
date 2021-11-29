@@ -10,4 +10,4 @@ trait EntityIDDecoder[+ID] {
 trait EntityIDCodec[ID] extends EntityIDEncoder[ID] with EntityIDDecoder[ID]
 ```
 
-@scaladoc[EntityIDCodec](endless.core.typeclass.protocol.EntityCodec) can encode/decode the entity ID into/from `String` for transmission over the wire together with commands. 
+@scaladoc[EntityIDCodec](endless.core.protocol.EntityCodec) can encode/decode the entity ID into/from `String` for transmission over the wire together with commands. 

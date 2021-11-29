@@ -1,6 +1,6 @@
 package endless.circe
 import cats.Id
-import endless.core.typeclass.protocol.{Decoder, IncomingCommand, OutgoingCommand}
+import endless.core.protocol.{Decoder, IncomingCommand, OutgoingCommand}
 import org.scalacheck.Prop.forAll
 import io.circe.generic.auto._
 import cats.syntax.functor._
