@@ -29,7 +29,7 @@ inThisBuild(
     scalaVersion := "2.13.7",
     Global / onChangedBuildSource := ReloadOnSourceChanges,
     PB.protocVersion := "3.17.3", // works on Apple Silicon,
-    versionPolicyIntention := Compatibility.BinaryAndSourceCompatible,
+    versionPolicyIntention := Compatibility.None,
     versionScheme := Some("early-semver"),
     versionPolicyIgnoredInternalDependencyVersions := Some(
       "^\\d+\\.\\d+\\.\\d+\\+\\d+".r
@@ -136,7 +136,4 @@ lazy val root = project
   .settings(Compile / mainClass := (example / Compile / mainClass).value)
   .settings(commonSettings: _*)
   .settings(publish / skip := true)
-  .settings(
-    name := "endless",
-    version := "0.0.1"
-  )
+  .settings(name := "endless")
