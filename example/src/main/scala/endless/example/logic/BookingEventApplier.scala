@@ -3,8 +3,8 @@ package endless.example.logic
 import cats.syntax.either._
 import endless.\/
 import endless.core.event.EventApplier
+import endless.example.data.BookingEvent._
 import endless.example.data.{Booking, BookingEvent}
-import BookingEvent._
 
 //#definition
 class BookingEventApplier extends EventApplier[Booking, BookingEvent] {

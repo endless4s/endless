@@ -1,6 +1,6 @@
 package endless.core.entity
-import cats.{Applicative, Monad}
 import cats.syntax.flatMap._
+import cats.{Applicative, Monad}
 
 /** `Effector` represents the ability to read the state of the entity, perform a possible
   * passivation side-effect and further interact with the entity itself via its algebra.

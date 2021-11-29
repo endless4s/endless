@@ -1,13 +1,11 @@
 package endless.core.interpret
 
-import endless.core.data.Folded
-import endless.core.protocol.CommandRouter
 import cats.tagless.FunctorK
 import cats.tagless.implicits._
-import endless.core.data.EventsFolder
+import endless.core.data.Folded
 import endless.core.entity.Repository
 import endless.core.event.EventApplier
-import endless.core.protocol.{CommandProtocol, IncomingCommand}
+import endless.core.protocol.{CommandProtocol, CommandRouter, IncomingCommand}
 
 /** `RepositoryT[F, S, E, ID, Alg]` is a data type implementing the `Repository[F, ID, Alg]` entity
   * access ability.

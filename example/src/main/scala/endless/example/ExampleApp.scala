@@ -9,7 +9,6 @@ import cats.syntax.applicative._
 import cats.syntax.either._
 import cats.syntax.flatMap._
 import cats.syntax.show._
-import endless.core.interpret.EffectorT
 import endless.core.entity.EntityNameProvider
 import endless.core.protocol.EntityIDCodec
 import endless.example.algebra.{AvailabilityAlg, BookingAlg, BookingRepositoryAlg}

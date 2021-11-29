@@ -2,14 +2,7 @@ package endless.example.logic
 
 import endless.example.data.Booking
 import endless.example.data.Booking.LatLon
-import endless.example.data.BookingEvent.{
-  BookingAccepted,
-  BookingCancelled,
-  BookingPlaced,
-  BookingRejected,
-  DestinationChanged,
-  OriginChanged
-}
+import endless.example.data.BookingEvent._
 import org.scalacheck.Prop._
 
 //#example

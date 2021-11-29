@@ -1,10 +1,10 @@
 package endless.example.logic
 
-import cats.{Applicative, Monad}
+import cats.syntax.applicative._
 import cats.syntax.flatMap._
 import cats.syntax.functor._
 import cats.syntax.show._
-import cats.syntax.applicative._
+import cats.{Applicative, Monad}
 import endless.core.entity.Effector
 import endless.example.algebra.{AvailabilityAlg, BookingAlg}
 import endless.example.data.Booking

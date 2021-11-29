@@ -2,8 +2,8 @@ package endless.example.logic
 
 import cats.Applicative
 import cats.effect.IO
-import cats.syntax.show._
 import cats.syntax.either._
+import cats.syntax.show._
 import endless.\/
 import endless.core.interpret.EffectorT
 import endless.core.interpret.EffectorT._

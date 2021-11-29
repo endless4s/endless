@@ -1,7 +1,7 @@
 package endless.example.data
 
-import endless.example.data.Booking._
 import cats.{Eq, Show}
+import endless.example.data.Booking._
 
 import java.time.Instant
 import java.util.UUID

@@ -1,13 +1,13 @@
 package endless.example.protocol
 
 import cats.Id
+import cats.syntax.functor._
 import endless.\/
 import endless.example.algebra.BookingAlg
+import endless.example.algebra.BookingAlg.CancelError
 import endless.example.data.Booking
 import endless.example.logic.Generators
 import org.scalacheck.Prop.forAll
-import cats.syntax.functor._
-import endless.example.algebra.BookingAlg.CancelError
 
 import java.time.Instant
 

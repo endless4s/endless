@@ -1,9 +1,9 @@
 package endless.circe
 import cats.Id
-import endless.core.protocol.{Decoder, IncomingCommand, OutgoingCommand}
-import org.scalacheck.Prop.forAll
-import io.circe.generic.auto._
 import cats.syntax.functor._
+import endless.core.protocol.{Decoder, IncomingCommand, OutgoingCommand}
+import io.circe.generic.auto._
+import org.scalacheck.Prop.forAll
 
 class CirceCommandProtocolSuite extends munit.ScalaCheckSuite {
   test("circe command protocol") {
