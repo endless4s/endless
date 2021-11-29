@@ -1,10 +1,10 @@
 package endless.example.algebra
 
+import cats.tagless.{Derive, FunctorK}
 import endless.\/
 import endless.example.algebra.BookingAlg.{BookingAlreadyExists, BookingUnknown, CancelError}
 import endless.example.data.Booking
 import endless.example.data.Booking.{BookingID, LatLon}
-import cats.tagless.{Derive, FunctorK}
 
 import java.time.Instant
 

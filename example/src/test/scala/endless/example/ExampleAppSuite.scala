@@ -16,6 +16,7 @@ import org.http4s.blaze.client.BlazeClientBuilder
 import org.http4s.circe.CirceEntityCodec._
 import org.http4s.client.dsl.io._
 import org.http4s.implicits._
+
 import java.time.Instant
 import java.util.UUID
 

@@ -6,11 +6,8 @@ import cats.syntax.applicative._
 import cats.syntax.either._
 import cats.syntax.flatMap._
 import cats.syntax.functor._
-import cats.tagless.FunctorK
-import cats.tagless.syntax.functorK._
-import cats.{Applicative, Eq, Functor, Monad, ~>}
-import endless.core.data.EventsFolder
-import endless.core.data.Folded
+import cats.{Applicative, Functor, Monad, ~>}
+import endless.core.data.{EventsFolder, Folded}
 import endless.core.event.EventApplier
 
 /** `EntityT[F, S, E, A]`` is data type implementing the `Entity[F, S, E]` state reader and event

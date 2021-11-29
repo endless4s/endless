@@ -1,8 +1,8 @@
 package endless.runtime.akka.serializer
 
+import akka.serialization.{BaseSerializer, SerializerWithStringManifest}
 import endless.runtime.akka.data.Reply
 import endless.runtime.akka.serializer.ReplySerializer.ManifestKey
-import akka.serialization.{BaseSerializer, SerializerWithStringManifest}
 
 import java.io.NotSerializableException
 

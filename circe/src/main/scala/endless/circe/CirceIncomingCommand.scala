@@ -1,6 +1,6 @@
 package endless.circe
 
-import CirceEncoder._
+import endless.circe.CirceEncoder._
 import endless.core.protocol.IncomingCommand
 import io.circe.Encoder
 

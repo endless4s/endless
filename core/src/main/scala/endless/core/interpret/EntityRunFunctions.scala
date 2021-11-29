@@ -1,13 +1,11 @@
 package endless.core.interpret
 
-import endless.core.data.Folded
-import cats.data.Chain
-import cats.data.NonEmptyChain
-import cats.syntax.either._
-import cats.syntax.applicative._
 import cats.conversions.all._
+import cats.data.{Chain, NonEmptyChain}
+import cats.syntax.applicative._
+import cats.syntax.either._
 import cats.{Applicative, Monad}
-import endless.core.data.EventsFolder
+import endless.core.data.{EventsFolder, Folded}
 
 trait EntityRunFunctions {
   def pure[F[_]: Applicative, S, E, A](a: A)(events: Chain[E]): F[Folded[E, A]] =

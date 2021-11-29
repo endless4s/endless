@@ -2,9 +2,9 @@ package endless.example.serializer
 
 import endless.circe.serializer.CirceSerializer
 import endless.example.data.BookingEvent
+import io.circe.generic.semiauto._
 import io.circe.{Decoder, Encoder}
 import io.circe.generic.auto._
-import io.circe.generic.semiauto._
 
 class BookingEventSerializer extends CirceSerializer[BookingEvent] {
   def identifier: Int = 42

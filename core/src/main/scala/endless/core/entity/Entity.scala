@@ -2,9 +2,9 @@ package endless.core.entity
 
 import cats.Monad
 import cats.data.EitherT
+import cats.syntax.either._
 import endless.\/
 import endless.core.event.EventWriter
-import cats.syntax.either._
 
 /** `Entity[F, S, E]` is the ability to read an event-sourced entity state of type `S` and append
   * events of type `E` affecting this state, together with the ability to compose such dependent

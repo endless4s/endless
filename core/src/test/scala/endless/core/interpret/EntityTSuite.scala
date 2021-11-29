@@ -8,8 +8,8 @@ import cats.syntax.flatMap._
 import cats.tests.ListWrapper
 import cats.tests.ListWrapper._
 import cats.{Applicative, Eq, Functor, Monad}
-import endless.core.interpret.EntityT._
 import endless.core.event.EventApplier
+import endless.core.interpret.EntityT._
 import munit.DisciplineSuite
 import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary._
