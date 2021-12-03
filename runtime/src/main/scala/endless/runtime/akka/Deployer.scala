@@ -235,6 +235,7 @@ trait Deployer {
             Effect
               .persist(events.toList)
               .thenRun((state: Option[S]) =>
+                // run the effector asynchronously, as it can describe long-running processes
                 dispatcher.unsafeRunAndForget(
                   interpretedEffector
                     .runS(
