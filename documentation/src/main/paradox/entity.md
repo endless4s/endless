@@ -26,6 +26,9 @@ Advantages of this abstraction are:
 - `read` always provides the up-to-date state and event folding happens transparently behind the scenes
 - pure & side-effect free logic that is easy to test
 
+@@@ warning { title="Responsivity" }
+When defining event-sourced entities, it is considered best practice to process commands and formulate a reply quickly as it makes the system responsive. Long-running processes should only initiate as the result of events, which also has the added benefit that they can be restored upon recovery or be driven by a projection. See @ref:[Effector](effector.md) to find out how to describe side effects with *endless*.  
+@@@
 
 @@@ note { title="About performance" }
 When composing a sequence of computations which has multiple *writes* with interspersed *reads*, the state is folded before each read by the interpreter. This is necessary to provide a constant version of the state during interpretation.
