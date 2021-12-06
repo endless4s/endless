@@ -45,17 +45,18 @@ class ExampleAppSuite extends munit.CatsEffectSuite {
     val bookingRequest = BookingRequest(Instant.now, 1, LatLon(0, 0), LatLon(1, 1))
     for {
       bookingID <- client().expect[BookingID](POST(bookingRequest, baseUri))
-    } yield assertIO(
-      client().expect[Booking](GET(baseUri / bookingID.show)),
-      Booking(
-        bookingID,
-        bookingRequest.time,
-        bookingRequest.origin,
-        bookingRequest.destination,
-        bookingRequest.passengerCount,
-        Booking.Status.Accepted
+      _ <- assertIO(
+        client().expect[Booking](GET(baseUri / bookingID.show)),
+        Booking(
+          bookingID,
+          bookingRequest.time,
+          bookingRequest.origin,
+          bookingRequest.destination,
+          bookingRequest.passengerCount,
+          Booking.Status.Accepted
+        )
       )
-    )
+    } yield ()
   }
 
   test("patch booking modifies booking") {
@@ -71,17 +72,18 @@ class ExampleAppSuite extends munit.CatsEffectSuite {
       _ <- client().status(
         PATCH(BookingPatch(Some(LatLon(4, 4)), Some(LatLon(5, 5))), baseUri / bookingID.show)
       )
-    } yield assertIO(
-      client().expect[Booking](GET(baseUri / bookingID.show)),
-      Booking(
-        bookingID,
-        bookingRequest.time,
-        LatLon(4, 4),
-        LatLon(5, 5),
-        bookingRequest.passengerCount,
-        Booking.Status.Accepted
+      _ <- assertIO(
+        client().expect[Booking](GET(baseUri / bookingID.show)),
+        Booking(
+          bookingID,
+          bookingRequest.time,
+          LatLon(4, 4),
+          LatLon(5, 5),
+          bookingRequest.passengerCount,
+          Booking.Status.Accepted
+        )
       )
-    )
+    } yield ()
   }
 
   test("GET booking for unknown ID fails") {
@@ -104,17 +106,18 @@ class ExampleAppSuite extends munit.CatsEffectSuite {
     for {
       bookingID <- client().expect[BookingID](POST(bookingRequest, baseUri))
       _ <- client().status(POST(baseUri / bookingID.show / "cancel"))
-    } yield assertIO(
-      client().expect[Booking](GET(baseUri / bookingID.show)),
-      Booking(
-        bookingID,
-        bookingRequest.time,
-        bookingRequest.origin,
-        bookingRequest.destination,
-        bookingRequest.passengerCount,
-        Booking.Status.Cancelled
+      _ <- assertIO(
+        client().expect[Booking](GET(baseUri / bookingID.show)),
+        Booking(
+          bookingID,
+          bookingRequest.time,
+          bookingRequest.origin,
+          bookingRequest.destination,
+          bookingRequest.passengerCount,
+          Booking.Status.Cancelled
+        )
       )
-    )
+    } yield ()
   }
 
   test("POST bookingID/cancel for unknown ID fails") {
