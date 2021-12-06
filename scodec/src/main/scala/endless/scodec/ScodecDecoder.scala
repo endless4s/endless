@@ -16,5 +16,5 @@ class ScodecDecoder[+A](implicit decoder: scodec.Decoder[A]) extends Decoder[A] 
 object ScodecDecoder {
   final case class DecodingException(message: String) extends RuntimeException(message)
 
-  def apply[A: scodec.Decoder]: ScodecDecoder[A] = new ScodecDecoder[A]
+  implicit def apply[A: scodec.Decoder]: ScodecDecoder[A] = new ScodecDecoder[A]
 }

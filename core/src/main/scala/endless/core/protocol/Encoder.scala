@@ -13,4 +13,7 @@ trait Encoder[-A] {
     *   corresponding byte array
     */
   def encode(a: A): Array[Byte]
+
+  /** Converts this encoder to a `Encoder[B]` using the supplied B => A */
+  def contramap[B](f: B => A): Encoder[B] = (b: B) => encode(f(b))
 }
