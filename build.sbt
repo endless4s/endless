@@ -70,6 +70,21 @@ lazy val scodecHelpers = (project in file("scodec"))
   .settings(libraryDependencies ++= scodecCore ++ mUnit.map(_ % Test))
   .settings(name := "endless-scodec-helpers")
 
+lazy val protobufHelpers = (project in file("protobuf"))
+  .dependsOn(core)
+  .settings(commonSettings: _*)
+  .settings(libraryDependencies ++= mUnit.map(_ % Test))
+  .settings(name := "endless-protobuf-helpers")
+  .settings(
+    Project.inConfig(Test)(sbtprotoc.ProtocPlugin.protobufConfigSettings),
+    Compile / PB.targets := Seq(
+      scalapb.gen() -> (Compile / sourceManaged).value / "scalapb"
+    ),
+    Test / PB.targets := Seq(
+      scalapb.gen() -> (Test / sourceManaged).value / "scalapb"
+    )
+  )
+
 lazy val example = (project in file("example"))
   .dependsOn(core, runtime, circeHelpers)
   .settings(commonSettings: _*)
@@ -131,7 +146,7 @@ lazy val documentation = (project in file("documentation"))
 
 lazy val root = project
   .in(file("."))
-  .aggregate(core, runtime, circeHelpers, scodecHelpers, example)
+  .aggregate(core, runtime, circeHelpers, scodecHelpers, protobufHelpers, example)
   .dependsOn(example)
   .settings(Compile / mainClass := (example / Compile / mainClass).value)
   .settings(commonSettings: _*)

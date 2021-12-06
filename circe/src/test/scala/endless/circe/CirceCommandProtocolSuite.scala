@@ -18,11 +18,11 @@ class CirceCommandProtocolSuite extends munit.ScalaCheckSuite {
   }
 
   val protocol = new CirceCommandProtocol[DummyAlg] {
-    def server[F[_]]: Decoder[IncomingCommand[F, DummyAlg]] = CirceDecoder(
-      implicitly[io.circe.Decoder[DummyCommand]].map { case DummyCommand(x, y) =>
+    def server[F[_]]: Decoder[IncomingCommand[F, DummyAlg]] =
+      CirceDecoder[DummyCommand].map { case DummyCommand(x, y) =>
         incomingCommand[F, Boolean](_.dummy(x, y))
       }
-    )
+
     def client: DummyAlg[OutgoingCommand[*]] = (x: Int, y: String) =>
       outgoingCommand[DummyCommand, Boolean](DummyCommand(x, y))
   }

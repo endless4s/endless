@@ -13,4 +13,7 @@ trait Decoder[+A] {
     *   value
     */
   def decode(payload: Array[Byte]): A
+
+  /** Converts this decoder to a Decoder[B] using the supplied A => B */
+  def map[B](f: A => B): Decoder[B] = (payload: Array[Byte]) => f(decode(payload))
 }

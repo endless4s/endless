@@ -20,9 +20,9 @@ class ScodecCommandProtocolSuite extends munit.ScalaCheckSuite {
 
   val protocol = new ScodecCommandProtocol[DummyAlg] {
     def server[F[_]]: Decoder[IncomingCommand[F, DummyAlg]] =
-      ScodecDecoder(DummyCommand.scodecDecoder.map { case DummyCommand(x, y) =>
+      ScodecDecoder(DummyCommand.scodecDecoder).map { case DummyCommand(x, y) =>
         incomingCommand[F, Boolean](_.dummy(x, y))
-      })
+      }
 
     def client: DummyAlg[OutgoingCommand[*]] = (x: Int, y: String) =>
       outgoingCommand[DummyCommand, Boolean](DummyCommand(x, y))

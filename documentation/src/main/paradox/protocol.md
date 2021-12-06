@@ -15,7 +15,7 @@ In other words, `client` materializes algebra invocations into concrete serializ
 
 @@@ note { .info title="Explicit or implicit representations" }
 `CommandProtocol` is the entry point for implementations to map algebra entries to concrete commands and replies. We tend to prefer explicit materialization for migration safety but nothing prevents protocol implementers to opt for automatic serialization via macros. 
-We provide helpers for definition of binary protocols in `endless-scodec-helpers` and JSON protocols in `endless-circe-helpers`.     
+We provide helpers for definition of binary protocols in `endless-protobuf-helpers` as well as `endless-scodec-helpers` and JSON protocols in `endless-circe-helpers`.     
 @@@
 
 @@@ note { .tip title="Testing" }
