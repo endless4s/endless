@@ -15,4 +15,5 @@ endless is a Scala library to describe event sourced entities using tagless-fina
 * [Example app](example.md)
 * [Reference](reference.md)
 * [Inspiration](inspiration.md)
+* [Questions & answers](discord.md)
 @@@
