@@ -14,9 +14,13 @@ trait Self[F[_], Alg[_[_]]] {
 trait Effector[F[_], S] extends StateReader[F, S] with Passivator[F] with Self[F]
 ```
 
-@scaladoc[Effector](endless.core.entity.Effector) is a typeclass used to describe side effects occurring **after** event persistence and entity recovery.
+@scaladoc[Effector](endless.core.entity.Effector) is a typeclass used to describe side effects occurring **after** event persistence and entity recovery. 
 
 Side-effects are typically asynchronous operations such as kafka writes, outgoing REST requests, and [entity passivation](https://doc.akka.io/docs/akka/current/typed/cluster-sharding.html#passivation) (flushing out of memory). `Effector` is used in a `Effector => F[Unit]` function provided upon entity deployment (e.g. @github[BookingEffector](/example/src/main/scala/endless/example/logic/BookingEffector.scala)). In the provided Akka runtime, the resulting `F[Unit]` is executed in *run & forget* mode so that command reply is not delayed by any lengthy side-effect (`Self` can be used to notify success or failure of asynchronous operations back to the entity).
+
+@@@ warning
+In the provided Akka runtime, read-only commands (commands that do not generate events) do not trigger side-effects, which corresponds to sound practice. 
+@@@
 
 @@@ note 
 Defining an effector is entirely optional with the Akka runtime, pass-in `(_, _) => EffectorT.unit` in @scaladoc[deployEntity](endless.runtime.akka.Deployer) to disable effector.
