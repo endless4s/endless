@@ -1,7 +1,7 @@
 package endless.core.interpret
 
 import cats.data.{Chain, NonEmptyChain}
-import cats.laws.discipline.MonadTests
+import cats.laws.discipline.{FunctorTests, MonadTests}
 import cats.syntax.either._
 import cats.syntax.eq._
 import cats.syntax.flatMap._
@@ -49,6 +49,18 @@ class EntityTSuite extends DisciplineSuite {
   checkAll(
     "EntityT.MonadLaws",
     MonadTests[EntityT[ListWrapper, State, Event, *]].monad[Value, Value, Value]
+  )
+
+  checkAll(
+    "EntityT.FunctorLaws for direct map def",
+    FunctorTests[EntityT[ListWrapper, State, Event, *]](
+      new Functor[EntityT[ListWrapper, State, Event, *]] {
+        override def map[A, B](fa: EntityT[ListWrapper, State, Event, A])(
+            f: A => B
+        ): EntityT[ListWrapper, State, Event, B] = fa.map(f)
+      }
+    )
+      .functor[Value, Value, Value]
   )
 
   test("writer appends events") {
