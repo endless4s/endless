@@ -48,6 +48,9 @@ final class EntityT[F[_], S, E, A](
         case Left(reason)          => reason.asLeft.pure
       }
     })
+
+  def map[B](f: A => B)(implicit monad: Monad[F]): EntityT[F, S, E, B] =
+    flatMap(a => EntityT.purr(f(a)))
 }
 
 object EntityT extends EntityRunFunctions with LoggerLiftingHelper {
