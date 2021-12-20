@@ -1,7 +1,7 @@
 import sbt._
 
 object Dependencies {
-  lazy val akkaVersion = "2.6.5"
+  lazy val akkaVersion = "2.6.18"
   lazy val akkaActorTyped = "com.typesafe.akka" %% "akka-actor-typed"
   lazy val akkaPersistenceTyped = "com.typesafe.akka" %% "akka-persistence-typed"
   lazy val akkaClusterTyped = "com.typesafe.akka" %% "akka-cluster-typed"
