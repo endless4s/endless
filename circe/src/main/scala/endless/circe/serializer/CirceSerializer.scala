@@ -1,7 +1,6 @@
 package endless.circe.serializer
 
 import akka.serialization.SerializerWithStringManifest
-import cats.instances.string._
 import cats.syntax.eq._
 import cats.syntax.show._
 import io.circe.parser.parse
