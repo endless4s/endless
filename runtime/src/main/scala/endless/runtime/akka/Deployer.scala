@@ -54,8 +54,8 @@ trait Deployer {
     * Although its signature looks complicated, in practice usage of this method isn't difficult
     * with the proper implicits and definitions: refer to the sample application for example usage:
     *
-    * ```scala deployEntity[IO, Booking, BookingEvent, BookingID, BookingAlg, BookingRepositoryAlg](
-    * BookingEntity(_), BookingRepository(_), BookingEffector(_) )```
+    * \```scala deployEntity[IO, Booking, BookingEvent, BookingID, BookingAlg,
+    * BookingRepositoryAlg]( BookingEntity(_), BookingRepository(_), BookingEffector(_) )```
     *
     * '''Important''': `deployEntity` needs to be called upon application startup, before joining
     * the cluster as the `ClusterSharding` extension needs to know about the various entity types
