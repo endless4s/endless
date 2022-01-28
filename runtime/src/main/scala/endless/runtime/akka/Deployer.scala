@@ -115,7 +115,11 @@ trait Deployer {
           EventSourcedBehavior[Command, E, Option[S]]
       ) => Behavior[Command] =
         (_: EntityContext[Command], behavior: EventSourcedBehavior[Command, E, Option[S]]) =>
-          behavior
+          behavior,
+      customizeEntity: akka.cluster.sharding.typed.scaladsl.Entity[Command, ShardingEnvelope[
+        Command
+      ]] => akka.cluster.sharding.typed.scaladsl.Entity[Command, ShardingEnvelope[Command]] =
+        identity
   )(implicit
       sharding: ClusterSharding,
       actorSystem: ActorSystem[_],
@@ -128,7 +132,8 @@ trait Deployer {
       createEntity,
       createRepository,
       createEffector,
-      customizeBehavior
+      customizeBehavior,
+      customizeEntity
     ).apply
 
   final class EventApplierException(error: String) extends RuntimeException(error)
@@ -145,7 +150,10 @@ trait Deployer {
       customizeBehavior: (
           EntityContext[Command],
           EventSourcedBehavior[Command, E, Option[S]]
-      ) => Behavior[Command]
+      ) => Behavior[Command],
+      customizeEntity: akka.cluster.sharding.typed.scaladsl.Entity[Command, ShardingEnvelope[
+        Command
+      ]] => akka.cluster.sharding.typed.scaladsl.Entity[Command, ShardingEnvelope[Command]]
   )(implicit
       sharding: ClusterSharding,
       actorSystem: ActorSystem[_],
@@ -205,7 +213,7 @@ trait Deployer {
             )
           }
         }
-        (repository, sharding.init(akkaEntity))
+        (repository, sharding.init(customizeEntity(akkaEntity)))
       }
 
     private def handleEvent(state: Option[S], event: E)(implicit
