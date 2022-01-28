@@ -34,6 +34,7 @@ section.has-dark-background, section.has-dark-background h1, section.has-dark-ba
   --r-heading3-size: 1.55em;
   --r-heading4-size: 1em;
   --r-code-font: Fira Code, sans-serif;
+  --r-code-font-size: 1.45em;
   --r-link-color: #fa0035;
   --r-link-color-dark: #ae0025;
   --r-link-color-hover: #ff94ab;
@@ -221,6 +222,7 @@ section.has-dark-background, section.has-dark-background h1, section.has-dark-ba
   text-align: left;
   font-size: 0.55em;
   font-family: var(--r-code-font);
+  font-size: var(--r-code-font-size);
   line-height: 1.2em;
   word-wrap: break-word;
   box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.15);
@@ -228,6 +230,7 @@ section.has-dark-background, section.has-dark-background h1, section.has-dark-ba
 
 .reveal code {
   font-family: var(--r-code-font);
+  font-size: var(--r-code-font-size);
   text-transform: none;
   tab-size: 2;
 }
@@ -375,7 +378,24 @@ section.has-dark-background, section.has-dark-background h1, section.has-dark-ba
 }
 
 div.input_area {
-  border: 1px solid #9aa4ac;  
-  background: #e6e9eb;
+  border: 1px solid #9aa4accc;  
+  background: #e6e9eb48;
   box-shadow: 3px 3px 6px 0px rgb(67 91 104);
+  font-family: var(--r-code-font);
+  font-size: var(--r-code-font-size);
+}
+
+div.output_subarea {
+  font-family: var(--r-code-font);
+  font-size: var(--r-code-font-size);
+}
+
+table, tbody, tr, th, td {
+  background-color: rgba(0, 0, 0, 0.0) !important;
+}
+
+.legend {
+  font-weight: lighter;
+  font-size: smaller;
+  color: rgb(67 91 104);
 }

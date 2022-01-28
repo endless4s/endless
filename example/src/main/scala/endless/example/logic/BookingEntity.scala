@@ -1,11 +1,14 @@
 package endless.example.logic
 
 import cats.Monad
-import cats.data.EitherT
+import cats.data.{Chain, EitherT}
 import cats.syntax.applicative._
 import cats.syntax.eq._
 import cats.syntax.flatMap._
 import cats.syntax.show._
+import cats.syntax.either._
+import cats.syntax.functor._
+import cats.conversions.all._
 import endless.\/
 import endless.core.entity.Entity
 import endless.example.algebra.BookingAlg
@@ -38,16 +41,25 @@ final case class BookingEntity[F[_]: Monad: Logger](entity: Entity[F, Booking, B
   def get: F[BookingUnknown.type \/ Booking] = ifKnown(identity)(BookingUnknown)
 
   def changeOrigin(newOrigin: LatLon): F[BookingUnknown.type \/ Unit] =
-    ifKnownF(booking =>
-      if (booking.origin =!= newOrigin) entity.write(OriginChanged(newOrigin)) else ().pure
-    )(BookingUnknown)
+    EitherT
+      .fromOptionF(read, BookingUnknown)
+      .semiflatMap(booking =>
+        if (booking.origin != newOrigin) write(OriginChanged(newOrigin)) else ().pure
+      )
+      .value
 
   def changeDestination(newDestination: LatLon): F[BookingUnknown.type \/ Unit] =
-    ifKnownF(booking =>
-      if (booking.destination =!= newDestination) entity.write(DestinationChanged(newDestination))
-      else ().pure
-    )(BookingUnknown)
+    EitherT
+      .fromOptionF(read, BookingUnknown)
+      .flatMap(booking =>
+        if (booking.origin === newDestination) EitherT.leftT(BookingUnknown)
+        else if (booking.destination != newDestination)
+          EitherT.liftF(write(DestinationChanged(newDestination)))
+        else EitherT.right[BookingUnknown.type](())
+      )
+      .value
 
+  Chain.empty.it
   def changeOriginAndDestination(
       newOrigin: LatLon,
       newDestination: LatLon
