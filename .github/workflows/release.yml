@@ -3,8 +3,7 @@ on:
   create:
     tags: 
       - 'v*'
-  workflow_dispatch:
-  
+
 jobs:
   coverage:
     runs-on: ubuntu-latest
