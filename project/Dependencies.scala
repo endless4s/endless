@@ -21,7 +21,7 @@ object Dependencies {
 
   lazy val akkaTest = Seq(akkaPersistenceTestkit).map(_ % akkaVersion)
 
-  lazy val catsVersion = "2.7.0"
+  lazy val catsVersion = "2.8.0"
   lazy val cats =
     Seq(
       "org.typelevel" %% "cats-core",
