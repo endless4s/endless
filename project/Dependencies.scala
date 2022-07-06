@@ -33,11 +33,11 @@ object Dependencies {
   lazy val catsTaglessVersion = "0.14.0"
   lazy val catsTagless = Seq("org.typelevel" %% "cats-tagless-macros" % catsTaglessVersion)
 
-  lazy val catsEffectVersion = "3.3.11"
+  lazy val catsEffectVersion = "3.3.13"
   lazy val catsEffectStd = Seq("org.typelevel" %% "cats-effect-std" % catsEffectVersion)
   lazy val catsEffect = Seq("org.typelevel" %% "cats-effect" % catsEffectVersion)
 
-  lazy val http4sVersion = "0.23.11"
+  lazy val http4sVersion = "0.23.12"
   lazy val http4s = Seq(
     "org.http4s" %% "http4s-dsl" % http4sVersion,
     "org.http4s" %% "http4s-blaze-server" % http4sVersion,
