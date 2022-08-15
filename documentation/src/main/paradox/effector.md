@@ -26,6 +26,10 @@ In the provided Akka runtime, read-only commands (commands that do not generate 
 Defining an effector is entirely optional with the Akka runtime, pass-in `(_, _) => EffectorT.unit` in @scaladoc[deployEntity](endless.runtime.akka.Deployer) to disable effector.
 @@@
 
+@@@ note
+`EffectorT` (the monad transformer used to interpret the effector algebra) supports cats-effect kernel typeclasses all to way down to `Async`, which makes it possible to take advantage of semantics such as timeouts, concurrency, etc.
+@@@
+
 ## State-derived side-effects
 @scaladoc[StateReader](endless.core.entity.StateReader) allows reading the updated entity state after event persistence or recovery. 
 
