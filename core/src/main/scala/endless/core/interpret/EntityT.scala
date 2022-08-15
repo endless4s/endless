@@ -8,6 +8,7 @@ import cats.syntax.flatMap._
 import cats.syntax.functor._
 import cats.{Applicative, Functor, Monad, ~>}
 import endless.core.data.{EventsFolder, Folded}
+import endless.core.entity.Entity
 import endless.core.event.EventApplier
 
 /** `EntityT[F, S, E, A]`` is data type implementing the `Entity[F, S, E]` state reader and event
@@ -71,9 +72,14 @@ object EntityT extends EntityRunFunctions with LoggerLiftingHelper {
 
   def reader[F[_]: Monad, S, E]: EntityT[F, S, E, Option[S]] = new EntityT(read[F, S, E])
 
+  /** Given that a monad instance can be found for F, this provides an EntityT
+    * transformer instance for it. This is used by `deployEntity`: the `createEntity` creator for entity
+    * algebra can thus be injected with an instance of `Entity[F[_]]` interpreted with EntityT[F, S,
+    * E, *]
+    */
   implicit def instance[F[_], S, E](implicit
       monad0: Monad[F]
-  ): EntityLift[EntityT[F, S, E, *], F, S, E] =
+  ): Entity[EntityT[F, S, E, *], S, E] =
     new EntityTLiftInstance[F, S, E] {
       override protected implicit def monad: Monad[F] = monad0
     }

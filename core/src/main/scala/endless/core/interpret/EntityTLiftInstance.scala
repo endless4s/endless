@@ -7,8 +7,9 @@ import cats.syntax.applicative._
 import cats.syntax.either._
 import cats.syntax.flatMap._
 import cats.syntax.functor._
+import endless.core.entity.Entity
 
-trait EntityTLiftInstance[F[_], S, E] extends EntityLift[EntityT[F, S, E, *], F, S, E] {
+trait EntityTLiftInstance[F[_], S, E] extends Entity[EntityT[F, S, E, *], S, E] {
   protected implicit def monad: Monad[F]
   override def read: EntityT[F, S, E, Option[S]] = EntityT.reader[F, S, E]
 
