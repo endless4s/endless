@@ -238,7 +238,7 @@ trait Deployer {
         .runCommand(state, incomingCommand)
         .flatMap {
           case Left(error) =>
-            Logger[F].warn(error) >> Effect.unhandled[E, Option[S]].thenNoReply().pure
+            Logger[F].warn(error) >> Effect.unhandled[E, Option[S]].thenNoReply().pure[F]
           case Right((events, reply)) if events.nonEmpty =>
             Effect
               .persist(events.toList)
@@ -257,13 +257,13 @@ trait Deployer {
               .thenReply(command.replyTo) { _: Option[S] =>
                 Reply(incomingCommand.replyEncoder.encode(reply))
               }
-              .pure
+              .pure[F]
           case Right((_, reply)) =>
             Effect
               .reply[Reply, E, Option[S]](command.replyTo)(
                 Reply(incomingCommand.replyEncoder.encode(reply))
               )
-              .pure
+              .pure[F]
         }
       dispatcher.unsafeRunSync(effect)
     }
