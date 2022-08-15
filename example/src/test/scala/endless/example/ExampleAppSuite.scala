@@ -19,6 +19,7 @@ import org.http4s.implicits._
 
 import java.time.Instant
 import java.util.UUID
+import scala.concurrent.duration._
 
 class ExampleAppSuite extends munit.CatsEffectSuite {
   implicit val actorSystem: ActorSystem[Nothing] =
@@ -45,6 +46,7 @@ class ExampleAppSuite extends munit.CatsEffectSuite {
     val bookingRequest = BookingRequest(Instant.now, 1, LatLon(0, 0), LatLon(1, 1))
     for {
       bookingID <- client().expect[BookingID](POST(bookingRequest, baseUri))
+      _ <- IO.sleep(1.second)
       _ <- assertIO(
         client().expect[Booking](GET(baseUri / bookingID.show)),
         Booking(
@@ -72,6 +74,7 @@ class ExampleAppSuite extends munit.CatsEffectSuite {
       _ <- client().status(
         PATCH(BookingPatch(Some(LatLon(4, 4)), Some(LatLon(5, 5))), baseUri / bookingID.show)
       )
+      _ <- IO.sleep(1.second)
       _ <- assertIO(
         client().expect[Booking](GET(baseUri / bookingID.show)),
         Booking(
