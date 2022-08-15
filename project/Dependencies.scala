@@ -34,6 +34,9 @@ object Dependencies {
   lazy val catsTagless = Seq("org.typelevel" %% "cats-tagless-macros" % catsTaglessVersion)
 
   lazy val catsEffectVersion = "3.3.14"
+  lazy val catsEffectKernel = Seq("org.typelevel" %% "cats-effect-kernel" % catsEffectVersion)
+  lazy val catsEffectLaws = Seq("org.typelevel" %% "cats-effect-laws" % catsEffectVersion)
+  lazy val catsEffectTestKit = Seq("org.typelevel" %% "cats-effect-testkit" % catsEffectVersion)
   lazy val catsEffectStd = Seq("org.typelevel" %% "cats-effect-std" % catsEffectVersion)
   lazy val catsEffect = Seq("org.typelevel" %% "cats-effect" % catsEffectVersion)
 
@@ -80,6 +83,9 @@ object Dependencies {
   lazy val scalacheckEffect = Seq(
     "org.typelevel" %% "scalacheck-effect-munit" % scalacheckEffectVersion
   )
+
+  lazy val kittensVersion = "2.3.0"
+  lazy val kittens = Seq("org.typelevel" %% "kittens" % kittensVersion)
 
   lazy val scodecCore = Seq("org.scodec" %% "scodec-core" % "1.11.9")
 }
