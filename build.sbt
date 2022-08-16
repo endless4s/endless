@@ -90,7 +90,7 @@ lazy val example = (project in file("example"))
   .dependsOn(core, runtime, circeHelpers)
   .settings(commonSettings: _*)
   .settings(
-    libraryDependencies ++= catsEffect ++ http4s ++ akka ++ akkaTest ++ logback ++ log4catsSlf4j ++ (mUnit ++ catsEffectMUnit ++ scalacheckEffect ++ log4catsTesting)
+    libraryDependencies ++= catsEffect ++ http4s ++ blaze ++ akka ++ akkaTest ++ logback ++ log4catsSlf4j ++ (mUnit ++ catsEffectMUnit ++ scalacheckEffect ++ log4catsTesting)
       .map(_ % Test)
   )
   .settings(name := "endless-example", run / fork := true, publish / skip := true)
