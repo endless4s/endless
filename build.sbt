@@ -30,7 +30,7 @@ inThisBuild(
     scalaVersion := "2.13.8",
     Global / onChangedBuildSource := ReloadOnSourceChanges,
     PB.protocVersion := "3.17.3", // works on Apple Silicon,
-    versionPolicyIntention := Compatibility.BinaryAndSourceCompatible,
+    versionPolicyIntention := Compatibility.None,
     versionScheme := Some("early-semver"),
     versionPolicyIgnoredInternalDependencyVersions := Some(
       "^\\d+\\.\\d+\\.\\d+\\+\\d+".r
