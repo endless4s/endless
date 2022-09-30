@@ -10,6 +10,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2.3.4
       - uses: olafurpg/setup-scala@v13
+        with:
+          java-version: adopt@1.11
       - name: Test and compute coverage
         run: sbt coverage test coverageReport coverageAggregate
       - name: Codecov
@@ -22,6 +24,8 @@ jobs:
         with:
           fetch-depth: 0
       - uses: olafurpg/setup-scala@v13
+        with:
+          java-version: adopt@1.11      
       - run: sbt versionCheck ci-release
         env:
           PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
@@ -35,6 +39,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2.3.4
       - uses: olafurpg/setup-scala@v13
+        with:
+          java-version: adopt@1.11
       - name: Generate website
         run: sbt documentation/makeSite
       - uses: JamesIves/github-pages-deploy-action@4.1.5
