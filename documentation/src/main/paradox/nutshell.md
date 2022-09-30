@@ -15,3 +15,7 @@ The provided Akka runtime is a thin layer over Akka Cluster Sharding and relies 
 @@@ note { title="Genericity" }
 Abstractions defined here are universal and could also be operated with a different event-sourcing framework or even a custom implementation. At the moment, built-in support for Akka is provided only.
 @@@
+
+@@@ note { .tip title="For more info" }
+Check out the blog article [Functional event-sourcing with cats-effect](https://jonas-chapuis.medium.com/functional-event-sourcing-with-akka-and-cats-7c075939fbdc)
+@@@
