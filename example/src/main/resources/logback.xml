@@ -9,6 +9,6 @@
     <root level="DEBUG">
         <appender-ref ref="STDOUT" />
     </root>
-    <logger name="akka.cluster.sharding.ShardRegion" level="WARN" />
-    <logger name="akka.cluster.sharding.PersistentShard" level="WARN" />
+    <logger name="akka.cluster.sharding.ShardRegion" level="DEBUG" />
+    <logger name="akka.cluster.sharding.PersistentShard" level="DEBUG" />
 </configuration>
