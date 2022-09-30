@@ -9,5 +9,7 @@ jobs:
         with:
           fetch-depth: 0
       - uses: olafurpg/setup-scala@v13
+        with:
+          java-version: adopt@1.11
       - run: sbt compile coverage test coverageReport coverageAggregate versionPolicyCheck documentation/makeSite
       - uses: codecov/codecov-action@v2.1.0
