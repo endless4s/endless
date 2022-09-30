@@ -1,0 +1,37 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+title Client side of ""bookingAlg.place(booking)""
+skinparam handwritten true
+skinparam TitleFontName Virgil 3 YOFF
+skinparam NoteFontName  Virgil 3 YOFF
+skinparam sequence {
+ ParticipantFontName Virgil 3 YOFF
+ ActorFontName Virgil 3 YOFF
+ ReferenceFontName Virgil 3 YOFF
+ MessageFontName Virgil 3 YOFF
+ ArrowFontName Virgil 3 YOFF
+}
+participant "Domain logic" as Domain
+participant "BookingAlg[F]" as BookingAlg
+participant "OutgoingCommand" as OutgoingCommand
+participant ClusterSharding as ClusterSharding
+actor Ask as Ask
+actor Entity as Entity
+
+autonumber
+autoactivate on
+
+Domain -> BookingAlg: place(booking)
+BookingAlg -> OutgoingCommand: payload()
+return Array[Byte]
+BookingAlg -> ClusterSharding: entityRefFor(key, id)
+return EntityRef
+BookingAlg -> Ask: entityRef.ask(id, payload)
+Ask o->o Entity: Command
+note over Ask, Entity: actor message routed\n across cluster
+return Reply(replyPayload)
+return replyPayload
+BookingAlg -> OutgoingCommand: replyDecoder.decode(replyPayload)
+return AlreadyExists.type \/ Unit
+return F[AlreadyExists.type \/ Unit]
+@enduml

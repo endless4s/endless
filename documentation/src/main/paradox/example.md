@@ -13,9 +13,17 @@ The application is assembled via a call to @scaladoc[deployEntity](endless.runti
 @@snip [ExampleApp](/example/src/main/scala/endless/example/ExampleApp.scala) { #main }
 
 ## Algebras
-You might have spotted the two algebra types in the snippet above, which are defined like so:
+You might have spotted the two algebra types in the snippet above: 
+
+### Repository
 
 @@snip [BookingRepositoryAlg](/example/src/main/scala/endless/example/algebra/BookingRepositoryAlg.scala) { #definition }
+
+Here's the sequence of operations happening behind the scenes when retrieving an instance of entity algebra: 
+
+<img src="sequences/BookingRepository.png"/>
+
+### Entity
 
 @@snip [BookingAlg](/example/src/main/scala/endless/example/algebra/BookingAlg.scala) { #definition }
 
@@ -39,6 +47,11 @@ Command and reply encoding/decoding on client and server side is done by interpr
 
 @@snip [BookingCommandProtocol](/example/src/main/scala/endless/example/protocol/BookingCommandProtocol.scala) { #example-client }
 @@snip [BookingCommandProtocol](/example/src/main/scala/endless/example/protocol/BookingCommandProtocol.scala) { #example-server }
+
+Here's an illustration of the chain of interactions taking place when placing a booking, both from the client and the server side:
+
+<img src="sequences/PlaceBookingClient.png"/>
+<img src="sequences/PlaceBookingServer.png"/>
 
 ## Side-effects
 We describe *availability* process as well as explicit entity passivation using `Effector`: 
