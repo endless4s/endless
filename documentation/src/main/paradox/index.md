@@ -1,6 +1,6 @@
 <center><img src="logo.svg" width="350"/></center>
 
-endless is a Scala library to describe event sourced entities using tagless-final algebras, running with built-in implementations for Akka.
+endless is a Scala library to describe sharded and event sourced entities using tagless-final algebras, running with built-in implementations for Akka.
 
 
 @@@ note { .quote title="/ˈɛndləs/: having or seeming to have no end or limit" }

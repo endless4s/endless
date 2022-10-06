@@ -21,6 +21,10 @@ In order to bridge Akka's implicit asynchronicity with the side-effect free cont
 `deployEntity` needs to be called upon application startup, before joining the cluster as the `ClusterSharding` extension needs to know about the various entity types beforehand.
 @@@
 
+@@@ note { title="Durable entity" }
+ The equivalent method for durable entities is @scaladoc[deployDurableEntity](endless.runtime.akka.DurableDeployer).
+@@@
+
 ## Internals
 
 ### Protocol
@@ -28,7 +32,7 @@ Thanks to the @ref:[CommandProtocol](protocol.md) instance, entity algebra calls
 [ShardingCommandRouter](/runtime/src/main/scala/endless/runtime/akka/ShardingCommandRouter.scala) takes care of delivering the commands to the right entity and returning the reply simply by using Akka's `ask`.
 
 ### Deployer
-Internally, @github[deployEntity](/runtime/src/main/scala/endless/runtime/akka/Deployer.scala) uses Akka @link:[EventSourcedBehavior](https://doc.akka.io/docs/akka/current/typed/persistence.html#example-and-core-api) { open=new } DSL to configure the entity in the following way:
+Internally, @github[deployEntity](/runtime/src/main/scala/endless/runtime/akka/Deployer.scala) uses Akka @link:[EventSourcedBehavior](https://doc.akka.io/docs/akka/current/typed/persistence.html#example-and-core-api) { open=new } DSL to configure the entity in the following way (for @github[deployDurableEntity](/runtime/src/main/scala/endless/runtime/akka/DurableDeployer.scala), this is [DurableStateBehavior](https://doc.akka.io/docs/akka/current/typed/durable-state/persistence.html#example-and-core-api)):
 
 #### Command handler
 
