@@ -7,10 +7,10 @@ trait StateReader[F[_], S] {
 trait EventWriter[F[_], E] {
   def write(event: E, other: E*): F[Unit]
 }
-trait Entity[F[_], S, E] extends StateReader[F, S] with EventWriter[F, E] with Monad[F]
+trait Entity[F[_], S, E] extends StateReader[F, S] with EventWriter[F, E]
 ```
 
-@scaladoc[Entity](endless.core.entity.Entity) is parametrized with entity state `S` and events `E`. It is a typeclass which represents reader-writer monad capabilities for `F` with event-sourcing semantics, i.e. the abilities to read current entity state from the context and write events into it. `Entity` is typically used by the entity algebra command handling interpreter (e.g. @github[BookingEntity](/example/src/main/scala/endless/example/logic/BookingEntity.scala)). 
+@scaladoc[Entity](endless.core.entity.Entity) is parametrized with entity state `S` and events `E`. It is a typeclass which represents reader-writer capabilities for `F` with event-sourcing semantics, i.e. the abilities to read current entity state from the context and persist events. `Entity` is typically used by the entity algebra command handling interpreter (e.g. @github[BookingEntity](/example/src/main/scala/endless/example/logic/BookingEntity.scala)). 
 
 ## Functional event sourcing
 *Reader-writer* is a natural fit for describing event sourcing behavior: the monadic chain represents event sequencing and corresponding evolution of the state (see also [here](https://pavkin.ru/aecor-part-2/) and [here](https://www.youtube.com/watch?v=kDkRRkkVlxQ)).
@@ -28,6 +28,10 @@ Advantages of this abstraction are:
 
 @@@ warning { title="Responsivity" }
 When defining event-sourced entities, it is considered best practice to process commands and formulate a reply quickly as it makes the system responsive. Long-running processes should only initiate as the result of events, which also has the added benefit that they can be restored upon recovery or be driven by a projection. See @ref:[Effector](effector.md) to find out how to describe side effects with *endless*.  
+@@@
+
+@@@ tip { title="Event-less persistence" }
+It is also possible to benefit from cluster sharding without involving event-sourcing, see @ref:[DurableEntity](durable-entity.md)
 @@@
 
 @@@ note { title="About performance" }

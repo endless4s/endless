@@ -1,14 +1,14 @@
 # Example app
 
-Endless example application is a small API for managing imaginary bookings for passenger trips from some origin to some destination. It can be found in `endless-example` and can be run directly: `sbt run`. 
+Endless example application is a small API for managing imaginary bookings for passenger trips from some origin to some destination, as well as tracking positions and speeds of vehicles. It can be found in `endless-example` and can be run directly: `sbt run`. 
 
 ## API
-It has a simple CRUD API for those bookings:
+It has a simple CRUD API for bookings and vehicles:
 
 @@snip [ExampleApp](/example/src/main/scala/endless/example/ExampleApp.scala) { #api }
 
 ## Scaffolding
-The application is assembled via a call to @scaladoc[deployEntity](endless.runtime.akka.Deployer.deployEntity) (see @ref:[runtime](runtime.md) for more details)
+The application is assembled via calls to @scaladoc[deployEntity](endless.runtime.akka.Deployer.deployEntity) (for bookings) and @scaladoc[deployDurableEntity](endless.runtime.akka.Deployer.deployDurableEntity) (for vehicles) (see @ref:[runtime](runtime.md) for more details)
 
 @@snip [ExampleApp](/example/src/main/scala/endless/example/ExampleApp.scala) { #main }
 

@@ -10,6 +10,7 @@ All definitions make use of the following type parameters:
 @@@ index
 * [Repository](repository.md)
 * [Entity](entity.md)
+* [DurableEntity](durable-entity.md)
 * [EventApplier](applier.md)
 * [CommandProtocol](protocol.md)
 * [CommandRouter](router.md)
