@@ -1,8 +1,9 @@
 name: Release
 on:
-  create:
-    tags: 
+  push:
+    tags:
       - 'v*'
+  workflow_dispatch:
 
 jobs:
   coverage:
