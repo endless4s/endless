@@ -1,33 +1,17 @@
 package endless.core.interpret
 
-import cats.data.{IndexedReaderWriterStateT, ReaderWriterStateT}
+import cats.data.ReaderWriterStateT
 import cats.effect.kernel._
 import cats.syntax.all._
 import cats.tagless.FunctorK
 import cats.tagless.syntax.functorK._
-import cats.{Applicative, Monad, Monoid, ~>}
+import cats.{Applicative, Monad, ~>}
 import endless.core.entity.Effector
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.FiniteDuration
 
 object EffectorT extends LoggerLiftingHelper {
-  def unit[F[_]: Applicative, S, Alg[_[_]]]: EffectorT[F, S, Alg, Unit] =
-    liftF(Applicative[F].unit)
-
-  def stateReader[F[_]: Applicative, S, Alg[_[_]]]: EffectorT[F, S, Alg, Option[S]] =
-    ReaderWriterStateT.ask[F, Env[S, Alg[F]], Unit, PassivationState].map(_.state)
-
-  def entityAlgReader[F[_]: Applicative, S, Alg[_[_]]]: EffectorT[F, S, Alg, Alg[F]] =
-    ReaderWriterStateT.ask[F, Env[S, Alg[F]], Unit, PassivationState].map(_.entity)
-
-  def passivationEnabler[F[_]: Applicative, S, Alg[_[_]]](
-      after: FiniteDuration
-  ): EffectorT[F, S, Alg, Unit] =
-    ReaderWriterStateT.set(PassivationState.After(after))
-
-  def passivationDisabler[F[_]: Applicative, S, Alg[_[_]]]: EffectorT[F, S, Alg, Unit] =
-    ReaderWriterStateT.set(PassivationState.Disabled)
 
   /** `EffectorT[F, S, A]` is a type alias for `ReaderWriterStateT` monad transformer from cats. It
     * uses `Reader` to allow access to ready-only entity state and algebra and `State` to update the
@@ -51,6 +35,23 @@ object EffectorT extends LoggerLiftingHelper {
     */
   type EffectorT[F[_], S, Alg[_[_]], A] =
     ReaderWriterStateT[F, Env[S, Alg[F]], Unit, PassivationState, A]
+
+  def unit[F[_]: Applicative, S, Alg[_[_]]]: EffectorT[F, S, Alg, Unit] =
+    liftF(Applicative[F].unit)
+
+  def stateReader[F[_]: Applicative, S, Alg[_[_]]]: EffectorT[F, S, Alg, Option[S]] =
+    ReaderWriterStateT.ask[F, Env[S, Alg[F]], Unit, PassivationState].map(_.state)
+
+  def entityAlgReader[F[_]: Applicative, S, Alg[_[_]]]: EffectorT[F, S, Alg, Alg[F]] =
+    ReaderWriterStateT.ask[F, Env[S, Alg[F]], Unit, PassivationState].map(_.entity)
+
+  def passivationEnabler[F[_]: Applicative, S, Alg[_[_]]](
+      after: FiniteDuration
+  ): EffectorT[F, S, Alg, Unit] =
+    ReaderWriterStateT.set(PassivationState.After(after))
+
+  def passivationDisabler[F[_]: Applicative, S, Alg[_[_]]]: EffectorT[F, S, Alg, Unit] =
+    ReaderWriterStateT.set(PassivationState.Disabled)
 
   implicit class EffectorTRunHelpers[F[_]: Monad, S, Alg[_[_]], A](
       val effectorT: EffectorT[F, S, Alg, A]
