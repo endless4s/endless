@@ -13,7 +13,7 @@ package endless.core.entity
   */
 trait StateReader[F[_], S] {
 
-  /** Read the state from the environment, returns None if the entity doesn't yet exist
+  /** Read the entity state, returns None if the entity doesn't yet exist
     * @return
     *   optional state in `F` context
     */

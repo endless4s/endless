@@ -72,15 +72,11 @@ object EntityT extends EntityRunFunctions with LoggerLiftingHelper {
 
   def reader[F[_]: Monad, S, E]: EntityT[F, S, E, Option[S]] = new EntityT(read[F, S, E])
 
-  /** Given that a monad instance can be found for F, this provides an EntityT
-    * transformer instance for it. This is used by `deployEntity`: the `createEntity` creator for entity
-    * algebra can thus be injected with an instance of `Entity[F[_]]` interpreted with EntityT[F, S,
-    * E, *]
+  /** Given that a monad instance can be found for F, this provides an EntityT transformer instance
+    * for it. This is used by `deployEntity`: the `createEntity` creator for entity algebra can thus
+    * be injected with an instance of `Entity[F[_]]` interpreted with EntityT[F, S, E, *]
     */
-  implicit def instance[F[_], S, E](implicit
-      monad0: Monad[F]
-  ): Entity[EntityT[F, S, E, *], S, E] =
-    new EntityTLiftInstance[F, S, E] {
-      override protected implicit def monad: Monad[F] = monad0
-    }
+  implicit def instance[F[_]: Monad, S, E]
+      : Entity[EntityT[F, S, E, *], S, E] with Monad[EntityT[F, S, E, *]] =
+    new EntityTLiftInstance[F, S, E]
 }
