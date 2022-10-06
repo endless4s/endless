@@ -89,4 +89,8 @@ object Dependencies {
   lazy val kittens = Seq("org.typelevel" %% "kittens" % kittensVersion)
 
   lazy val scodecCore = Seq("org.scodec" %% "scodec-core" % "1.11.10")
+
+  lazy val scalapbCustomizations = Seq(
+    "com.thesamet.scalapb" %% "scalapb-runtime" % scalapb.compiler.Version.scalapbVersion % "protobuf"
+  )
 }

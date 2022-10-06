@@ -10,17 +10,15 @@ import cats.syntax.either._
 import cats.syntax.flatMap._
 import cats.syntax.show._
 import endless.core.entity.EntityNameProvider
+import endless.core.interpret.EffectorT
 import endless.core.protocol.EntityIDCodec
-import endless.example.algebra.{AvailabilityAlg, BookingAlg, BookingRepositoryAlg}
-import endless.example.data.Booking.{BookingID, LatLon}
-import endless.example.data.{Booking, BookingEvent}
-import endless.example.logic.{
-  BookingEffector,
-  BookingEntity,
-  BookingEventApplier,
-  BookingRepository
-}
-import endless.example.protocol.BookingCommandProtocol
+import endless.example.adapter.VehicleStateAdapter
+import endless.example.algebra._
+import endless.example.data.Booking.BookingID
+import endless.example.data.Vehicle.VehicleID
+import endless.example.data._
+import endless.example.logic._
+import endless.example.protocol.{BookingCommandProtocol, VehicleCommandProtocol}
 import endless.runtime.akka.syntax.deploy._
 import io.circe.generic.auto._
 import org.http4s.blaze.server.BlazeServerBuilder
@@ -47,24 +45,38 @@ object ExampleApp {
   // #main
   def apply(implicit actorSystem: ActorSystem[Nothing]): IO[Resource[IO, Server]] = {
     implicit val clusterSharding: ClusterSharding = ClusterSharding(actorSystem)
-    implicit val commandProtocol: BookingCommandProtocol = new BookingCommandProtocol
+    implicit val bookingCommandProtocol: BookingCommandProtocol = new BookingCommandProtocol
+    implicit val vehicleCommandProtocol: VehicleCommandProtocol = new VehicleCommandProtocol
     implicit val eventApplier: BookingEventApplier = new BookingEventApplier
     implicit val bookingEntityNameProvider: EntityNameProvider[BookingID] = () => "booking"
-    implicit val idEncoder: EntityIDCodec[BookingID] =
-      EntityIDCodec(_.id.toString, BookingID.fromString)
+    implicit val vehicleEntityNameProvider: EntityNameProvider[VehicleID] = () => "vehicle"
+    implicit val bookingIDEncoder: EntityIDCodec[BookingID] =
+      EntityIDCodec(_.id.show, BookingID.fromString)
+    implicit val vehicleIDEncoder: EntityIDCodec[VehicleID] =
+      EntityIDCodec(_.id.show, VehicleID.fromString)
     implicit val askTimeout: Timeout = Timeout(10.seconds)
 
     Slf4jLogger
       .create[IO]
-      .map(implicit logger => {
-        deployEntity[IO, Booking, BookingEvent, BookingID, BookingAlg, BookingRepositoryAlg](
-          BookingEntity(_),
-          BookingRepository(_),
-          (effector, _) => BookingEffector(effector)
-        ).map { case (bookingRepository, _) =>
-          httpService(bookingRepository)
-        }
-      })
+      .map { implicit logger: Logger[IO] =>
+        Resource
+          .both(
+            deployEntity[IO, Booking, BookingEvent, BookingID, BookingAlg, BookingRepositoryAlg](
+              BookingEntity(_),
+              BookingRepository(_),
+              (effector, _) => BookingEffector(effector)
+            ),
+            deployDurableEntity[IO, Vehicle, VehicleID, VehicleAlg, VehicleRepositoryAlg](
+              VehicleEntity(_),
+              VehicleRepository(_),
+              (effector, _) => effector.enablePassivation(1.second), // aggressive passivation
+              customizeBehavior = (_, behavior) => behavior.snapshotAdapter(new VehicleStateAdapter)
+            )
+          )
+          .map { case ((bookingRepository, _), (vehicleRepository, _)) =>
+            httpService(bookingRepository, vehicleRepository)
+          }
+      }
       .map(
         _.flatMap(service =>
           BlazeServerBuilder[IO]
@@ -77,12 +89,22 @@ object ExampleApp {
   // #main
 
   // #api
-  private def httpService(bookingRepository: BookingRepositoryAlg[IO]): HttpApp[IO] = HttpRoutes
+  private def httpService(
+      bookingRepository: BookingRepositoryAlg[IO],
+      vehicleRepository: VehicleRepositoryAlg[IO]
+  ): HttpApp[IO] = HttpRoutes
     .of[IO] {
       case req @ POST -> Root / "booking"                => postBooking(bookingRepository, req)
       case GET -> Root / "booking" / UUIDVar(id)         => getBooking(bookingRepository, id)
       case req @ PATCH -> Root / "booking" / UUIDVar(id) => patchBooking(bookingRepository, req, id)
       case POST -> Root / "booking" / UUIDVar(id) / "cancel" => cancelBooking(bookingRepository, id)
+      case GET -> Root / "vehicle" / UUIDVar(id) / "speed" => getVehicleSpeed(vehicleRepository, id)
+      case GET -> Root / "vehicle" / UUIDVar(id) / "position" =>
+        getVehiclePosition(vehicleRepository, id)
+      case req @ POST -> Root / "vehicle" / UUIDVar(id) / "speed" =>
+        setVehicleSpeed(vehicleRepository, id, req)
+      case req @ POST -> Root / "vehicle" / UUIDVar(id) / "position" =>
+        setVehiclePosition(vehicleRepository, id, req)
     }
     .orNotFound
   // #api
@@ -146,6 +168,38 @@ object ExampleApp {
         case Right(_) => Ok()
       }
     } yield result
+
+  private def getVehicleSpeed(vehicleRepository: VehicleRepositoryAlg[IO], id: UUID) =
+    vehicleRepository.vehicleFor(VehicleID(id)).getSpeed.flatMap {
+      case Some(speed) => Ok(speed)
+      case None        => BadRequest(show"Speed for vehicle with $id is unknown")
+    }
+
+  private def getVehiclePosition(vehicleRepository: VehicleRepositoryAlg[IO], id: UUID) =
+    vehicleRepository.vehicleFor(VehicleID(id)).getPosition.flatMap {
+      case Some(position) => Ok(position)
+      case None           => BadRequest(show"Position for vehicle with $id is unknown")
+    }
+
+  private def setVehicleSpeed(
+      vehicleRepository: VehicleRepositoryAlg[IO],
+      id: UUID,
+      req: Request[IO]
+  ) =
+    for {
+      speed <- req.as[Speed]
+      ok <- vehicleRepository.vehicleFor(VehicleID(id)).setSpeed(speed).flatMap(_ => Ok())
+    } yield ok
+
+  private def setVehiclePosition(
+      vehicleRepository: VehicleRepositoryAlg[IO],
+      id: UUID,
+      req: Request[IO]
+  ) =
+    for {
+      position <- req.as[LatLon]
+      ok <- vehicleRepository.vehicleFor(VehicleID(id)).setPosition(position).flatMap(_ => Ok())
+    } yield ok
 
   implicit def alwaysAvailable[F[_]: Logger: Monad: Async]: AvailabilityAlg[F] =
     (time: Instant, passengerCount: Int) =>

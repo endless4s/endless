@@ -4,9 +4,8 @@ import cats.effect.IO
 import endless.core.interpret.EntityT
 import endless.core.interpret.EntityT._
 import endless.example.algebra.BookingAlg.{BookingAlreadyExists, BookingUnknown, BookingWasRejected}
-import endless.example.data.Booking.LatLon
 import endless.example.data.BookingEvent._
-import endless.example.data.{Booking, BookingEvent}
+import endless.example.data.{Booking, BookingEvent, LatLon}
 import org.scalacheck.effect.PropF._
 import org.typelevel.log4cats.testing.TestingLogger
 

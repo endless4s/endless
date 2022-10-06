@@ -92,13 +92,22 @@ lazy val protobufHelpers = (project in file("protobuf"))
   )
 
 lazy val example = (project in file("example"))
-  .dependsOn(core, runtime, circeHelpers)
+  .dependsOn(core, runtime, circeHelpers, protobufHelpers)
   .settings(commonSettings: _*)
   .settings(
-    libraryDependencies ++= catsEffect ++ http4s ++ blaze ++ akka ++ akkaTest ++ logback ++ log4catsSlf4j ++ (mUnit ++ catsEffectMUnit ++ scalacheckEffect ++ log4catsTesting)
+    libraryDependencies ++= catsEffect ++ http4s ++ blaze ++ akka ++ scalapbCustomizations ++ akkaTest ++ logback ++ log4catsSlf4j ++ (mUnit ++ catsEffectMUnit ++ scalacheckEffect ++ log4catsTesting)
       .map(_ % Test)
   )
   .settings(name := "endless-example", run / fork := true, publish / skip := true)
+  .settings(
+    Project.inConfig(Test)(sbtprotoc.ProtocPlugin.protobufConfigSettings),
+    Compile / PB.targets := Seq(
+      scalapb.gen() -> (Compile / sourceManaged).value / "scalapb"
+    ),
+    Test / PB.targets := Seq(
+      scalapb.gen() -> (Test / sourceManaged).value / "scalapb"
+    )
+  )
 
 // Generate API documentation per module, as documented in https://www.scala-sbt.org/sbt-site/api-documentation.html#scaladoc-from-multiple-projects
 

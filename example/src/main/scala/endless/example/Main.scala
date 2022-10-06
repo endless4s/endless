@@ -1,7 +1,10 @@
 package endless.example
 
 import akka.actor.typed.ActorSystem
-import akka.persistence.testkit.PersistenceTestKitPlugin
+import akka.persistence.testkit.{
+  PersistenceTestKitDurableStateStorePlugin,
+  PersistenceTestKitPlugin
+}
 import cats.effect._
 import com.typesafe.config.ConfigFactory
 
@@ -9,8 +12,11 @@ object Main extends IOApp {
   implicit val actorSystem: ActorSystem[Nothing] =
     ActorSystem.wrap(
       akka.actor.ActorSystem(
-        "bookings-as",
-        PersistenceTestKitPlugin.config.withFallback(ConfigFactory.defaultApplication).resolve()
+        "example-as",
+        PersistenceTestKitPlugin.config
+          .withFallback(PersistenceTestKitDurableStateStorePlugin.config)
+          .withFallback(ConfigFactory.defaultApplication)
+          .resolve()
       )
     )
 

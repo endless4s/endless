@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+package endless.example.proto.vehicle;
+
+import "vehicle/models.proto";
+
+message VehicleStateV1Full {
+  LatLonV1Full position = 1;
+  SpeedV1Full speed = 2;
+}

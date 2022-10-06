@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package endless.example.proto.vehicle;
+
+import "scalapb/scalapb.proto";
+import "vehicle/models.proto";
+
+message VehicleCommand {
+  oneof command {
+    SetSpeedV1Full set_speed_v1 = 1;
+    SetPositionV1Full set_position_v1 = 2;
+    GetSpeedV1Full get_speed_v1 = 3;
+    GetPositionV1Full get_position_v1 = 4;
+  }
+}
+
+message SetSpeedV1Full {
+  SpeedV1Full speed = 1             [(scalapb.field).required = true];
+}
+message SetPositionV1Full {
+  LatLonV1Full position = 1         [(scalapb.field).required = true];
+}
+message GetSpeedV1Full {}
+message GetPositionV1Full {}
