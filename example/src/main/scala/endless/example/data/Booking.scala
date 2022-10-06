@@ -1,6 +1,6 @@
 package endless.example.data
 
-import cats.{Eq, Show}
+import cats.Show
 import endless.example.data.Booking._
 
 import java.time.Instant
@@ -20,10 +20,6 @@ object Booking {
   object BookingID {
     def fromString(str: String): BookingID = BookingID(UUID.fromString(str))
     implicit val show: Show[BookingID] = Show.show(_.id.toString)
-  }
-  final case class LatLon(lat: Double, lon: Double)
-  object LatLon {
-    implicit val eq: Eq[LatLon] = Eq.fromUniversalEquals
   }
   sealed trait Status
   object Status {

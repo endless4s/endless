@@ -5,8 +5,8 @@ import endless.circe.{CirceCommandProtocol, CirceDecoder}
 import endless.core.protocol.{Decoder, IncomingCommand, OutgoingCommand}
 import endless.example.algebra.BookingAlg
 import endless.example.algebra.BookingAlg.{BookingAlreadyExists, BookingUnknown, CancelError}
-import endless.example.data.Booking
-import endless.example.data.Booking.{BookingID, LatLon}
+import endless.example.data.Booking.BookingID
+import endless.example.data.{Booking, LatLon}
 import endless.example.protocol.BookingCommand._
 import io.circe.generic.auto._
 

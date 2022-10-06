@@ -3,8 +3,8 @@ package endless.example.algebra
 import cats.tagless.{Derive, FunctorK}
 import endless.\/
 import endless.example.algebra.BookingAlg.{BookingAlreadyExists, BookingUnknown, CancelError}
-import endless.example.data.Booking
-import endless.example.data.Booking.{BookingID, LatLon}
+import endless.example.data.Booking.BookingID
+import endless.example.data.{Booking, LatLon}
 
 import java.time.Instant
 

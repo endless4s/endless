@@ -1,6 +1,7 @@
 package endless.example.protocol
 
-import endless.example.data.Booking.{BookingID, LatLon}
+import endless.example.data.Booking.BookingID
+import endless.example.data.LatLon
 
 import java.time.Instant
 

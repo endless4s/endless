@@ -1,13 +1,8 @@
 package endless.example.logic
 
-import endless.example.algebra.BookingAlg.{
-  BookingAlreadyExists,
-  BookingUnknown,
-  BookingWasRejected,
-  CancelError
-}
-import endless.example.data.Booking
-import endless.example.data.Booking.{BookingID, LatLon}
+import endless.example.algebra.BookingAlg.{BookingAlreadyExists, BookingUnknown, BookingWasRejected, CancelError}
+import endless.example.data.Booking.BookingID
+import endless.example.data.{Booking, LatLon, Speed}
 import org.scalacheck.{Arbitrary, Gen}
 
 import java.time.Instant
@@ -17,6 +12,7 @@ trait Generators {
     latitude <- Gen.double
     longitude <- Gen.double
   } yield LatLon(latitude, longitude)
+  implicit val speedGen: Gen[Speed] = Gen.double.map(Speed(_))
   implicit val instantGen: Gen[Instant] = Gen.long.map(Instant.ofEpochMilli)
   implicit val bookingIDGen: Gen[BookingID] = Gen.uuid.map(BookingID(_))
   implicit val bookingGen: Gen[Booking] = for {
@@ -34,6 +30,7 @@ trait Generators {
 
   implicit val arbBooking: Arbitrary[Booking] = Arbitrary(bookingGen)
   implicit val arbLatLon: Arbitrary[LatLon] = Arbitrary(latLonGen)
+  implicit val arbSpeed: Arbitrary[Speed] = Arbitrary(speedGen)
   implicit val arbBookingAlreadyExists: Arbitrary[BookingAlreadyExists] = Arbitrary(
     bookingAlreadyExists
   )

@@ -1,8 +1,7 @@
 package endless.example.logic
 
-import endless.example.data.Booking
-import endless.example.data.Booking.LatLon
 import endless.example.data.BookingEvent._
+import endless.example.data.{Booking, LatLon}
 import org.scalacheck.Prop._
 
 //#example

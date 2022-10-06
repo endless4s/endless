@@ -8,7 +8,7 @@ import endless.\/
 import endless.core.interpret.EffectorT
 import endless.core.interpret.EffectorT._
 import endless.example.algebra.{AvailabilityAlg, BookingAlg}
-import endless.example.data.Booking
+import endless.example.data.{Booking, LatLon}
 import org.scalacheck.effect.PropF._
 import org.typelevel.log4cats.testing.TestingLogger
 
@@ -78,27 +78,25 @@ class BookingEffectorSuite
         bookingID: Booking.BookingID,
         time: Instant,
         passengerCount: Int,
-        origin: Booking.LatLon,
-        destination: Booking.LatLon
+        origin: LatLon,
+        destination: LatLon
     ): IO[BookingAlg.BookingAlreadyExists \/ Unit] =
       IO.raiseError(new RuntimeException("should not be called"))
 
     override def get: IO[BookingAlg.BookingUnknown.type \/ Booking] =
       IO.raiseError(new RuntimeException("should not be called"))
 
-    override def changeOrigin(
-        newOrigin: Booking.LatLon
-    ): IO[BookingAlg.BookingUnknown.type \/ Unit] =
+    override def changeOrigin(newOrigin: LatLon): IO[BookingAlg.BookingUnknown.type \/ Unit] =
       IO.raiseError(new RuntimeException("should not be called"))
 
     override def changeDestination(
-        newDestination: Booking.LatLon
+        newDestination: LatLon
     ): IO[BookingAlg.BookingUnknown.type \/ Unit] =
       IO.raiseError(new RuntimeException("should not be called"))
 
     override def changeOriginAndDestination(
-        newOrigin: Booking.LatLon,
-        newDestination: Booking.LatLon
+        newOrigin: LatLon,
+        newDestination: LatLon
     ): IO[BookingAlg.BookingUnknown.type \/ Unit] =
       IO.raiseError(new RuntimeException("should not be called"))
 

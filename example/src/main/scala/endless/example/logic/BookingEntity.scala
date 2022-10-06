@@ -1,6 +1,5 @@
 package endless.example.logic
 
-import cats.Monad
 import cats.data.EitherT
 import cats.syntax.applicative._
 import cats.syntax.eq._
@@ -12,13 +11,13 @@ import endless.example.algebra.BookingAlg
 import endless.example.algebra.BookingAlg.{BookingAlreadyExists, BookingUnknown, CancelError}
 import endless.example.data.Booking._
 import endless.example.data.BookingEvent._
-import endless.example.data.{Booking, BookingEvent}
+import endless.example.data.{Booking, BookingEvent, LatLon}
 import org.typelevel.log4cats.Logger
 
 import java.time.Instant
 
 //#definition
-final case class BookingEntity[F[_]: Monad: Logger](entity: Entity[F, Booking, BookingEvent])
+final case class BookingEntity[F[_]: Logger](entity: Entity[F, Booking, BookingEvent])
     extends BookingAlg[F] {
   import entity._
 

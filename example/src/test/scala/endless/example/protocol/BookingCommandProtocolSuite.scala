@@ -5,7 +5,7 @@ import cats.syntax.functor._
 import endless.\/
 import endless.example.algebra.BookingAlg
 import endless.example.algebra.BookingAlg.CancelError
-import endless.example.data.Booking
+import endless.example.data.{Booking, LatLon}
 import endless.example.logic.Generators
 import org.scalacheck.Prop.forAll
 
@@ -31,8 +31,8 @@ class BookingCommandProtocolSuite extends munit.ScalaCheckSuite with Generators 
               bookingID: Booking.BookingID,
               time: Instant,
               passengerCount: Int,
-              origin: Booking.LatLon,
-              destination: Booking.LatLon
+              origin: LatLon,
+              destination: LatLon
           ): Id[BookingAlg.BookingAlreadyExists \/ Unit] = reply
         })
         .map(incomingCommand.replyEncoder.encode(_))
@@ -55,13 +55,13 @@ class BookingCommandProtocolSuite extends munit.ScalaCheckSuite with Generators 
   }
 
   test("change origin") {
-    forAll { (newOrigin: Booking.LatLon, reply: BookingAlg.BookingUnknown.type \/ Unit) =>
+    forAll { (newOrigin: LatLon, reply: BookingAlg.BookingUnknown.type \/ Unit) =>
       val outgoingCommand = protocol.client.changeOrigin(newOrigin)
       val incomingCommand = protocol.server[Id].decode(outgoingCommand.payload)
       val encodedReply = incomingCommand
         .runWith(new TestBookingAlg {
           override def changeOrigin(
-              origin: Booking.LatLon
+              origin: LatLon
           ): Id[BookingAlg.BookingUnknown.type \/ Unit] = reply
         })
         .map(incomingCommand.replyEncoder.encode(_))
@@ -70,13 +70,13 @@ class BookingCommandProtocolSuite extends munit.ScalaCheckSuite with Generators 
   }
 
   test("change destination") {
-    forAll { (newDestination: Booking.LatLon, reply: BookingAlg.BookingUnknown.type \/ Unit) =>
+    forAll { (newDestination: LatLon, reply: BookingAlg.BookingUnknown.type \/ Unit) =>
       val outgoingCommand = protocol.client.changeDestination(newDestination)
       val incomingCommand = protocol.server[Id].decode(outgoingCommand.payload)
       val encodedReply = incomingCommand
         .runWith(new TestBookingAlg {
           override def changeDestination(
-              destination: Booking.LatLon
+              destination: LatLon
           ): Id[BookingAlg.BookingUnknown.type \/ Unit] = reply
         })
         .map(incomingCommand.replyEncoder.encode(_))
@@ -87,8 +87,8 @@ class BookingCommandProtocolSuite extends munit.ScalaCheckSuite with Generators 
   test("change origin and destination") {
     forAll {
       (
-          newOrigin: Booking.LatLon,
-          newDestination: Booking.LatLon,
+          newOrigin: LatLon,
+          newDestination: LatLon,
           reply: BookingAlg.BookingUnknown.type \/ Unit
       ) =>
         val outgoingCommand = protocol.client.changeOriginAndDestination(newOrigin, newDestination)
@@ -96,8 +96,8 @@ class BookingCommandProtocolSuite extends munit.ScalaCheckSuite with Generators 
         val encodedReply = incomingCommand
           .runWith(new TestBookingAlg {
             override def changeOriginAndDestination(
-                origin: Booking.LatLon,
-                destination: Booking.LatLon
+                origin: LatLon,
+                destination: LatLon
             ): Id[BookingAlg.BookingUnknown.type \/ Unit] = reply
           })
           .map(incomingCommand.replyEncoder.encode(_))
@@ -123,24 +123,24 @@ class BookingCommandProtocolSuite extends munit.ScalaCheckSuite with Generators 
         bookingID: Booking.BookingID,
         time: Instant,
         passengerCount: Int,
-        origin: Booking.LatLon,
-        destination: Booking.LatLon
+        origin: LatLon,
+        destination: LatLon
     ): Id[BookingAlg.BookingAlreadyExists \/ Unit] = throw new RuntimeException(
       "not supposed to be called"
     )
     def get: Id[BookingAlg.BookingUnknown.type \/ Booking] = throw new RuntimeException(
       "not supposed to be called"
     )
-    def changeOrigin(newOrigin: Booking.LatLon): Id[BookingAlg.BookingUnknown.type \/ Unit] =
+    def changeOrigin(newOrigin: LatLon): Id[BookingAlg.BookingUnknown.type \/ Unit] =
       throw new RuntimeException("not supposed to be called")
     def changeDestination(
-        newDestination: Booking.LatLon
+        newDestination: LatLon
     ): Id[BookingAlg.BookingUnknown.type \/ Unit] = throw new RuntimeException(
       "not supposed to be called"
     )
     def changeOriginAndDestination(
-        newOrigin: Booking.LatLon,
-        newDestination: Booking.LatLon
+        newOrigin: LatLon,
+        newDestination: LatLon
     ): Id[BookingAlg.BookingUnknown.type \/ Unit] = throw new RuntimeException(
       "not supposed to be called"
     )
