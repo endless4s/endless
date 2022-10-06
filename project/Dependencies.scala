@@ -5,8 +5,9 @@ object Dependencies {
   lazy val akkaActorTyped = "com.typesafe.akka" %% "akka-actor-typed"
   lazy val akkaPersistenceTyped = "com.typesafe.akka" %% "akka-persistence-typed"
   lazy val akkaClusterTyped = "com.typesafe.akka" %% "akka-cluster-typed"
-  lazy val akkaClusterShardingTyped =
-    "com.typesafe.akka" %% "akka-cluster-sharding-typed"
+  lazy val akkaClusterShardingTyped = "com.typesafe.akka" %% "akka-cluster-sharding-typed"
+
+  lazy val akkaTypedTestkit = "com.typesafe.akka" %% "akka-actor-testkit-typed"
   lazy val akkaPersistenceTestkit = "com.typesafe.akka" %% "akka-persistence-testkit"
 
   lazy val akka =

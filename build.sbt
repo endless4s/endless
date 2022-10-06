@@ -75,7 +75,11 @@ lazy val scodecHelpers = (project in file("scodec"))
 lazy val protobufHelpers = (project in file("protobuf"))
   .dependsOn(core)
   .settings(commonSettings: _*)
-  .settings(libraryDependencies ++= mUnit.map(_ % Test))
+  .settings(
+    libraryDependencies ++= (akkaActorTyped % akkaVersion) +: mUnit.map(
+      _ % Test
+    ) :+ akkaTypedTestkit % akkaVersion % Test
+  )
   .settings(name := "endless-protobuf-helpers")
   .settings(
     Project.inConfig(Test)(sbtprotoc.ProtocPlugin.protobufConfigSettings),
