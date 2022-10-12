@@ -56,11 +56,16 @@ class EffectorTSuite extends DisciplineSuite with TestInstances {
     implicit val passivationStateOrder: Order[PassivationState] =
       (x: PassivationState, y: PassivationState) =>
         (x, y) match {
-          case (PassivationState.Disabled, PassivationState.Disabled) => 0
+          case (PassivationState.Disabled, PassivationState.Disabled)  => 0
+          case (PassivationState.Disabled, PassivationState.After(_))  => -1
+          case (PassivationState.Disabled, PassivationState.Unchanged) => -1
           case (PassivationState.After(before), PassivationState.After(after)) =>
             Order[FiniteDuration].compare(before, after)
-          case (PassivationState.After(_), PassivationState.Disabled) => 1
-          case (PassivationState.Disabled, PassivationState.After(_)) => -1
+          case (PassivationState.After(_), PassivationState.Disabled)   => 1
+          case (PassivationState.After(_), PassivationState.Unchanged)  => -1
+          case (PassivationState.Unchanged, PassivationState.Unchanged) => 0
+          case (PassivationState.Unchanged, PassivationState.Disabled)  => 1
+          case (PassivationState.Unchanged, PassivationState.After(_))  => 1
         }
 
     Order.by { ioaO =>

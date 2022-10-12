@@ -3,45 +3,44 @@ package endless.runtime.akka
 import akka.actor.Cancellable
 import akka.actor.typed.scaladsl.ActorContext
 import akka.cluster.sharding.typed.scaladsl.{ClusterSharding, EntityContext}
+import cats.Applicative
+import cats.effect.kernel.{Ref, Sync}
 import cats.syntax.eq._
+import cats.syntax.flatMap._
 import endless.core.interpret.EffectorT.PassivationState
 
 import scala.concurrent.duration.{Duration, FiniteDuration}
 
-@SuppressWarnings(Array("org.wartremover.warts.Var"))
-private[akka] class EntityPassivator(
+private[akka] class EntityPassivator[F[_]: Sync](
     entityContext: EntityContext[_],
     actorContext: ActorContext[_]
 ) {
-  // this mutable state is only ever accessed from the actor thread => no concurrency risk
-  private var upcomingPassivation: Option[Cancellable] = Option.empty[Cancellable]
+  private lazy val upcomingPassivation: F[Ref[F, Option[Cancellable]]] =
+    Ref.of(Option.empty[Cancellable])
+  private lazy val passivateMessage = ClusterSharding.Passivate(actorContext.self)
 
-  def apply(passivationState: PassivationState): Unit = passivationState match {
+  def apply(passivationState: PassivationState): F[Unit] = passivationState match {
     case PassivationState.After(duration) => enablePassivation(duration)
     case PassivationState.Disabled        => disablePassivation()
+    case PassivationState.Unchanged       => Applicative[F].unit
   }
 
-  private def enablePassivation(after: FiniteDuration = Duration.Zero): Unit = {
+  private def disablePassivation() =
+    upcomingPassivation >>= (_.modify(maybeCancellable => {
+      (None, maybeCancellable.foreach(_.cancel()))
+    }))
+
+  private def enablePassivation(after: FiniteDuration = Duration.Zero) =
     if (after === Duration.Zero) passivate() else schedulePassivation(after)
-  }
 
-  private def disablePassivation(): Unit = {
-    upcomingPassivation.foreach(_.cancel())
-    upcomingPassivation = None
-  }
+  private def passivate() =
+    Sync[F].delay(entityContext.shard.tell(passivateMessage))
 
-  private def passivate(): Unit =
-    entityContext.shard.tell(ClusterSharding.Passivate(actorContext.self))
-
-  private def schedulePassivation(after: FiniteDuration): Unit = {
-    upcomingPassivation.foreach(_.cancel())
-    upcomingPassivation = Some(
-      actorContext.scheduleOnce(
-        after,
-        entityContext.shard,
-        ClusterSharding.Passivate(actorContext.self)
+  private def schedulePassivation(after: FiniteDuration) =
+    disablePassivation() >> upcomingPassivation >>= (_.set(
+      Some(
+        actorContext.scheduleOnce(after, entityContext.shard, passivateMessage)
       )
-    )
-  }
+    ))
 
 }
