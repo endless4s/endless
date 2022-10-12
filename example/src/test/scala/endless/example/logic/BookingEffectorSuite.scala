@@ -68,7 +68,7 @@ class BookingEffectorSuite
             }
           }
         ),
-        PassivationState.Disabled
+        PassivationState.Unchanged
       )
     }
   }

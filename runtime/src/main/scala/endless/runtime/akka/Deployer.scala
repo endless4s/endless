@@ -180,7 +180,7 @@ trait Deployer {
           EntityTypeKey[Command](nameProvider())
         ) { context =>
           Behaviors.setup { actor =>
-            implicit val passivator: EntityPassivator = new EntityPassivator(context, actor)
+            implicit val passivator: EntityPassivator[F] = new EntityPassivator(context, actor)
             customizeBehavior(
               context,
               EventSourcedBehavior
@@ -201,7 +201,7 @@ trait Deployer {
                           interpretedRepository
                             .entityFor(implicitly[EntityIDCodec[ID]].decode(context.entityId))
                         )
-                        .map(passivator.apply)
+                        .flatMap(passivator.apply)
                     )
                   case (_, RecoveryFailed(failure)) =>
                     dispatcher.unsafeRunSync(
@@ -227,7 +227,7 @@ trait Deployer {
 
     private def handleCommand(state: Option[S], command: Command)(implicit
         dispatcher: Dispatcher[F],
-        passivator: EntityPassivator
+        passivator: EntityPassivator[F]
     ) = {
       val incomingCommand =
         commandProtocol.server[EntityT[F, S, E, *]].decode(command.payload)
@@ -251,7 +251,7 @@ trait Deployer {
                       interpretedRepository
                         .entityFor(implicitly[EntityIDCodec[ID]].decode(command.id))
                     )
-                    .map(passivator.apply)
+                    .flatMap(passivator.apply)
                 )
               )
               .thenReply(command.replyTo) { _: Option[S] =>

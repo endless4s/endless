@@ -56,9 +56,9 @@ object EffectorT extends LoggerLiftingHelper {
       val effectorT: EffectorT[F, S, Alg, A]
   ) {
     def runA(entityState: Option[S], entity: Alg[F]): F[A] =
-      effectorT.runA(Env(entityState, entity), PassivationState.Disabled)
+      effectorT.runA(Env(entityState, entity), PassivationState.Unchanged)
     def runS(entityState: Option[S], entity: Alg[F]): F[PassivationState] =
-      effectorT.runS(Env(entityState, entity), PassivationState.Disabled)
+      effectorT.runS(Env(entityState, entity), PassivationState.Unchanged)
     def run(
         entityState: Option[S],
         entity: Alg[F],
@@ -73,6 +73,7 @@ object EffectorT extends LoggerLiftingHelper {
   object PassivationState {
     final case class After(duration: FiniteDuration) extends PassivationState
     object Disabled extends PassivationState
+    object Unchanged extends PassivationState
   }
 
   implicit def instance[F[_]: Applicative, S, Alg[_[_]]: FunctorK]
