@@ -84,7 +84,7 @@ object Dependencies {
     "org.typelevel" %% "scalacheck-effect-munit" % scalacheckEffectVersion
   )
 
-  lazy val kittensVersion = "2.3.2"
+  lazy val kittensVersion = "3.0.0"
   lazy val kittens = Seq("org.typelevel" %% "kittens" % kittensVersion)
 
   lazy val scodecCore = Seq("org.scodec" %% "scodec-core" % "1.11.10")
