@@ -177,7 +177,7 @@ trait DurableDeployer {
           EntityTypeKey[Command](nameProvider())
         ) { context =>
           Behaviors.setup { actor =>
-            implicit val passivator: EntityPassivator = new EntityPassivator(context, actor)
+            implicit val passivator: EntityPassivator[F] = new EntityPassivator(context, actor)
             customizeBehavior(
               context,
               DurableStateBehavior
@@ -214,7 +214,7 @@ trait DurableDeployer {
 
     private def handleCommand(state: Option[S], command: Command)(implicit
         dispatcher: Dispatcher[F],
-        passivator: EntityPassivator
+        passivator: EntityPassivator[F]
     ) = {
       val incomingCommand =
         commandProtocol.server[DurableEntityT[F, S, *]].decode(command.payload)
