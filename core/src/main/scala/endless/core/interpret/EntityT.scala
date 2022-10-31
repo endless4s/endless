@@ -2,14 +2,18 @@ package endless.core.interpret
 
 import cats.conversions.all._
 import cats.data.{Chain, NonEmptyChain}
+import cats.effect.kernel.{Clock, Unique}
 import cats.syntax.applicative._
 import cats.syntax.either._
 import cats.syntax.flatMap._
 import cats.syntax.functor._
+import cats.tagless.FunctorK
 import cats.{Applicative, Functor, Monad, ~>}
 import endless.core.data.{EventsFolder, Folded}
 import endless.core.entity.Entity
 import endless.core.event.EventApplier
+
+import scala.concurrent.duration.FiniteDuration
 
 /** `EntityT[F, S, E, A]`` is data type implementing the `Entity[F, S, E]` state reader and event
   * writer abilities. It is a monad transformer used as an interpreter for functional chains
@@ -79,4 +83,13 @@ object EntityT extends EntityRunFunctions with LoggerLiftingHelper {
   implicit def instance[F[_]: Monad, S, E]
       : Entity[EntityT[F, S, E, *], S, E] with Monad[EntityT[F, S, E, *]] =
     new EntityTLiftInstance[F, S, E]
+
+  implicit def clockForEntityT[F[_]: Functor: Clock, S, E](implicit
+      A0: Applicative[EntityT[F, S, E, *]]
+  ): Clock[EntityT[F, S, E, *]] =
+    new Clock[EntityT[F, S, E, *]] {
+      def applicative: Applicative[EntityT[F, S, E, *]] = A0
+      def monotonic: EntityT[F, S, E, FiniteDuration] = liftF(Clock[F].monotonic)
+      def realTime: EntityT[F, S, E, FiniteDuration] = liftF(Clock[F].realTime)
+    }
 }

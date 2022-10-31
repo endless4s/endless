@@ -1,6 +1,7 @@
 package endless.example.logic
 
 import cats.data.EitherT
+import cats.effect.kernel.Clock
 import cats.syntax.applicative._
 import cats.syntax.eq._
 import cats.syntax.flatMap._
@@ -17,7 +18,7 @@ import org.typelevel.log4cats.Logger
 import java.time.Instant
 
 //#definition
-final case class BookingEntity[F[_]: Logger](entity: Entity[F, Booking, BookingEvent])
+final case class BookingEntity[F[_]: Logger: Clock](entity: Entity[F, Booking, BookingEvent])
     extends BookingAlg[F] {
   import entity._
 
@@ -55,8 +56,13 @@ final case class BookingEntity[F[_]: Logger](entity: Entity[F, Booking, BookingE
   def cancel: F[CancelError \/ Unit] =
     ifKnownT[CancelError, Unit](booking =>
       booking.status match {
-        case Status.Accepted  => EitherT.liftF(entity.write(BookingCancelled))
-        case Status.Pending   => EitherT.liftF(entity.write(BookingCancelled))
+        case Status.Accepted | Status.Pending =>
+          EitherT.liftF(
+            (Clock[F].realTimeInstant >>= (timestamp =>
+              Logger[F]
+                .info(show"Cancelling booking with ID ${booking.id} at ${timestamp.toString}")
+            )) >> entity.write(BookingCancelled)
+          )
         case Status.Cancelled => EitherT.pure(())
         case Status.Rejected  => EitherT.leftT[F, Unit](BookingAlg.BookingWasRejected(booking.id))
       }
