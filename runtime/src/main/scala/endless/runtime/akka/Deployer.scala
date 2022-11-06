@@ -128,25 +128,73 @@ trait Deployer {
       eventApplier: EventApplier[S, E],
       askTimeout: Timeout
   ): Resource[F, (RepositoryAlg[F], ActorRef[ShardingEnvelope[Command]])] =
-    new DeployEntity(
-      createEntity,
-      createRepository,
-      createEffector,
+    deployEntityF(
+      (entity: Entity[EntityT[F, S, E, *], S, E]) => createEntity(entity).pure[F],
+      (repository: Repository[F, ID, Alg]) => createRepository(repository).pure[F],
+      (effector: Effector[EffectorT[F, S, Alg, *], S, Alg], repository: RepositoryAlg[F]) =>
+        createEffector(effector, repository).pure[F],
       customizeBehavior,
       customizeEntity
-    ).apply
+    )
+
+  /** Overload of [[Deployer.deployEntity]] that accepts creation functions expressed in `F` context
+    */
+  def deployEntityF[F[_]: Async: Logger, S, E, ID: EntityIDCodec, Alg[
+      _[_]
+  ]: FunctorK, RepositoryAlg[
+      _[_]
+  ]](
+      createEntity: Entity[EntityT[F, S, E, *], S, E] => F[Alg[EntityT[F, S, E, *]]],
+      createRepository: Repository[F, ID, Alg] => F[RepositoryAlg[F]],
+      createEffector: (
+          Effector[EffectorT[F, S, Alg, *], S, Alg],
+          RepositoryAlg[F]
+      ) => F[EffectorT[F, S, Alg, Unit]],
+      customizeBehavior: (
+          EntityContext[Command],
+          EventSourcedBehavior[Command, E, Option[S]]
+      ) => Behavior[Command] =
+        (_: EntityContext[Command], behavior: EventSourcedBehavior[Command, E, Option[S]]) =>
+          behavior,
+      customizeEntity: akka.cluster.sharding.typed.scaladsl.Entity[Command, ShardingEnvelope[
+        Command
+      ]] => akka.cluster.sharding.typed.scaladsl.Entity[Command, ShardingEnvelope[Command]] =
+        identity
+  )(implicit
+      sharding: ClusterSharding,
+      actorSystem: ActorSystem[_],
+      nameProvider: EntityNameProvider[ID],
+      commandProtocol: CommandProtocol[Alg],
+      eventApplier: EventApplier[S, E],
+      askTimeout: Timeout
+  ): Resource[F, (RepositoryAlg[F], ActorRef[ShardingEnvelope[Command]])] = {
+    implicit val commandRouter: CommandRouter[F, ID] = ShardingCommandRouter.apply
+    val repositoryT = RepositoryT.apply[F, ID, Alg]
+    Resource.eval(
+      for {
+        interpretedEntityAlg <- createEntity(EntityT.instance)
+        interpretedRepository <- createRepository(repositoryT)
+        interpretedEffector <- createEffector(EffectorT.instance, interpretedRepository)
+      } yield new DeployEntity(
+        interpretedEntityAlg,
+        interpretedRepository,
+        repositoryT,
+        interpretedEffector,
+        customizeBehavior,
+        customizeEntity
+      ).apply
+    )
+  }.flatten
 
   final class EventApplierException(error: String) extends RuntimeException(error)
 
   private class DeployEntity[F[_]: Async: Logger, S, E, ID: EntityIDCodec, Alg[
       _[_]
   ]: FunctorK, RepositoryAlg[_[_]]](
-      createEntity: Entity[EntityT[F, S, E, *], S, E] => Alg[EntityT[F, S, E, *]],
-      createRepository: Repository[F, ID, Alg] => RepositoryAlg[F],
-      createEffector: (
-          Effector[EffectorT[F, S, Alg, *], S, Alg],
-          RepositoryAlg[F]
-      ) => EffectorT[F, S, Alg, Unit],
+      interpretedEntityAlg: Alg[EntityT[F, S, E, *]],
+      interpretedRepository: RepositoryAlg[F],
+      repositoryT: RepositoryT[F, ID, Alg],
+      interpretedEffector: EffectorT[F, S, Alg, Unit],
       customizeBehavior: (
           EntityContext[Command],
           EventSourcedBehavior[Command, E, Option[S]]
@@ -162,16 +210,6 @@ trait Deployer {
       eventApplier: EventApplier[S, E],
       askTimeout: Timeout
   ) {
-    private implicit val interpretedEntityAlg: Alg[EntityT[F, S, E, *]] = createEntity(
-      EntityT.instance
-    )
-    private implicit val commandRouter: CommandRouter[F, ID] = ShardingCommandRouter.apply
-    private val interpretedRepository: Repository[F, ID, Alg] = RepositoryT.apply[F, ID, Alg]
-    private val repository = createRepository(interpretedRepository)
-    private implicit val interpretedEffector: EffectorT[F, S, Alg, Unit] = createEffector(
-      EffectorT.instance,
-      repository
-    )
     private val entityTypeKey = EntityTypeKey[Command](nameProvider())
 
     def apply: Resource[F, (RepositoryAlg[F], ActorRef[ShardingEnvelope[Command]])] =
@@ -198,7 +236,7 @@ trait Deployer {
                       ) >> interpretedEffector
                         .runS(
                           state,
-                          interpretedRepository
+                          repositoryT
                             .entityFor(implicitly[EntityIDCodec[ID]].decode(context.entityId))
                         )
                         .flatMap(passivator.apply)
@@ -213,7 +251,7 @@ trait Deployer {
             )
           }
         }
-        (repository, sharding.init(customizeEntity(akkaEntity)))
+        (interpretedRepository, sharding.init(customizeEntity(akkaEntity)))
       }
 
     private def handleEvent(state: Option[S], event: E)(implicit
@@ -248,8 +286,7 @@ trait Deployer {
                   interpretedEffector
                     .runS(
                       state,
-                      interpretedRepository
-                        .entityFor(implicitly[EntityIDCodec[ID]].decode(command.id))
+                      repositoryT.entityFor(implicitly[EntityIDCodec[ID]].decode(command.id))
                     )
                     .flatMap(passivator.apply)
                 )
