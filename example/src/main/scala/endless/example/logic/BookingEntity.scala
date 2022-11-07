@@ -28,55 +28,21 @@ final case class BookingEntity[F[_]: Logger: Clock](entity: Entity[F, Booking, B
       passengerCount: Int,
       origin: LatLon,
       destination: LatLon
-  ): F[BookingAlreadyExists \/ Unit] =
-    ifUnknownF(
-      Logger[F].info(show"Creating booking with ID $bookingID") >> write(
-        BookingPlaced(bookingID, time, origin, destination, passengerCount)
-      )
-    )(_ => BookingAlreadyExists(bookingID))
+  ): F[BookingAlreadyExists \/ Unit] = ???
 
-  def get: F[BookingUnknown.type \/ Booking] = ifKnown(identity)(BookingUnknown)
+  def get: F[BookingUnknown.type \/ Booking] = ???
 
-  def changeOrigin(newOrigin: LatLon): F[BookingUnknown.type \/ Unit] =
-    ifKnownF(booking =>
-      if (booking.origin =!= newOrigin) entity.write(OriginChanged(newOrigin)) else ().pure
-    )(BookingUnknown)
+  def changeOrigin(newOrigin: LatLon): F[BookingUnknown.type \/ Unit] = ???
 
-  def changeDestination(newDestination: LatLon): F[BookingUnknown.type \/ Unit] =
-    ifKnownF(booking =>
-      if (booking.destination =!= newDestination) entity.write(DestinationChanged(newDestination))
-      else ().pure
-    )(BookingUnknown)
+  def changeDestination(newDestination: LatLon): F[BookingUnknown.type \/ Unit] = ???
 
   def changeOriginAndDestination(
       newOrigin: LatLon,
       newDestination: LatLon
-  ): F[BookingUnknown.type \/ Unit] = changeOrigin(newOrigin) >> changeDestination(newDestination)
+  ): F[BookingUnknown.type \/ Unit] = ???
 
-  def cancel: F[CancelError \/ Unit] =
-    ifKnownT[CancelError, Unit](booking =>
-      booking.status match {
-        case Status.Accepted | Status.Pending =>
-          EitherT.liftF(
-            (Clock[F].realTimeInstant >>= (timestamp =>
-              Logger[F]
-                .info(show"Cancelling booking with ID ${booking.id} at ${timestamp.toString}")
-            )) >> entity.write(BookingCancelled)
-          )
-        case Status.Cancelled => EitherT.pure(())
-        case Status.Rejected  => EitherT.leftT[F, Unit](BookingAlg.BookingWasRejected(booking.id))
-      }
-    )(
-      BookingUnknown
-    )
+  def cancel: F[CancelError \/ Unit] = ???
 
-  def notifyCapacity(isAvailable: Boolean): F[BookingAlg.BookingUnknown.type \/ Unit] =
-    ifKnownF(_.status match {
-      case Status.Pending =>
-        if (isAvailable) entity.write(BookingAccepted) else entity.write(BookingRejected)
-      case _ => ().pure
-    })(
-      BookingUnknown
-    )
+  def notifyCapacity(isAvailable: Boolean): F[BookingAlg.BookingUnknown.type \/ Unit] = ???
 }
 //#definition

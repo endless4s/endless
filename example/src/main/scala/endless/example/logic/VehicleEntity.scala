@@ -12,27 +12,11 @@ final case class VehicleEntity[F[_]: Logger](entity: DurableEntity[F, Vehicle])
     extends VehicleAlg[F] {
   import entity._
 
-  def setSpeed(speed: Speed): F[Unit] =
-    ifKnownElse(_ =>
-      Logger[F].info(show"Update speed to $speed") >> modify(_.copy(speed = Some(speed)))
-    )(
-      Logger[F].info(show"New vehicle with speed $speed") >> write(
-        Vehicle(position = None, Some(speed))
-      )
-    )
+  def setSpeed(speed: Speed): F[Unit] = ???
 
-  def setPosition(position: LatLon): F[Unit] =
-    ifKnownElse(_ =>
-      Logger[F].info(show"Update position to $position") >> modify(
-        _.copy(position = Some(position))
-      )
-    )(
-      Logger[F].info(show"New vehicle with position $position") >> write(
-        Vehicle(position = Some(position), None)
-      )
-    )
+  def setPosition(position: LatLon): F[Unit] = ???
 
-  def getSpeed: F[Option[Speed]] = read.map(_.flatMap(_.speed))
+  def getSpeed: F[Option[Speed]] = ???
 
-  def getPosition: F[Option[LatLon]] = read.map(_.flatMap(_.position))
+  def getPosition: F[Option[LatLon]] = ???
 }

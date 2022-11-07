@@ -22,74 +22,33 @@ class BookingCommandProtocol extends CirceCommandProtocol[BookingAlg] {
           passengerCount: Int,
           origin: LatLon,
           destination: LatLon
-      ): OutgoingCommand[BookingAlreadyExists \/ Unit] =
-        outgoingCommand[BookingCommand, BookingAlreadyExists \/ Unit](
-          PlaceBooking(bookingID, time, passengerCount, origin, destination)
-        )
+      ): OutgoingCommand[BookingAlreadyExists \/ Unit] = ???
 
       // ...
       // #example-client
 
-      def get: OutgoingCommand[BookingUnknown.type \/ Booking] =
-        outgoingCommand[BookingCommand, BookingUnknown.type \/ Booking](Get)
+      def get: OutgoingCommand[BookingUnknown.type \/ Booking] = ???
 
       def changeOrigin(
           newOrigin: LatLon
-      ): OutgoingCommand[BookingUnknown.type \/ Unit] =
-        outgoingCommand[BookingCommand, BookingUnknown.type \/ Unit](
-          ChangeOrigin(newOrigin)
-        )
+      ): OutgoingCommand[BookingUnknown.type \/ Unit] = ???
 
       def changeDestination(
           newDestination: LatLon
-      ): OutgoingCommand[BookingUnknown.type \/ Unit] =
-        outgoingCommand[BookingCommand, BookingUnknown.type \/ Unit](
-          ChangeDestination(newDestination)
-        )
+      ): OutgoingCommand[BookingUnknown.type \/ Unit] = ???
 
       def changeOriginAndDestination(
           newOrigin: LatLon,
           newDestination: LatLon
-      ): OutgoingCommand[BookingUnknown.type \/ Unit] =
-        outgoingCommand[BookingCommand, BookingUnknown.type \/ Unit](
-          ChangeOriginAndDestination(newOrigin, newDestination)
-        )
+      ): OutgoingCommand[BookingUnknown.type \/ Unit] = ???
 
-      override def cancel: OutgoingCommand[CancelError \/ Unit] =
-        outgoingCommand[BookingCommand, CancelError \/ Unit](Cancel)
+      override def cancel: OutgoingCommand[CancelError \/ Unit] = ???
 
       override def notifyCapacity(
           isAvailable: Boolean
-      ): OutgoingCommand[BookingAlg.BookingUnknown.type \/ Unit] =
-        outgoingCommand[BookingCommand, BookingUnknown.type \/ Unit](NotifyCapacity(isAvailable))
+      ): OutgoingCommand[BookingAlg.BookingUnknown.type \/ Unit] = ???
     }
 
 //#example-server
-  override def server[F[_]]: Decoder[IncomingCommand[F, BookingAlg]] =
-    CirceDecoder(io.circe.Decoder[BookingCommand].map {
-      case PlaceBooking(
-            bookingID: BookingID,
-            time: Instant,
-            passengerCount: Int,
-            origin: LatLon,
-            destination: LatLon
-          ) =>
-        incomingCommand[F, BookingAlreadyExists \/ Unit](
-          _.place(bookingID, time, passengerCount, origin, destination)
-        )
-      // #example-server
-
-      case Get => incomingCommand[F, BookingUnknown.type \/ Booking](_.get)
-      case ChangeOrigin(newOrigin) =>
-        incomingCommand[F, BookingUnknown.type \/ Unit](_.changeOrigin(newOrigin))
-      case ChangeDestination(newDestination) =>
-        incomingCommand[F, BookingUnknown.type \/ Unit](_.changeDestination(newDestination))
-      case ChangeOriginAndDestination(newOrigin, newDestination) =>
-        incomingCommand[F, BookingUnknown.type \/ Unit](
-          _.changeOriginAndDestination(newOrigin, newDestination)
-        )
-      case Cancel => incomingCommand[F, CancelError \/ Unit](_.cancel)
-      case NotifyCapacity(isAvailable) =>
-        incomingCommand[F, BookingUnknown.type \/ Unit](_.notifyCapacity(isAvailable))
-    })
+  override def server[F[_]]: Decoder[IncomingCommand[F, BookingAlg]] = ???
 }
