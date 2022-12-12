@@ -13,3 +13,7 @@ message GetSpeedV1FullReply {
 message GetPositionV1FullReply {
   LatLonV1Full position = 1;
 }
+
+message GetRecoveryCountV1FullReply {
+  int32 recovery_count = 1;
+}

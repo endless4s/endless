@@ -8,6 +8,7 @@ import cats.effect._
 import cats.syntax.applicative._
 import cats.syntax.either._
 import cats.syntax.flatMap._
+import cats.syntax.functor._
 import cats.syntax.show._
 import endless.core.entity.EntityNameProvider
 import endless.core.interpret.EffectorT
@@ -64,12 +65,12 @@ object ExampleApp {
             deployEntity[IO, Booking, BookingEvent, BookingID, BookingAlg, BookingRepositoryAlg](
               BookingEntity(_),
               BookingRepository(_),
-              (effector, _) => BookingEffector(effector)
+              { case (effector, _, _) => BookingEffector(effector) }
             ),
-            deployDurableEntity[IO, Vehicle, VehicleID, VehicleAlg, VehicleRepositoryAlg](
-              VehicleEntity(_),
-              VehicleRepository(_),
-              (effector, _) => effector.enablePassivation(1.second), // aggressive passivation
+            deployDurableEntityF[IO, Vehicle, VehicleID, VehicleAlg, VehicleRepositoryAlg](
+              VehicleEntity(_).pure[IO],
+              VehicleRepository(_).pure[IO],
+              { case (effector, _, _) => VehicleEffector.apply[IO](effector).map(_.apply) },
               customizeBehavior = (_, behavior) => behavior.snapshotAdapter(new VehicleStateAdapter)
             )
           )
@@ -101,6 +102,8 @@ object ExampleApp {
       case GET -> Root / "vehicle" / UUIDVar(id) / "speed" => getVehicleSpeed(vehicleRepository, id)
       case GET -> Root / "vehicle" / UUIDVar(id) / "position" =>
         getVehiclePosition(vehicleRepository, id)
+      case GET -> Root / "vehicle" / UUIDVar(id) / "recoveryCount" =>
+        getVehicleRecoveryCount(vehicleRepository, id)
       case req @ POST -> Root / "vehicle" / UUIDVar(id) / "speed" =>
         setVehicleSpeed(vehicleRepository, id, req)
       case req @ POST -> Root / "vehicle" / UUIDVar(id) / "position" =>
@@ -180,6 +183,9 @@ object ExampleApp {
       case Some(position) => Ok(position)
       case None           => BadRequest(show"Position for vehicle with $id is unknown")
     }
+
+  private def getVehicleRecoveryCount(vehicleRepository: VehicleRepositoryAlg[IO], id: UUID) =
+    vehicleRepository.vehicleFor(VehicleID(id)).getRecoveryCount.flatMap(count => Ok(count))
 
   private def setVehicleSpeed(
       vehicleRepository: VehicleRepositoryAlg[IO],
