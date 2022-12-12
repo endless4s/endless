@@ -7,4 +7,5 @@ import "vehicle/models.proto";
 message VehicleStateV1Full {
   LatLonV1Full position = 1;
   SpeedV1Full speed = 2;
+  uint32 recovery_count = 3;
 }

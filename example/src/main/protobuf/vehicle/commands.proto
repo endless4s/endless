@@ -11,6 +11,8 @@ message VehicleCommand {
     SetPositionV1Full set_position_v1 = 2;
     GetSpeedV1Full get_speed_v1 = 3;
     GetPositionV1Full get_position_v1 = 4;
+    GetRecoveryCountV1Full get_recovery_count_v1 = 5;
+    IncrementRecoveryCountV1Full increment_recovery_count_v1 = 6;
   }
 }
 
@@ -22,3 +24,5 @@ message SetPositionV1Full {
 }
 message GetSpeedV1Full {}
 message GetPositionV1Full {}
+message GetRecoveryCountV1Full {}
+message IncrementRecoveryCountV1Full {}
