@@ -67,8 +67,8 @@ trait Deployer {
     *   creator for repository algebra accepting an instance of `Repository`
     * @param createEffector
     *   creator for effector accepting an instance of `Effector` and repository (for scenarios where
-    *   effector processes require access to the repository itself), interpreted with `EffectorT`
-    *   (you can pass in `(_,_) => EffectorT.unit` for unit effector)
+    *   effector processes require access to the repository itself) and entity, interpreted with
+    *   `EffectorT` (you can pass in `(_) => EffectorT.unit` for unit effector)
     * @param customizeBehavior
     *   hook to further customize Akka `EventSourcedBehavior`. By default the behavior enforces
     *   replies, and is configured with command handler and event handler. It also triggers the
@@ -106,10 +106,7 @@ trait Deployer {
   ]](
       createEntity: Entity[EntityT[F, S, E, *], S, E] => Alg[EntityT[F, S, E, *]],
       createRepository: Repository[F, ID, Alg] => RepositoryAlg[F],
-      createEffector: (
-          Effector[EffectorT[F, S, Alg, *], S, Alg],
-          RepositoryAlg[F]
-      ) => EffectorT[F, S, Alg, Unit],
+      createEffector: EffectorParameters[F, S, Alg, RepositoryAlg] => EffectorT[F, S, Alg, Unit],
       customizeBehavior: (
           EntityContext[Command],
           EventSourcedBehavior[Command, E, Option[S]]
@@ -131,13 +128,15 @@ trait Deployer {
     deployEntityF(
       (entity: Entity[EntityT[F, S, E, *], S, E]) => createEntity(entity).pure[F],
       (repository: Repository[F, ID, Alg]) => createRepository(repository).pure[F],
-      (effector: Effector[EffectorT[F, S, Alg, *], S, Alg], repository: RepositoryAlg[F]) =>
-        createEffector(effector, repository).pure[F],
+      (parameters: EffectorParameters[F, S, Alg, RepositoryAlg]) =>
+        createEffector(parameters).pure[F],
       customizeBehavior,
       customizeEntity
     )
 
-  /** Overload of [[Deployer.deployEntity]] that accepts creation functions expressed in `F` context
+  /** Overload of [[Deployer.deployEntity]] that accepts creation functions expressed in `F`
+    * context. This is particularly useful for creating a stateful effector (which is specific to an
+    * entity).
     */
   def deployEntityF[F[_]: Async: Logger, S, E, ID: EntityIDCodec, Alg[
       _[_]
@@ -146,10 +145,7 @@ trait Deployer {
   ]](
       createEntity: Entity[EntityT[F, S, E, *], S, E] => F[Alg[EntityT[F, S, E, *]]],
       createRepository: Repository[F, ID, Alg] => F[RepositoryAlg[F]],
-      createEffector: (
-          Effector[EffectorT[F, S, Alg, *], S, Alg],
-          RepositoryAlg[F]
-      ) => F[EffectorT[F, S, Alg, Unit]],
+      createEffector: EffectorParameters[F, S, Alg, RepositoryAlg] => F[EffectorT[F, S, Alg, Unit]],
       customizeBehavior: (
           EntityContext[Command],
           EventSourcedBehavior[Command, E, Option[S]]
@@ -173,13 +169,12 @@ trait Deployer {
     Resource.eval(
       for {
         interpretedEntityAlg <- createEntity(EntityT.instance)
-        interpretedRepository <- createRepository(repositoryT)
-        interpretedEffector <- createEffector(EffectorT.instance, interpretedRepository)
+        repository <- createRepository(repositoryT)
       } yield new DeployEntity(
         interpretedEntityAlg,
-        interpretedRepository,
+        repository,
         repositoryT,
-        interpretedEffector,
+        createEffector,
         customizeBehavior,
         customizeEntity
       ).apply
@@ -188,13 +183,16 @@ trait Deployer {
 
   final class EventApplierException(error: String) extends RuntimeException(error)
 
+  private type EffectorParameters[F[_], S, Alg[_[_]], RepositoryAlg[_[_]]] =
+    (Effector[EffectorT[F, S, Alg, *], S, Alg], RepositoryAlg[F], Alg[F])
+
   private class DeployEntity[F[_]: Async: Logger, S, E, ID: EntityIDCodec, Alg[
       _[_]
   ]: FunctorK, RepositoryAlg[_[_]]](
       interpretedEntityAlg: Alg[EntityT[F, S, E, *]],
-      interpretedRepository: RepositoryAlg[F],
+      repository: RepositoryAlg[F],
       repositoryT: RepositoryT[F, ID, Alg],
-      interpretedEffector: EffectorT[F, S, Alg, Unit],
+      createEffector: EffectorParameters[F, S, Alg, RepositoryAlg] => F[EffectorT[F, S, Alg, Unit]],
       customizeBehavior: (
           EntityContext[Command],
           EventSourcedBehavior[Command, E, Option[S]]
@@ -216,9 +214,14 @@ trait Deployer {
       Dispatcher[F].map { implicit dispatcher =>
         val akkaEntity = akka.cluster.sharding.typed.scaladsl.Entity(
           EntityTypeKey[Command](nameProvider())
-        ) { context =>
-          Behaviors.setup { actor =>
-            implicit val passivator: EntityPassivator[F] = new EntityPassivator(context, actor)
+        ) { implicit context =>
+          Behaviors.setup { implicit actor =>
+            implicit val passivator: EntityPassivator[F] =
+              dispatcher.unsafeRunSync(EntityPassivator[F])
+            implicit val entity: Alg[F] =
+              repositoryT.entityFor(implicitly[EntityIDCodec[ID]].decode(context.entityId))
+            implicit val effector: EffectorT[F, S, Alg, Unit] =
+              dispatcher.unsafeRunSync(createEffector(EffectorT.instance, repository, entity))
             customizeBehavior(
               context,
               EventSourcedBehavior
@@ -233,13 +236,7 @@ trait Deployer {
                     dispatcher.unsafeRunAndForget(
                       Logger[F].info(
                         show"Recovery of ${nameProvider()} entity ${context.entityId} completed"
-                      ) >> interpretedEffector
-                        .runS(
-                          state,
-                          repositoryT
-                            .entityFor(implicitly[EntityIDCodec[ID]].decode(context.entityId))
-                        )
-                        .flatMap(passivator.apply)
+                      ) >> effector.runS(state, entity).flatMap(passivator.apply)
                     )
                   case (_, RecoveryFailed(failure)) =>
                     dispatcher.unsafeRunSync(
@@ -251,11 +248,14 @@ trait Deployer {
             )
           }
         }
-        (interpretedRepository, sharding.init(customizeEntity(akkaEntity)))
+        (repository, sharding.init(customizeEntity(akkaEntity)))
       }
 
     private def handleEvent(state: Option[S], event: E)(implicit
-        dispatcher: Dispatcher[F]
+        entity: Alg[F],
+        dispatcher: Dispatcher[F],
+        passivator: EntityPassivator[F],
+        effector: EffectorT[F, S, Alg, Unit]
     ) = eventApplier.apply(state, event) match {
       case Left(error) =>
         dispatcher.unsafeRunSync(Logger[F].warn(error))
@@ -264,8 +264,10 @@ trait Deployer {
     }
 
     private def handleCommand(state: Option[S], command: Command)(implicit
+        entity: Alg[F],
         dispatcher: Dispatcher[F],
-        passivator: EntityPassivator[F]
+        passivator: EntityPassivator[F],
+        effector: EffectorT[F, S, Alg, Unit]
     ) = {
       val incomingCommand =
         commandProtocol.server[EntityT[F, S, E, *]].decode(command.payload)
@@ -282,14 +284,8 @@ trait Deployer {
               .persist(events.toList)
               .thenRun((state: Option[S]) =>
                 // run the effector asynchronously, as it can describe long-running processes
-                dispatcher.unsafeRunAndForget(
-                  interpretedEffector
-                    .runS(
-                      state,
-                      repositoryT.entityFor(implicitly[EntityIDCodec[ID]].decode(command.id))
-                    )
-                    .flatMap(passivator.apply)
-                )
+                dispatcher
+                  .unsafeRunAndForget(effector.runS(state, entity).flatMap(passivator.apply))
               )
               .thenReply(command.replyTo) { _: Option[S] =>
                 Reply(incomingCommand.replyEncoder.encode(reply))
