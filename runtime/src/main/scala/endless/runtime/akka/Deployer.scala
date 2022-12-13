@@ -211,7 +211,7 @@ trait Deployer {
     private val entityTypeKey = EntityTypeKey[Command](nameProvider())
 
     def apply: Resource[F, (RepositoryAlg[F], ActorRef[ShardingEnvelope[Command]])] =
-      Dispatcher[F].map { implicit dispatcher =>
+      Dispatcher.parallel[F].map { implicit dispatcher =>
         val akkaEntity = akka.cluster.sharding.typed.scaladsl.Entity(
           EntityTypeKey[Command](nameProvider())
         ) { implicit context =>
