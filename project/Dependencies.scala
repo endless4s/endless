@@ -34,7 +34,7 @@ object Dependencies {
   lazy val catsTaglessVersion = "0.14.0"
   lazy val catsTagless = Seq("org.typelevel" %% "cats-tagless-macros" % catsTaglessVersion)
 
-  lazy val catsEffectVersion = "3.3.14"
+  lazy val catsEffectVersion = "3.4.2"
   lazy val catsEffectKernel = Seq("org.typelevel" %% "cats-effect-kernel" % catsEffectVersion)
   lazy val catsEffectLaws = Seq("org.typelevel" %% "cats-effect-laws" % catsEffectVersion)
   lazy val catsEffectTestKit = Seq("org.typelevel" %% "cats-effect-testkit" % catsEffectVersion)
@@ -60,7 +60,7 @@ object Dependencies {
     "io.circe" %% "circe-parser"
   ).map(_ % circeVersion)
 
-  lazy val logbackVersion = "1.4.4"
+  lazy val logbackVersion = "1.4.5"
   lazy val logback = Seq("ch.qos.logback" % "logback-classic" % logbackVersion)
 
   lazy val log4catsVersion = "2.5.0"

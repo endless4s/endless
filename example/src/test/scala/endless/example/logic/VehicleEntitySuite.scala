@@ -73,4 +73,32 @@ class VehicleEntitySuite
         .map(_.isEmpty)
     )
   }
+
+  test("get recovery count") {
+    forAllF { (speed: Option[Speed], latLon: Option[LatLon], recoveryCount: Int) =>
+      vehicleAlg.getRecoveryCount
+        .runA(State.Existing(Vehicle(latLon, speed, recoveryCount)))
+        .map(result => assertEquals(result, recoveryCount))
+    }
+  }
+
+  test("get recovery count when unknown") {
+    assertIOBoolean(
+      vehicleAlg.getRecoveryCount
+        .runA(State.None)
+        .map(_ == 0)
+    )
+  }
+
+  test("increment recovery count") {
+    forAllF { (speed: Option[Speed], latLon: Option[LatLon], recoveryCount: Int) =>
+      vehicleAlg.incrementRecoveryCount
+        .run(State.Existing(Vehicle(latLon, speed, recoveryCount)))
+        .map {
+          case (State.Updated(vehicle), ()) =>
+            assertEquals(vehicle.recoveryCount, recoveryCount + 1)
+          case _ => fail("incorrect vehicle state")
+        }
+    }
+  }
 }

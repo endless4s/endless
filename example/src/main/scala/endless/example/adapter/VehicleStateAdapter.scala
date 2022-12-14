@@ -8,15 +8,17 @@ import endless.example.proto.vehicle.state.VehicleStateV1Full
 class VehicleStateAdapter extends SnapshotAdapter[Option[Vehicle]] {
   def toJournal(state: Option[Vehicle]): Any = VehicleStateV1Full(
     state.flatMap(_.position.map(latLon => LatLonV1Full(latLon.lat, latLon.lon))),
-    state.flatMap(_.speed.map(s => SpeedV1Full(s.metersPerSecond)))
+    state.flatMap(_.speed.map(s => SpeedV1Full(s.metersPerSecond))),
+    state.map(_.recoveryCount).getOrElse(0)
   )
 
   def fromJournal(from: Any): Option[Vehicle] = from match {
-    case VehicleStateV1Full(position, speed, _) =>
+    case VehicleStateV1Full(position, speed, recoveryCount, _) =>
       Some(
         Vehicle(
           position.map(latLon => LatLon(latLon.lat, latLon.lon)),
-          speed.map(_.metersPerSecond).map(Speed(_))
+          speed.map(_.metersPerSecond).map(Speed(_)),
+          recoveryCount
         )
       )
   }

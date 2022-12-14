@@ -9,6 +9,8 @@ trait VehicleAlg[F[_]] {
   def setPosition(position: LatLon): F[Unit]
   def getSpeed: F[Option[Speed]]
   def getPosition: F[Option[LatLon]]
+  def getRecoveryCount: F[Int]
+  def incrementRecoveryCount: F[Unit]
 }
 //#definition
 

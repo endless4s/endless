@@ -35,4 +35,9 @@ final case class VehicleEntity[F[_]: Logger](entity: DurableEntity[F, Vehicle])
   def getSpeed: F[Option[Speed]] = read.map(_.flatMap(_.speed))
 
   def getPosition: F[Option[LatLon]] = read.map(_.flatMap(_.position))
+
+  def getRecoveryCount: F[Int] = read.map(_.map(_.recoveryCount).getOrElse(0))
+
+  def incrementRecoveryCount: F[Unit] =
+    modify(vehicle => vehicle.copy(recoveryCount = vehicle.recoveryCount + 1))
 }

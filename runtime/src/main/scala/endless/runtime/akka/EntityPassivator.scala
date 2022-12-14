@@ -7,40 +7,45 @@ import cats.Applicative
 import cats.effect.kernel.{Ref, Sync}
 import cats.syntax.eq._
 import cats.syntax.flatMap._
+import cats.syntax.functor._
 import endless.core.interpret.EffectorT.PassivationState
 
 import scala.concurrent.duration.{Duration, FiniteDuration}
 
-private[akka] class EntityPassivator[F[_]: Sync](
+private[akka] class EntityPassivator[F[_]: Sync](upcomingPassivation: Ref[F, Option[Cancellable]])(
+    implicit
     entityContext: EntityContext[_],
     actorContext: ActorContext[_]
 ) {
-  private lazy val upcomingPassivation: F[Ref[F, Option[Cancellable]]] =
-    Ref.of(Option.empty[Cancellable])
   private lazy val passivateMessage = ClusterSharding.Passivate(actorContext.self)
+  private lazy val passivate = Sync[F].delay(entityContext.shard.tell(passivateMessage))
+  private lazy val disablePassivation =
+    upcomingPassivation.modify(maybeCancellable => {
+      (None, maybeCancellable.foreach(_.cancel()))
+    })
 
   def apply(passivationState: PassivationState): F[Unit] = passivationState match {
     case PassivationState.After(duration) => enablePassivation(duration)
-    case PassivationState.Disabled        => disablePassivation()
+    case PassivationState.Disabled        => disablePassivation
     case PassivationState.Unchanged       => Applicative[F].unit
   }
 
-  private def disablePassivation() =
-    upcomingPassivation >>= (_.modify(maybeCancellable => {
-      (None, maybeCancellable.foreach(_.cancel()))
-    }))
-
   private def enablePassivation(after: FiniteDuration = Duration.Zero) =
-    if (after === Duration.Zero) passivate() else schedulePassivation(after)
-
-  private def passivate() =
-    Sync[F].delay(entityContext.shard.tell(passivateMessage))
+    if (after === Duration.Zero) passivate else schedulePassivation(after)
 
   private def schedulePassivation(after: FiniteDuration) =
-    disablePassivation() >> upcomingPassivation >>= (_.set(
+    disablePassivation >> upcomingPassivation.set(
       Some(
         actorContext.scheduleOnce(after, entityContext.shard, passivateMessage)
       )
-    ))
+    )
 
+}
+
+object EntityPassivator {
+  def apply[F[_]: Sync](implicit
+      entityContext: EntityContext[_],
+      actorContext: ActorContext[_]
+  ): F[EntityPassivator[F]] =
+    Ref.of[F, Option[Cancellable]](Option.empty[Cancellable]).map(new EntityPassivator(_))
 }

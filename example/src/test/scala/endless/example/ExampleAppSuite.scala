@@ -5,7 +5,7 @@ import akka.persistence.testkit.{
   PersistenceTestKitDurableStateStorePlugin,
   PersistenceTestKitPlugin
 }
-import cats.effect.IO
+import cats.effect.{IO, Temporal}
 import cats.effect.kernel.Resource
 import cats.syntax.applicative._
 import cats.syntax.show._
@@ -149,7 +149,9 @@ class ExampleAppSuite extends munit.CatsEffectSuite {
     )
   }
 
-  test("POST several positions & speeds of a vehicle and finally GET them back") {
+  test(
+    "POST several positions & speeds of a vehicle and validate passivation occurs in-between calls"
+  ) {
     for {
       vehicleID <- IO.pure(VehicleID(UUID.randomUUID()))
       _ <- client().status(POST(LatLon(1, 1), baseVehicleUri / vehicleID.show / "position"))
@@ -159,15 +161,19 @@ class ExampleAppSuite extends munit.CatsEffectSuite {
       _ <- client().status(POST(LatLon(3, 3), baseVehicleUri / vehicleID.show / "position"))
       _ <- client().status(POST(LatLon(4, 4), baseVehicleUri / vehicleID.show / "position"))
       _ <- client().status(POST(Speed(0), baseVehicleUri / vehicleID.show / "speed"))
+      _ <- assertIO(client().expect[Int](GET(baseVehicleUri / vehicleID.show / "recoveryCount")), 1)
       _ <- IO.sleep(2.seconds) // passivation occurs
       _ <- assertIO(
         client().expect[LatLon](GET(baseVehicleUri / vehicleID.show / "position")),
         LatLon(4, 4)
       )
+      _ <- assertIO(client().expect[Int](GET(baseVehicleUri / vehicleID.show / "recoveryCount")), 2)
+      _ <- IO.sleep(2.seconds) // passivation occurs
       _ <- assertIO(
         client().expect[Speed](GET(baseVehicleUri / vehicleID.show / "speed")),
         Speed(0)
       )
+      _ <- assertIO(client().expect[Int](GET(baseVehicleUri / vehicleID.show / "recoveryCount")), 3)
     } yield ()
   }
 

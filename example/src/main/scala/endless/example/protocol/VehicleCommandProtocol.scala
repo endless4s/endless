@@ -6,7 +6,12 @@ import endless.example.data.{LatLon, Speed}
 import endless.example.proto.vehicle.commands.VehicleCommand.Command
 import endless.example.proto.vehicle.commands._
 import endless.example.proto.vehicle.models.{LatLonV1Full, SpeedV1Full}
-import endless.example.proto.vehicle.replies.{GetPositionV1FullReply, GetSpeedV1FullReply, UnitReply}
+import endless.example.proto.vehicle.replies.{
+  GetPositionV1FullReply,
+  GetRecoveryCountV1FullReply,
+  GetSpeedV1FullReply,
+  UnitReply
+}
 import endless.example.protocol.VehicleCommandProtocol.UnexpectedCommandException
 import endless.protobuf.{ProtobufCommandProtocol, ProtobufDecoder}
 
@@ -38,6 +43,13 @@ class VehicleCommandProtocol extends ProtobufCommandProtocol[VehicleAlg] {
               maybePosition.map(position => LatLonV1Full.of(position.lat, position.lon))
             )
         )
+      case Command.GetRecoveryCountV1(_) =>
+        incomingCommand[F, GetRecoveryCountV1FullReply, Int](
+          _.getRecoveryCount,
+          recoveryCount => GetRecoveryCountV1FullReply.of(recoveryCount)
+        )
+      case Command.IncrementRecoveryCountV1(_) =>
+        incomingCommand[F, UnitReply, Unit](_.incrementRecoveryCount, _ => UnitReply())
     })
 
   def client: VehicleAlg[OutgoingCommand[*]] = new VehicleAlg[OutgoingCommand] {
@@ -67,6 +79,18 @@ class VehicleCommandProtocol extends ProtobufCommandProtocol[VehicleAlg] {
       outgoingCommand[VehicleCommand, GetPositionV1FullReply, Option[LatLon]](
         VehicleCommand.of(Command.GetPositionV1(GetPositionV1Full())),
         _.position.map(position => LatLon(position.lat, position.lon))
+      )
+
+    def getRecoveryCount: OutgoingCommand[Int] =
+      outgoingCommand[VehicleCommand, GetRecoveryCountV1FullReply, Int](
+        VehicleCommand.of(Command.GetRecoveryCountV1(GetRecoveryCountV1Full())),
+        _.recoveryCount
+      )
+
+    def incrementRecoveryCount: OutgoingCommand[Unit] =
+      outgoingCommand[VehicleCommand, UnitReply, Unit](
+        VehicleCommand.of(Command.IncrementRecoveryCountV1(IncrementRecoveryCountV1Full())),
+        _ => ()
       )
   }
 }
