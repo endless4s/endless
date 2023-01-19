@@ -1,6 +1,11 @@
 package endless.example.logic
 
-import endless.example.algebra.BookingAlg.{BookingAlreadyExists, BookingUnknown, BookingWasRejected, CancelError}
+import endless.example.algebra.BookingAlg.{
+  BookingAlreadyExists,
+  BookingUnknown,
+  BookingWasRejected,
+  CancelError
+}
 import endless.example.data.Booking.BookingID
 import endless.example.data.{Booking, LatLon, Speed}
 import org.scalacheck.{Arbitrary, Gen}
