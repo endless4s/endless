@@ -187,10 +187,15 @@ object EffectorT extends LoggerLiftingHelper {
     def racePair[A, B](
         fa: EffectorT[F, S, Alg, A],
         fb: EffectorT[F, S, Alg, B]
-    ): EffectorT[F, S, Alg, Either[
-      (Outcome[EffectorT[F, S, Alg, *], E, A], Fiber[EffectorT[F, S, Alg, *], E, B]),
-      (Fiber[EffectorT[F, S, Alg, *], E, A], Outcome[EffectorT[F, S, Alg, *], E, B])
-    ]] = ReaderWriterStateT { case (env, passivation) =>
+    ): EffectorT[
+      F,
+      S,
+      Alg,
+      Either[
+        (Outcome[EffectorT[F, S, Alg, *], E, A], Fiber[EffectorT[F, S, Alg, *], E, B]),
+        (Fiber[EffectorT[F, S, Alg, *], E, A], Outcome[EffectorT[F, S, Alg, *], E, B])
+      ]
+    ] = ReaderWriterStateT { case (env, passivation) =>
       F.uncancelable(poll =>
         poll(
           F
@@ -219,10 +224,15 @@ object EffectorT extends LoggerLiftingHelper {
     override def racePair[A, B](
         fa: EffectorT[F, S, Alg, A],
         fb: EffectorT[F, S, Alg, B]
-    ): EffectorT[F, S, Alg, Either[
-      (Outcome[EffectorT[F, S, Alg, *], E, A], Fiber[EffectorT[F, S, Alg, *], E, B]),
-      (Fiber[EffectorT[F, S, Alg, *], E, A], Outcome[EffectorT[F, S, Alg, *], E, B])
-    ]] =
+    ): EffectorT[
+      F,
+      S,
+      Alg,
+      Either[
+        (Outcome[EffectorT[F, S, Alg, *], E, A], Fiber[EffectorT[F, S, Alg, *], E, B]),
+        (Fiber[EffectorT[F, S, Alg, *], E, A], Outcome[EffectorT[F, S, Alg, *], E, B])
+      ]
+    ] =
       super.racePair(fa, fb)
   }
 
