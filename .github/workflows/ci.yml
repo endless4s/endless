@@ -5,11 +5,12 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2.3.4
+      - uses: actions/checkout@v2
         with:
           fetch-depth: 0
-      - uses: olafurpg/setup-scala@v13
+      - uses: coursier/setup-action@v1
         with:
-          java-version: adopt@1.11
+          jvm: adopt:11
+          apps: sbt
       - run: sbt compile coverage test coverageReport coverageAggregate versionPolicyCheck documentation/makeSite
       - uses: codecov/codecov-action@v2.1.0
