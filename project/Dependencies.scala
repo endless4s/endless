@@ -47,7 +47,7 @@ object Dependencies {
     "org.http4s" %% "http4s-circe" % http4sVersion
   )
 
-  lazy val blazeVersion = "0.23.13"
+  lazy val blazeVersion = "0.23.14"
   lazy val blaze = Seq(
     "org.http4s" %% "http4s-blaze-server" % blazeVersion,
     "org.http4s" %% "http4s-blaze-client" % blazeVersion
