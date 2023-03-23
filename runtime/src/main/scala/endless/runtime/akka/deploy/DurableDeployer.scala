@@ -1,27 +1,24 @@
-package endless.runtime.akka
+package endless.runtime.akka.deploy
 
-import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, ActorSystem, Behavior}
 import akka.cluster.sharding.typed.ShardingEnvelope
-import akka.cluster.sharding.typed.scaladsl.{ClusterSharding, EntityContext, EntityTypeKey}
-import akka.persistence.typed.PersistenceId
-import akka.persistence.typed.state.scaladsl.{DurableStateBehavior, Effect}
-import akka.persistence.typed.state.{RecoveryCompleted, RecoveryFailed}
+import akka.cluster.sharding.typed.scaladsl.{ClusterSharding, EntityContext}
+import akka.persistence.typed.state.scaladsl.DurableStateBehavior
 import akka.util.Timeout
 import cats.effect.kernel.{Async, Resource}
-import cats.effect.std.Dispatcher
-import cats.Applicative
 import cats.syntax.applicative._
 import cats.syntax.flatMap._
 import cats.syntax.functor._
-import cats.syntax.show._
 import cats.tagless.FunctorK
 import endless.core.entity._
-import endless.core.interpret.DurableEntityT.{DurableEntityT, State}
+import endless.core.interpret.DurableEntityT.DurableEntityT
 import endless.core.interpret.EffectorT._
 import endless.core.interpret._
 import endless.core.protocol.{CommandProtocol, CommandRouter, EntityIDCodec}
+import endless.runtime.akka.ShardingCommandRouter
 import endless.runtime.akka.data._
+import endless.runtime.akka.deploy.DurableDeployer.EffectorParameters
+import endless.runtime.akka.deploy.internal.DurableShardedEntityDeployer
 import org.typelevel.log4cats.Logger
 
 trait DurableDeployer {
@@ -133,9 +130,8 @@ trait DurableDeployer {
       customizeEntity
     )
 
-  /** Overload of [[DurableDeployer.deployDurableEntity]] that accepts creation functions expressed
-    * in `F` context. This is particularly useful for creating a stateful effector (which is
-    * specific to an entity).
+  /** Overload of [[deployDurableEntity]] that accepts creation functions expressed in `F` context.
+    * This is particularly useful for creating a stateful effector (which is specific to an entity).
     */
   def deployDurableEntityF[F[_]: Async: Logger, S, ID: EntityIDCodec, Alg[
       _[_]
@@ -163,122 +159,22 @@ trait DurableDeployer {
   ): Resource[F, (RepositoryAlg[F], ActorRef[ShardingEnvelope[Command]])] = {
     implicit val commandRouter: CommandRouter[F, ID] = ShardingCommandRouter.apply
     val repositoryT = RepositoryT.apply[F, ID, Alg]
-    Resource.eval(
-      for {
-        interpretedEntityAlg <- createEntity(DurableEntityT.instance)
-        repository <- createRepository(repositoryT)
-      } yield new DeployEntity(
+    for {
+      interpretedEntityAlg <- Resource.eval(createEntity(DurableEntityT.instance))
+      repository <- Resource.eval(createRepository(repositoryT))
+      entity <- new DurableShardedEntityDeployer(
         interpretedEntityAlg,
         repository,
         repositoryT,
         createEffector,
-        customizeBehavior,
-        customizeEntity
-      ).apply
-    )
-  }.flatten
-
-  final class EventApplierException(error: String) extends RuntimeException(error)
-
-  private type EffectorParameters[F[_], S, Alg[_[_]], RepositoryAlg[_[_]]] =
-    (Effector[EffectorT[F, S, Alg, *], S, Alg], RepositoryAlg[F], Alg[F])
-
-  private class DeployEntity[F[_]: Async: Logger, S, ID: EntityIDCodec, Alg[
-      _[_]
-  ]: FunctorK, RepositoryAlg[_[_]]](
-      interpretedEntityAlg: Alg[DurableEntityT[F, S, *]],
-      repository: RepositoryAlg[F],
-      repositoryT: RepositoryT[F, ID, Alg],
-      createEffector: EffectorParameters[F, S, Alg, RepositoryAlg] => F[EffectorT[F, S, Alg, Unit]],
-      customizeBehavior: (
-          EntityContext[Command],
-          DurableStateBehavior[Command, Option[S]]
-      ) => Behavior[Command],
-      customizeEntity: akka.cluster.sharding.typed.scaladsl.Entity[Command, ShardingEnvelope[
-        Command
-      ]] => akka.cluster.sharding.typed.scaladsl.Entity[Command, ShardingEnvelope[Command]]
-  )(implicit
-      sharding: ClusterSharding,
-      actorSystem: ActorSystem[_],
-      nameProvider: EntityNameProvider[ID],
-      commandProtocol: CommandProtocol[Alg],
-      askTimeout: Timeout
-  ) {
-    private val entityTypeKey = EntityTypeKey[Command](nameProvider())
-
-    def apply: Resource[F, (RepositoryAlg[F], ActorRef[ShardingEnvelope[Command]])] =
-      Dispatcher.parallel[F].map { implicit dispatcher =>
-        val akkaEntity = akka.cluster.sharding.typed.scaladsl.Entity(
-          EntityTypeKey[Command](nameProvider())
-        ) { implicit context =>
-          Behaviors.setup { implicit actor =>
-            implicit val passivator: EntityPassivator[F] =
-              dispatcher.unsafeRunSync(EntityPassivator[F])
-            implicit val entity: Alg[F] =
-              repositoryT.entityFor(implicitly[EntityIDCodec[ID]].decode(context.entityId))
-            implicit val effector: EffectorT[F, S, Alg, Unit] =
-              dispatcher.unsafeRunSync(createEffector(EffectorT.instance, repository, entity))
-            customizeBehavior(
-              context,
-              DurableStateBehavior
-                .withEnforcedReplies[Command, Option[S]](
-                  PersistenceId(entityTypeKey.name, context.entityId),
-                  Option.empty[S],
-                  commandHandler = handleCommand
-                )
-                .receiveSignal {
-                  case (state, RecoveryCompleted) =>
-                    dispatcher.unsafeRunAndForget(
-                      Logger[F].info(
-                        show"Recovery of ${nameProvider()} entity ${context.entityId} completed"
-                      ) >> effector.runS(state, entity).flatMap(passivator.apply)
-                    )
-                  case (_, RecoveryFailed(failure)) =>
-                    dispatcher.unsafeRunSync(
-                      Logger[F].warn(
-                        show"Recovery of ${nameProvider()} entity ${context.entityId} failed with error ${failure.getMessage}"
-                      )
-                    )
-                }
-            )
-          }
-        }
-        (repository, sharding.init(customizeEntity(akkaEntity)))
-      }
-
-    private def handleCommand(state: Option[S], command: Command)(implicit
-        entity: Alg[F],
-        dispatcher: Dispatcher[F],
-        passivator: EntityPassivator[F],
-        effector: EffectorT[F, S, Alg, Unit]
-    ) = {
-      val incomingCommand =
-        commandProtocol.server[DurableEntityT[F, S, *]].decode(command.payload)
-      val effect = Logger[F].debug(
-        show"Handling command for ${nameProvider()} entity ${command.id}"
-      ) >> incomingCommand
-        .runWith(interpretedEntityAlg)
-        .run(state match {
-          case Some(value) => DurableEntityT.State.Existing(value)
-          case None        => DurableEntityT.State.None
-        })
-        .flatMap { case (state, reply) =>
-          (state match {
-            case State.None           => Effect.none
-            case State.Existing(_)    => Effect.none
-            case State.Updated(state) => Effect.persist(Option(state))
-          })
-            .thenRun((state: Option[S]) =>
-              // run the effector asynchronously, as it can describe long-running processes
-              dispatcher.unsafeRunAndForget(effector.runS(state, entity).flatMap(passivator.apply))
-            )
-            .thenReply(command.replyTo) { _: Option[S] =>
-              Reply(incomingCommand.replyEncoder.encode(reply))
-            }
-            .pure[F]
-        }
-      dispatcher.unsafeRunSync(effect)
-    }
+        customizeBehavior
+      ).deployShardedEntity(sharding, customizeEntity).map((repository, _))
+    } yield entity
   }
 
+}
+
+object DurableDeployer {
+  type EffectorParameters[F[_], S, Alg[_[_]], RepositoryAlg[_[_]]] =
+    (Effector[EffectorT[F, S, Alg, *], S, Alg], RepositoryAlg[F], Alg[F])
 }
