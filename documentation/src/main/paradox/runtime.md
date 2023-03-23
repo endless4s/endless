@@ -1,6 +1,6 @@
 # Akka runtime
 
-Once required interpreters and typeclass instances have been defined, deploying an entity with Akka boils down to a single call to @scaladoc[deployEntity](endless.runtime.akka.Deployer). This naturally requires an actor system and the cluster sharding extension in implicit scope.
+Once required interpreters and typeclass instances have been defined, deploying an entity with Akka boils down to a single call to @scaladoc[deployEntity](endless.runtime.akka.deploy.Deployer). This naturally requires an actor system and the cluster sharding extension in implicit scope.
 
 ## `deployEntity`
 This function brings everything together and delivers a cats effect @link:[Resource](https://typelevel.org/cats-effect/docs/std/resource) { open=new } with the repository instance in context `F` bundled with the ref to the shard region actor returned by the call to Akka's @link:[ClusterSharding.init](https://doc.akka.io/docs/akka/current/typed/cluster-sharding.html#basic-example) { open=new }.
@@ -22,7 +22,7 @@ In order to bridge Akka's implicit asynchronicity with the side-effect free cont
 @@@
 
 @@@ note { title="Durable entity" }
- The equivalent method for durable entities is @scaladoc[deployDurableEntity](endless.runtime.akka.DurableDeployer).
+ The equivalent method for durable entities is @scaladoc[deployDurableEntity](endless.runtime.akka.deploy.DurableDeployer).
 @@@
 
 ## Internals
