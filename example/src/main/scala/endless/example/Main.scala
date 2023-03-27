@@ -9,7 +9,7 @@ import cats.effect._
 import com.typesafe.config.ConfigFactory
 
 object Main extends IOApp {
-  implicit val actorSystem: ActorSystem[Nothing] =
+  implicit def actorSystem: ActorSystem[Nothing] =
     ActorSystem.wrap(
       akka.actor.ActorSystem(
         "example-as",
@@ -20,10 +20,6 @@ object Main extends IOApp {
       )
     )
 
-  def run(args: List[String]): IO[ExitCode] = {
-    ExampleApp.apply
-      .flatMap(_.use(_ => IO.fromFuture(IO(actorSystem.whenTerminated))))
-      .as(ExitCode.Success)
-  }
+  def run(args: List[String]): IO[ExitCode] = ExampleApp.apply.useForever.as(ExitCode.Success)
 
 }

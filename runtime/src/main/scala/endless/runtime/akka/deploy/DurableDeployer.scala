@@ -7,15 +7,12 @@ import akka.persistence.typed.state.scaladsl.DurableStateBehavior
 import akka.util.Timeout
 import cats.effect.kernel.{Async, Resource}
 import cats.syntax.applicative._
-import cats.syntax.flatMap._
-import cats.syntax.functor._
 import cats.tagless.FunctorK
 import endless.core.entity._
 import endless.core.interpret.DurableEntityT.DurableEntityT
 import endless.core.interpret.EffectorT._
 import endless.core.interpret._
-import endless.core.protocol.{CommandProtocol, CommandRouter, EntityIDCodec}
-import endless.runtime.akka.ShardingCommandRouter
+import endless.core.protocol.{CommandProtocol, EntityIDCodec}
 import endless.runtime.akka.data._
 import endless.runtime.akka.deploy.DurableDeployer.EffectorParameters
 import endless.runtime.akka.deploy.internal.DurableShardedEntityDeployer
@@ -115,8 +112,7 @@ trait DurableDeployer {
       ]] => akka.cluster.sharding.typed.scaladsl.Entity[Command, ShardingEnvelope[Command]] =
         identity
   )(implicit
-      sharding: ClusterSharding,
-      actorSystem: ActorSystem[_],
+      akkaCluster: AkkaCluster,
       nameProvider: EntityNameProvider[ID],
       commandProtocol: CommandProtocol[Alg],
       askTimeout: Timeout
@@ -151,24 +147,39 @@ trait DurableDeployer {
       ]] => akka.cluster.sharding.typed.scaladsl.Entity[Command, ShardingEnvelope[Command]] =
         identity
   )(implicit
-      sharding: ClusterSharding,
-      actorSystem: ActorSystem[_],
+      akkaCluster: AkkaCluster,
+      nameProvider: EntityNameProvider[ID],
+      commandProtocol: CommandProtocol[Alg],
+      askTimeout: Timeout
+  ): Resource[F, (RepositoryAlg[F], ActorRef[ShardingEnvelope[Command]])] =
+    deployF(createEntity, createRepository, createEffector, customizeBehavior, customizeEntity)
+
+  private def deployF[F[_]: Async: Logger, S, ID: EntityIDCodec, Alg[_[_]]: FunctorK, RepositoryAlg[
+      _[_]
+  ]](
+      createEntity: DurableEntity[DurableEntityT[F, S, *], S] => F[Alg[DurableEntityT[F, S, *]]],
+      createRepository: Repository[F, ID, Alg] => F[RepositoryAlg[F]],
+      createEffector: EffectorParameters[F, S, Alg, RepositoryAlg] => F[EffectorT[F, S, Alg, Unit]],
+      customizeBehavior: (
+          EntityContext[Command],
+          DurableStateBehavior[Command, Option[S]]
+      ) => Behavior[Command],
+      customizeEntity: akka.cluster.sharding.typed.scaladsl.Entity[Command, ShardingEnvelope[
+        Command
+      ]] => akka.cluster.sharding.typed.scaladsl.Entity[Command, ShardingEnvelope[Command]]
+  )(implicit
+      akkaCluster: AkkaCluster,
       nameProvider: EntityNameProvider[ID],
       commandProtocol: CommandProtocol[Alg],
       askTimeout: Timeout
   ): Resource[F, (RepositoryAlg[F], ActorRef[ShardingEnvelope[Command]])] = {
-    implicit val commandRouter: CommandRouter[F, ID] = ShardingCommandRouter.apply
-    val repositoryT = RepositoryT.apply[F, ID, Alg]
     for {
       interpretedEntityAlg <- Resource.eval(createEntity(DurableEntityT.instance))
-      repository <- Resource.eval(createRepository(repositoryT))
       entity <- new DurableShardedEntityDeployer(
         interpretedEntityAlg,
-        repository,
-        repositoryT,
         createEffector,
         customizeBehavior
-      ).deployShardedEntity(sharding, customizeEntity).map((repository, _))
+      ).deployShardedRepository(createRepository, customizeEntity)
     } yield entity
   }
 

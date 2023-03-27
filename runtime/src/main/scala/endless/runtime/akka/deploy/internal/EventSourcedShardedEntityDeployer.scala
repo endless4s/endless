@@ -30,8 +30,6 @@ private[deploy] class EventSourcedShardedEntityDeployer[F[
     _[_]
 ]: FunctorK, RepositoryAlg[_[_]]](
     interpretedEntityAlg: Alg[EntityT[F, S, E, *]],
-    repository: RepositoryAlg[F],
-    repositoryT: RepositoryT[F, ID, Alg],
     createEffector: EffectorParameters[F, S, Alg, RepositoryAlg] => F[EffectorT[F, S, Alg, Unit]],
     customizeBehavior: (
         EntityContext[Command],
@@ -41,9 +39,12 @@ private[deploy] class EventSourcedShardedEntityDeployer[F[
     val nameProvider: EntityNameProvider[ID],
     commandProtocol: CommandProtocol[Alg],
     eventApplier: EventApplier[S, E]
-) extends ShardingDeployer[F, ID] {
+) extends ShardedRepositoryDeployer[F, RepositoryAlg, Alg, ID] {
 
-  protected override def createBehavior()(implicit
+  protected override def createBehaviorFor(
+      repository: RepositoryAlg[F],
+      repositoryT: RepositoryT[F, ID, Alg]
+  )(implicit
       dispatcher: Dispatcher[F],
       actor: ActorContext[Command],
       context: EntityContext[Command]
@@ -79,17 +80,13 @@ private[deploy] class EventSourcedShardedEntityDeployer[F[
     )
   }
 
-  private def handleEvent(state: Option[S], event: E)(implicit
-      entity: Alg[F],
-      dispatcher: Dispatcher[F],
-      passivator: EntityPassivator[F],
-      effector: EffectorT[F, S, Alg, Unit]
-  ) = eventApplier.apply(state, event) match {
-    case Left(error) =>
-      dispatcher.unsafeRunSync(Logger[F].warn(error))
-      throw new EventApplierException(error)
-    case Right(newState) => newState
-  }
+  private def handleEvent(state: Option[S], event: E)(implicit dispatcher: Dispatcher[F]) =
+    eventApplier.apply(state, event) match {
+      case Left(error) =>
+        dispatcher.unsafeRunSync(Logger[F].warn(error))
+        throw new EventApplierException(error)
+      case Right(newState) => newState
+    }
 
   private def handleCommand(state: Option[S], command: Command)(implicit
       entity: Alg[F],

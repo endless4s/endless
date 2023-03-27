@@ -117,8 +117,7 @@ trait Deployer {
       ]] => akka.cluster.sharding.typed.scaladsl.Entity[Command, ShardingEnvelope[Command]] =
         identity
   )(implicit
-      sharding: ClusterSharding,
-      actorSystem: ActorSystem[_],
+      akkaCluster: AkkaCluster,
       nameProvider: EntityNameProvider[ID],
       commandProtocol: CommandProtocol[Alg],
       eventApplier: EventApplier[S, E],
@@ -155,27 +154,47 @@ trait Deployer {
       ]] => akka.cluster.sharding.typed.scaladsl.Entity[Command, ShardingEnvelope[Command]] =
         identity
   )(implicit
-      sharding: ClusterSharding,
-      actorSystem: ActorSystem[_],
+      akkaCluster: AkkaCluster,
       nameProvider: EntityNameProvider[ID],
       commandProtocol: CommandProtocol[Alg],
       eventApplier: EventApplier[S, E],
       askTimeout: Timeout
-  ): Resource[F, (RepositoryAlg[F], ActorRef[ShardingEnvelope[Command]])] = {
-    implicit val commandRouter: CommandRouter[F, ID] = ShardingCommandRouter.apply
-    val repositoryT = RepositoryT.apply[F, ID, Alg]
+  ): Resource[F, (RepositoryAlg[F], ActorRef[ShardingEnvelope[Command]])] =
+    deployF(createEntity, createRepository, createEffector, customizeBehavior, customizeEntity)
+
+  private def deployF[F[_]: Async: Logger, S, E, ID: EntityIDCodec, Alg[
+      _[_]
+  ]: FunctorK, RepositoryAlg[
+      _[_]
+  ]](
+      createEntity: Entity[EntityT[F, S, E, *], S, E] => F[Alg[EntityT[F, S, E, *]]],
+      createRepository: Repository[F, ID, Alg] => F[RepositoryAlg[F]],
+      createEffector: EffectorParameters[F, S, Alg, RepositoryAlg] => F[EffectorT[F, S, Alg, Unit]],
+      customizeBehavior: (
+          EntityContext[Command],
+          EventSourcedBehavior[Command, E, Option[S]]
+      ) => Behavior[Command] =
+        (_: EntityContext[Command], behavior: EventSourcedBehavior[Command, E, Option[S]]) =>
+          behavior,
+      customizeEntity: akka.cluster.sharding.typed.scaladsl.Entity[Command, ShardingEnvelope[
+        Command
+      ]] => akka.cluster.sharding.typed.scaladsl.Entity[Command, ShardingEnvelope[Command]] =
+        identity
+  )(implicit
+      akkaCluster: AkkaCluster,
+      nameProvider: EntityNameProvider[ID],
+      commandProtocol: CommandProtocol[Alg],
+      eventApplier: EventApplier[S, E],
+      askTimeout: Timeout
+  ): Resource[F, (RepositoryAlg[F], ActorRef[ShardingEnvelope[Command]])] =
     for {
       interpretedEntityAlg <- Resource.eval(createEntity(EntityT.instance))
-      repository <- Resource.eval(createRepository(repositoryT))
       entity <- new EventSourcedShardedEntityDeployer(
         interpretedEntityAlg,
-        repository,
-        repositoryT,
         createEffector,
         customizeBehavior
-      ).deployShardedEntity(sharding, customizeEntity).map((repository, _))
+      ).deployShardedRepository(createRepository, customizeEntity)
     } yield entity
-  }
 }
 
 object Deployer {

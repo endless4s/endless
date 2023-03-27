@@ -1,6 +1,6 @@
 # Akka runtime
 
-Once required interpreters and typeclass instances have been defined, deploying an entity with Akka boils down to a single call to @scaladoc[deployEntity](endless.runtime.akka.deploy.Deployer). This naturally requires an actor system and the cluster sharding extension in implicit scope.
+Once required interpreters and typeclass instances have been defined, deploying an entity with Akka boils down to a single call to @scaladoc[deployEntity](endless.runtime.akka.deploy.Deployer). This requires an actor system and the cluster sharding extension in implicit scope, bundled in the type @scaladoc[AkkaCluster](endless.runtime.akka.deploy.AkkaCluster). The recommended pattern is to use the built-in @scaladoc[managedResource](endless.runtime.akka.deploy.AkkaCluster.managedResource) helper method to obtain an instance of this class, which wraps actor system creation and shutdown with a cats effect @link:[Resource](https://typelevel.org/cats-effect/docs/std/resource) { open=new }.  
 
 ## `deployEntity`
 This function brings everything together and delivers a cats effect @link:[Resource](https://typelevel.org/cats-effect/docs/std/resource) { open=new } with the repository instance in context `F` bundled with the ref to the shard region actor returned by the call to Akka's @link:[ClusterSharding.init](https://doc.akka.io/docs/akka/current/typed/cluster-sharding.html#basic-example) { open=new }.
