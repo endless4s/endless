@@ -5,9 +5,7 @@ import akka.persistence.testkit.{
   PersistenceTestKitDurableStateStorePlugin,
   PersistenceTestKitPlugin
 }
-import cats.effect.{IO, Temporal}
-import cats.effect.kernel.Resource
-import cats.syntax.applicative._
+import cats.effect.IO
 import cats.syntax.show._
 import com.typesafe.config.ConfigFactory
 import endless.example.ExampleApp._
@@ -26,7 +24,7 @@ import java.util.UUID
 import scala.concurrent.duration._
 
 class ExampleAppSuite extends munit.CatsEffectSuite {
-  implicit val actorSystem: ActorSystem[Nothing] =
+  implicit def actorSystem: ActorSystem[Nothing] =
     ActorSystem.wrap(
       akka.actor.ActorSystem(
         "example-as",
@@ -37,13 +35,7 @@ class ExampleAppSuite extends munit.CatsEffectSuite {
       )
     )
 
-  private val server =
-    ResourceSuiteLocalFixture(
-      "booking-server",
-      ExampleApp.apply
-        .unsafeRunSync()
-        .flatMap(server => Resource.make(server.pure[IO])(_ => IO.delay(actorSystem.terminate())))
-    )
+  private val server = ResourceSuiteLocalFixture("booking-server", ExampleApp.apply)
   private val client = ResourceSuiteLocalFixture("booking-client", BlazeClientBuilder[IO].resource)
   private val baseUri = uri"http://localhost:8080"
   private val baseBookingUri = baseUri / "booking"

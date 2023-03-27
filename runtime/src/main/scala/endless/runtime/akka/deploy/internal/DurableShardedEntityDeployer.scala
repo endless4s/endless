@@ -28,17 +28,18 @@ private[deploy] class DurableShardedEntityDeployer[F[_]: Async: Logger, S, ID: E
     _[_]
 ]: FunctorK, RepositoryAlg[_[_]]](
     interpretedEntityAlg: Alg[DurableEntityT[F, S, *]],
-    repository: RepositoryAlg[F],
-    repositoryT: RepositoryT[F, ID, Alg],
     createEffector: EffectorParameters[F, S, Alg, RepositoryAlg] => F[EffectorT[F, S, Alg, Unit]],
     customizeBehavior: (
         EntityContext[Command],
         DurableStateBehavior[Command, Option[S]]
     ) => Behavior[Command]
 )(implicit val nameProvider: EntityNameProvider[ID], commandProtocol: CommandProtocol[Alg])
-    extends ShardingDeployer[F, ID] {
+    extends ShardedRepositoryDeployer[F, RepositoryAlg, Alg, ID] {
 
-  protected override def createBehavior()(implicit
+  protected override def createBehaviorFor(
+      repository: RepositoryAlg[F],
+      repositoryT: RepositoryT[F, ID, Alg]
+  )(implicit
       dispatcher: Dispatcher[F],
       actor: ActorContext[Command],
       context: EntityContext[Command]
