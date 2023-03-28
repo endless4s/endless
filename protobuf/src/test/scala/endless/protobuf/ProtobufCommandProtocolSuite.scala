@@ -1,9 +1,9 @@
 package endless.protobuf
-import cats.{Functor, Id}
+import cats.Id
+import cats.syntax.functor._
 import endless.core.protocol.{Decoder, IncomingCommand, OutgoingCommand}
 import endless.protobuf.test.proto.dummy.{DummyCommand, DummyReply}
 import org.scalacheck.Prop.forAll
-import cats.syntax.functor._
 
 class ProtobufCommandProtocolSuite extends munit.ScalaCheckSuite {
   test("protobuf command protocol") {

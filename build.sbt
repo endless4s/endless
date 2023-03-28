@@ -2,7 +2,7 @@ import Dependencies._
 import sbtversionpolicy.Compatibility.None
 
 val commonSettings = Seq(
-  scalacOptions ++= Seq("-Xfatal-warnings"),
+  scalacOptions ++= Seq("-Xfatal-warnings", "-Xlint:unused"),
   addCompilerPlugin("org.typelevel" % "kind-projector" % "0.13.2" cross CrossVersion.full),
   wartremoverExcluded += sourceManaged.value,
   Compile / compile / wartremoverErrors ++= Warts

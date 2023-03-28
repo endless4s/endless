@@ -1,12 +1,10 @@
 package endless.runtime.akka.deploy.internal
 
+import akka.actor.typed.Behavior
 import akka.actor.typed.scaladsl.ActorContext
-import akka.actor.typed.{ActorSystem, Behavior}
-import akka.cluster.sharding.typed.ShardingEnvelope
-import akka.cluster.sharding.typed.scaladsl.{ClusterSharding, EntityContext}
+import akka.cluster.sharding.typed.scaladsl.EntityContext
 import akka.persistence.typed.scaladsl.{Effect, EventSourcedBehavior}
 import akka.persistence.typed.{PersistenceId, RecoveryCompleted, RecoveryFailed}
-import akka.util.Timeout
 import cats.effect.kernel.Async
 import cats.effect.std.Dispatcher
 import cats.syntax.applicative._

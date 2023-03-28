@@ -1,17 +1,14 @@
 package endless.example
 
 import akka.actor.typed.ActorSystem
-import akka.cluster.sharding.typed.scaladsl.ClusterSharding
 import akka.util.Timeout
 import cats.Monad
 import cats.effect._
 import cats.syntax.applicative._
 import cats.syntax.either._
 import cats.syntax.flatMap._
-import cats.syntax.functor._
 import cats.syntax.show._
 import endless.core.entity.EntityNameProvider
-import endless.core.interpret.EffectorT
 import endless.core.protocol.EntityIDCodec
 import endless.example.adapter.VehicleStateAdapter
 import endless.example.algebra._

@@ -1,6 +1,5 @@
 package endless.runtime.akka
 
-import akka.actor.typed.ActorSystem
 import akka.cluster.sharding.typed.scaladsl.{ClusterSharding, EntityTypeKey}
 import akka.util.Timeout
 import cats.effect.kernel.Async
@@ -18,8 +17,6 @@ import org.typelevel.log4cats.Logger
   * Retrieves the entity ref and asks the command, then decodes the reply and lifts it into `F`
   * @param sharding
   *   Akka cluster sharding extension
-  * @param actorSystem
-  *   actor system
   * @param askTimeout
   *   Akka ask timeout
   * @param idEncoder
@@ -33,7 +30,6 @@ import org.typelevel.log4cats.Logger
   */
 private[akka] final class ShardingCommandRouter[F[_]: Logger, ID](implicit
     sharding: ClusterSharding,
-    actorSystem: ActorSystem[_],
     askTimeout: Timeout,
     idEncoder: EntityIDEncoder[ID],
     nameProvider: EntityNameProvider[ID],
@@ -65,7 +61,6 @@ private[akka] final class ShardingCommandRouter[F[_]: Logger, ID](implicit
 object ShardingCommandRouter {
   implicit def apply[F[_]: Logger, ID](implicit
       sharding: ClusterSharding,
-      actorSystem: ActorSystem[_],
       askTimeout: Timeout,
       idEncoder: EntityIDEncoder[ID],
       nameProvider: EntityNameProvider[ID],

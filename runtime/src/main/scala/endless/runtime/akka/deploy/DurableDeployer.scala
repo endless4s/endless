@@ -1,8 +1,8 @@
 package endless.runtime.akka.deploy
 
-import akka.actor.typed.{ActorRef, ActorSystem, Behavior}
+import akka.actor.typed.{ActorRef, Behavior}
 import akka.cluster.sharding.typed.ShardingEnvelope
-import akka.cluster.sharding.typed.scaladsl.{ClusterSharding, EntityContext}
+import akka.cluster.sharding.typed.scaladsl.EntityContext
 import akka.persistence.typed.state.scaladsl.DurableStateBehavior
 import akka.util.Timeout
 import cats.effect.kernel.{Async, Resource}

@@ -1,7 +1,7 @@
 package endless.runtime.akka.deploy.internal
 
 import akka.actor.typed.scaladsl.{ActorContext, Behaviors}
-import akka.actor.typed.{ActorRef, ActorSystem, Behavior}
+import akka.actor.typed.{ActorRef, Behavior}
 import akka.cluster.sharding.typed.ShardingEnvelope
 import akka.cluster.sharding.typed.scaladsl.{ClusterSharding, EntityContext, EntityTypeKey}
 import akka.util.Timeout
@@ -34,7 +34,6 @@ trait ShardedRepositoryDeployer[F[_], RepositoryAlg[_[_]], Alg[_[_]], ID] {
       commandProtocol: CommandProtocol[Alg],
       functorK: FunctorK[Alg]
   ): Resource[F, (RepositoryAlg[F], ActorRef[ShardingEnvelope[Command]])] = {
-    implicit val system: ActorSystem[_] = akkaCluster.system
     implicit val clusterSharding: ClusterSharding = akkaCluster.sharding
     implicit val commandRouter: CommandRouter[F, ID] = ShardingCommandRouter.apply
     val repositoryT = RepositoryT.apply[F, ID, Alg]

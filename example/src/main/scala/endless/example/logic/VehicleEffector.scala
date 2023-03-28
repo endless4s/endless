@@ -2,7 +2,6 @@ package endless.example.logic
 
 import cats.effect.Ref
 import cats.effect.kernel.Sync
-import cats.syntax.flatMap._
 import cats.syntax.functor._
 import cats.{Applicative, Monad}
 import endless.core.entity.Effector
