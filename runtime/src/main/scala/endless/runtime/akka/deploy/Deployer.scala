@@ -1,21 +1,18 @@
 package endless.runtime.akka.deploy
 
-import akka.actor.typed.{ActorRef, ActorSystem, Behavior}
+import akka.actor.typed.{ActorRef, Behavior}
 import akka.cluster.sharding.typed.ShardingEnvelope
-import akka.cluster.sharding.typed.scaladsl.{ClusterSharding, EntityContext}
+import akka.cluster.sharding.typed.scaladsl.EntityContext
 import akka.persistence.typed.scaladsl.EventSourcedBehavior
 import akka.util.Timeout
 import cats.effect.kernel.{Async, Resource}
 import cats.syntax.applicative._
-import cats.syntax.flatMap._
-import cats.syntax.functor._
 import cats.tagless.FunctorK
 import endless.core.entity._
 import endless.core.event.EventApplier
 import endless.core.interpret.EffectorT._
 import endless.core.interpret._
-import endless.core.protocol.{CommandProtocol, CommandRouter, EntityIDCodec}
-import endless.runtime.akka.ShardingCommandRouter
+import endless.core.protocol.{CommandProtocol, EntityIDCodec}
 import endless.runtime.akka.data._
 import endless.runtime.akka.deploy.Deployer.EffectorParameters
 import endless.runtime.akka.deploy.internal.EventSourcedShardedEntityDeployer
@@ -173,13 +170,10 @@ trait Deployer {
       customizeBehavior: (
           EntityContext[Command],
           EventSourcedBehavior[Command, E, Option[S]]
-      ) => Behavior[Command] =
-        (_: EntityContext[Command], behavior: EventSourcedBehavior[Command, E, Option[S]]) =>
-          behavior,
+      ) => Behavior[Command],
       customizeEntity: akka.cluster.sharding.typed.scaladsl.Entity[Command, ShardingEnvelope[
         Command
-      ]] => akka.cluster.sharding.typed.scaladsl.Entity[Command, ShardingEnvelope[Command]] =
-        identity
+      ]] => akka.cluster.sharding.typed.scaladsl.Entity[Command, ShardingEnvelope[Command]]
   )(implicit
       akkaCluster: AkkaCluster,
       nameProvider: EntityNameProvider[ID],
