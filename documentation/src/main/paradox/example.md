@@ -8,7 +8,7 @@ It has a simple CRUD API for bookings and vehicles:
 @@snip [ExampleApp](/example/src/main/scala/endless/example/ExampleApp.scala) { #api }
 
 ## Scaffolding
-The application is assembled via calls to @scaladoc[deployEntity](endless.runtime.akka.Deployer.deployEntity) (for bookings) and @scaladoc[deployDurableEntity](endless.runtime.akka.Deployer.deployDurableEntity) (for vehicles) (see @ref:[runtime](runtime.md) for more details)
+The application is assembled via calls to @scaladoc[deployEntity](endless.runtime.akka.deploy.Deployer.deployEntity) (for bookings) and @scaladoc[deployDurableEntity](endless.runtime.akka.deploy.Deployer.deployDurableEntity) (for vehicles) (see @ref:[runtime](runtime.md) for more details)
 
 @@snip [ExampleApp](/example/src/main/scala/endless/example/ExampleApp.scala) { #main }
 

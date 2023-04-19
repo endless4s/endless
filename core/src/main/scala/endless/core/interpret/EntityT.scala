@@ -2,12 +2,11 @@ package endless.core.interpret
 
 import cats.conversions.all._
 import cats.data.{Chain, NonEmptyChain}
-import cats.effect.kernel.{Clock, Unique}
+import cats.effect.kernel.Clock
 import cats.syntax.applicative._
 import cats.syntax.either._
 import cats.syntax.flatMap._
 import cats.syntax.functor._
-import cats.tagless.FunctorK
 import cats.{Applicative, Functor, Monad, ~>}
 import endless.core.data.{EventsFolder, Folded}
 import endless.core.entity.Entity

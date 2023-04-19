@@ -23,7 +23,7 @@ In the provided Akka runtime, read-only commands (commands that do not generate 
 @@@
 
 @@@ note 
-Defining an effector is entirely optional with the Akka runtime, pass-in `(_, _) => EffectorT.unit` in @scaladoc[deployEntity](endless.runtime.akka.Deployer) to disable effector.
+Defining an effector is entirely optional with the Akka runtime, pass-in `(_, _) => EffectorT.unit` in @scaladoc[deployEntity](endless.runtime.akka.deploy.Deployer) to disable effector.
 @@@
 
 @@@ note

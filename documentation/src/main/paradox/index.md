@@ -1,11 +1,15 @@
-<center><img src="logo.svg" width="350"/></center>
+<div align="center"><img src="logo.svg" width="350"/></div>
 
-endless is a Scala library to describe sharded and event sourced entities using tagless-final algebras, running with built-in implementations for Akka.
-
+endless is a Scala library to describe sharded and event sourced entities using tagless-final algebras and a pluggable runtime (with built-in implementations for Akka).
 
 @@@ note { .quote title="/ˈɛndləs/: having or seeming to have no end or limit" }
 *endless* refers to the ever flowing stream of events capturing state evolution with event sourcing, and is a nod to *[tag-less](https://okmij.org/ftp/tagless-final/index.html)*.
 @@@
+
+<div align="right">
+<a href="https://typelevel.org/projects/affiliate/"><img src="https://typelevel.org/img/assets/typelevel-brand.svg" height="40px" align="right" alt="Typelevel Affiliate Project" /></a>
+<img src="https://typelevel.org/cats/img/cats-badge.svg" height="40px" align="right" alt="Cats friendly"/>
+</div>
 
 @@@ index
 * [Getting Started](getting-started.md)

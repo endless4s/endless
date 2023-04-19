@@ -30,7 +30,7 @@ private[akka] class EntityPassivator[F[_]: Sync](upcomingPassivation: Ref[F, Opt
     case PassivationState.Unchanged       => Applicative[F].unit
   }
 
-  private def enablePassivation(after: FiniteDuration = Duration.Zero) =
+  private def enablePassivation(after: FiniteDuration) =
     if (after === Duration.Zero) passivate else schedulePassivation(after)
 
   private def schedulePassivation(after: FiniteDuration) =

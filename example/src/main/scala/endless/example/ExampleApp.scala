@@ -1,17 +1,14 @@
 package endless.example
 
 import akka.actor.typed.ActorSystem
-import akka.cluster.sharding.typed.scaladsl.ClusterSharding
 import akka.util.Timeout
 import cats.Monad
 import cats.effect._
 import cats.syntax.applicative._
 import cats.syntax.either._
 import cats.syntax.flatMap._
-import cats.syntax.functor._
 import cats.syntax.show._
 import endless.core.entity.EntityNameProvider
-import endless.core.interpret.EffectorT
 import endless.core.protocol.EntityIDCodec
 import endless.example.adapter.VehicleStateAdapter
 import endless.example.algebra._
@@ -20,6 +17,7 @@ import endless.example.data.Vehicle.VehicleID
 import endless.example.data._
 import endless.example.logic._
 import endless.example.protocol.{BookingCommandProtocol, VehicleCommandProtocol}
+import endless.runtime.akka.deploy.AkkaCluster
 import endless.runtime.akka.syntax.deploy._
 import io.circe.generic.auto._
 import org.http4s.blaze.server.BlazeServerBuilder
@@ -44,8 +42,7 @@ object ExampleApp {
   final case class BookingPatch(origin: Option[LatLon], destination: Option[LatLon])
 
   // #main
-  def apply(implicit actorSystem: ActorSystem[Nothing]): IO[Resource[IO, Server]] = {
-    implicit val clusterSharding: ClusterSharding = ClusterSharding(actorSystem)
+  def apply(implicit createActorSystem: => ActorSystem[Nothing]): Resource[IO, Server] = {
     implicit val bookingCommandProtocol: BookingCommandProtocol = new BookingCommandProtocol
     implicit val vehicleCommandProtocol: VehicleCommandProtocol = new VehicleCommandProtocol
     implicit val eventApplier: BookingEventApplier = new BookingEventApplier
@@ -57,35 +54,44 @@ object ExampleApp {
       EntityIDCodec(_.id.show, VehicleID.fromString)
     implicit val askTimeout: Timeout = Timeout(10.seconds)
 
-    Slf4jLogger
-      .create[IO]
-      .map { implicit logger: Logger[IO] =>
-        Resource
-          .both(
-            deployEntity[IO, Booking, BookingEvent, BookingID, BookingAlg, BookingRepositoryAlg](
-              BookingEntity(_),
-              BookingRepository(_),
-              { case (effector, _, _) => BookingEffector(effector) }
-            ),
-            deployDurableEntityF[IO, Vehicle, VehicleID, VehicleAlg, VehicleRepositoryAlg](
-              VehicleEntity(_).pure[IO],
-              VehicleRepository(_).pure[IO],
-              { case (effector, _, _) => VehicleEffector.apply[IO](effector).map(_.apply) },
-              customizeBehavior = (_, behavior) => behavior.snapshotAdapter(new VehicleStateAdapter)
-            )
-          )
-          .map { case ((bookingRepository, _), (vehicleRepository, _)) =>
-            httpService(bookingRepository, vehicleRepository)
-          }
+    Resource
+      .eval(Slf4jLogger.create[IO])
+      .flatMap { implicit logger: Logger[IO] =>
+        AkkaCluster.managedResource[IO](createActorSystem).flatMap {
+          implicit cluster: AkkaCluster =>
+            Resource
+              .both(
+                deployEntity[
+                  IO,
+                  Booking,
+                  BookingEvent,
+                  BookingID,
+                  BookingAlg,
+                  BookingRepositoryAlg
+                ](
+                  BookingEntity(_),
+                  BookingRepository(_),
+                  { case (effector, _, _) => BookingEffector(effector) }
+                ),
+                deployDurableEntityF[IO, Vehicle, VehicleID, VehicleAlg, VehicleRepositoryAlg](
+                  VehicleEntity(_).pure[IO],
+                  VehicleRepository(_).pure[IO],
+                  { case (effector, _, _) => VehicleEffector.apply[IO](effector).map(_.apply) },
+                  customizeBehavior =
+                    (_, behavior) => behavior.snapshotAdapter(new VehicleStateAdapter)
+                )
+              )
+              .map { case ((bookingRepository, _), (vehicleRepository, _)) =>
+                httpService(bookingRepository, vehicleRepository)
+              }
+              .flatMap(service =>
+                BlazeServerBuilder[IO]
+                  .bindHttp(8080, "localhost")
+                  .withHttpApp(service)
+                  .resource
+              )
+        }
       }
-      .map(
-        _.flatMap(service =>
-          BlazeServerBuilder[IO]
-            .bindHttp(8080, "localhost")
-            .withHttpApp(service)
-            .resource
-        )
-      )
   }
   // #main
 

@@ -1,11 +1,9 @@
 package endless.core.interpret
 
-import cats.data.Chain
-import cats.effect.{Clock, Concurrent, GenSpawn, GenTemporal, IO, MonadCancel, Sync, Temporal}
+import cats.effect.{Clock, GenSpawn, GenTemporal, IO, MonadCancel, Sync}
 import cats.effect.laws.AsyncTests
 import cats.laws.discipline.arbitrary._
 import cats.laws.discipline.{MiniInt, MonadTests}
-import cats.laws.discipline.eq._
 import cats.syntax.all._
 import cats.derived.auto.eq._
 import cats.derived.auto.order._
