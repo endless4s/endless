@@ -112,7 +112,7 @@ trait DurableDeployer {
       ]] => akka.cluster.sharding.typed.scaladsl.Entity[Command, ShardingEnvelope[Command]] =
         identity
   )(implicit
-      akkaCluster: AkkaCluster,
+      akkaCluster: AkkaCluster[F],
       nameProvider: EntityNameProvider[ID],
       commandProtocol: CommandProtocol[Alg],
       askTimeout: Timeout
@@ -147,7 +147,7 @@ trait DurableDeployer {
       ]] => akka.cluster.sharding.typed.scaladsl.Entity[Command, ShardingEnvelope[Command]] =
         identity
   )(implicit
-      akkaCluster: AkkaCluster,
+      akkaCluster: AkkaCluster[F],
       nameProvider: EntityNameProvider[ID],
       commandProtocol: CommandProtocol[Alg],
       askTimeout: Timeout
@@ -168,7 +168,7 @@ trait DurableDeployer {
         Command
       ]] => akka.cluster.sharding.typed.scaladsl.Entity[Command, ShardingEnvelope[Command]]
   )(implicit
-      akkaCluster: AkkaCluster,
+      akkaCluster: AkkaCluster[F],
       nameProvider: EntityNameProvider[ID],
       commandProtocol: CommandProtocol[Alg],
       askTimeout: Timeout
