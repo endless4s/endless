@@ -82,7 +82,7 @@ object ExampleApp {
                 )
               )
               .map { case ((bookingRepository, _), (vehicleRepository, _)) =>
-                httpService(bookingRepository, vehicleRepository)
+                httpService(bookingRepository, vehicleRepository, cluster)
               }
               .flatMap(service =>
                 BlazeServerBuilder[IO]
