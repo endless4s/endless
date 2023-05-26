@@ -197,4 +197,8 @@ class ExampleAppSuite extends munit.CatsEffectSuite {
       400
     )
   }
+
+  test("GET health returns OK") {
+    assertIO(client().status(GET(baseUri / "health")).map(_.code), 200)
+  }
 }
