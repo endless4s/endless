@@ -31,23 +31,23 @@ object Dependencies {
 
   lazy val catsLaws = Seq("org.typelevel" %% "cats-laws" % catsVersion)
   lazy val catsTestkit = Seq("org.typelevel" %% "cats-testkit" % catsVersion)
-  lazy val catsTaglessVersion = "0.14.0"
+  lazy val catsTaglessVersion = "0.15.0"
   lazy val catsTagless = Seq("org.typelevel" %% "cats-tagless-macros" % catsTaglessVersion)
 
-  lazy val catsEffectVersion = "3.4.9"
+  lazy val catsEffectVersion = "3.4.11"
   lazy val catsEffectKernel = Seq("org.typelevel" %% "cats-effect-kernel" % catsEffectVersion)
   lazy val catsEffectLaws = Seq("org.typelevel" %% "cats-effect-laws" % catsEffectVersion)
   lazy val catsEffectTestKit = Seq("org.typelevel" %% "cats-effect-testkit" % catsEffectVersion)
   lazy val catsEffectStd = Seq("org.typelevel" %% "cats-effect-std" % catsEffectVersion)
   lazy val catsEffect = Seq("org.typelevel" %% "cats-effect" % catsEffectVersion)
 
-  lazy val http4sVersion = "0.23.18"
+  lazy val http4sVersion = "0.23.19"
   lazy val http4s = Seq(
     "org.http4s" %% "http4s-dsl" % http4sVersion,
     "org.http4s" %% "http4s-circe" % http4sVersion
   )
 
-  lazy val blazeVersion = "0.23.14"
+  lazy val blazeVersion = "0.23.15"
   lazy val blaze = Seq(
     "org.http4s" %% "http4s-blaze-server" % blazeVersion,
     "org.http4s" %% "http4s-blaze-client" % blazeVersion
@@ -60,10 +60,10 @@ object Dependencies {
     "io.circe" %% "circe-parser"
   ).map(_ % circeVersion)
 
-  lazy val logbackVersion = "1.4.6"
+  lazy val logbackVersion = "1.4.7"
   lazy val logback = Seq("ch.qos.logback" % "logback-classic" % logbackVersion)
 
-  lazy val log4catsVersion = "2.5.0"
+  lazy val log4catsVersion = "2.6.0"
   lazy val log4cats = Seq("org.typelevel" %% "log4cats-core" % log4catsVersion)
   lazy val log4catsSlf4j = Seq(
     "org.typelevel" %% "log4cats-slf4j" % log4catsVersion
