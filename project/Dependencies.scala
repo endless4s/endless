@@ -41,7 +41,7 @@ object Dependencies {
   lazy val catsEffectStd = Seq("org.typelevel" %% "cats-effect-std" % catsEffectVersion)
   lazy val catsEffect = Seq("org.typelevel" %% "cats-effect" % catsEffectVersion)
 
-  lazy val http4sVersion = "0.23.19"
+  lazy val http4sVersion = "0.23.21"
   lazy val http4s = Seq(
     "org.http4s" %% "http4s-dsl" % http4sVersion,
     "org.http4s" %% "http4s-circe" % http4sVersion
