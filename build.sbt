@@ -47,7 +47,7 @@ lazy val core = (project in file("core"))
   )
   .settings(name := "endless-core")
 
-lazy val runtime = (project in file("runtime"))
+lazy val akkaRuntime = (project in file("akka-runtime"))
   .dependsOn(core)
   .settings(commonSettings: _*)
   .settings(libraryDependencies ++= catsEffectStd ++ akkaProvided ++ log4cats)
@@ -92,7 +92,7 @@ lazy val protobufHelpers = (project in file("protobuf"))
   )
 
 lazy val example = (project in file("example"))
-  .dependsOn(core, runtime, circeHelpers, protobufHelpers)
+  .dependsOn(core, akkaRuntime, circeHelpers, protobufHelpers)
   .settings(commonSettings: _*)
   .settings(
     libraryDependencies ++= catsEffect ++ http4s ++ blaze ++ akka ++ scalapbCustomizations ++ akkaTest ++ logback ++ log4catsSlf4j ++ (mUnit ++ catsEffectMUnit ++ scalacheckEffect ++ log4catsTesting)
@@ -120,7 +120,7 @@ val Runtime = config("runtime")
 val scaladocSiteProjects = List(
   core -> (Core, "endless", "core"),
   circeHelpers -> (Circe, "endless.circe", "circe"),
-  runtime -> (Runtime, "endless.runtime", "runtime")
+  akkaRuntime -> (Runtime, "endless.runtime", "runtime")
 )
 
 lazy val documentation = (project in file("documentation"))
@@ -167,7 +167,7 @@ lazy val documentation = (project in file("documentation"))
 
 lazy val root = project
   .in(file("."))
-  .aggregate(core, runtime, circeHelpers, scodecHelpers, protobufHelpers, example)
+  .aggregate(core, akkaRuntime, circeHelpers, scodecHelpers, protobufHelpers, example)
   .dependsOn(example)
   .settings(Compile / mainClass := (example / Compile / mainClass).value)
   .settings(commonSettings: _*)
