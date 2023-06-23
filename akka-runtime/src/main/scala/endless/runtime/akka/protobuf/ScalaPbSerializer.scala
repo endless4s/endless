@@ -1,4 +1,4 @@
-package endless.protobuf
+package endless.runtime.akka.protobuf
 
 import akka.actor.ExtendedActorSystem
 import akka.serialization.BaseSerializer

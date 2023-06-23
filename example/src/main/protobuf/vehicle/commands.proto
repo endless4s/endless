@@ -7,22 +7,22 @@ import "vehicle/models.proto";
 
 message VehicleCommand {
   oneof command {
-    SetSpeedV1Full set_speed_v1 = 1;
-    SetPositionV1Full set_position_v1 = 2;
-    GetSpeedV1Full get_speed_v1 = 3;
-    GetPositionV1Full get_position_v1 = 4;
-    GetRecoveryCountV1Full get_recovery_count_v1 = 5;
-    IncrementRecoveryCountV1Full increment_recovery_count_v1 = 6;
+    SetSpeedV1 set_speed_v1 = 1;
+    SetPositionV1 set_position_v1 = 2;
+    GetSpeedV1 get_speed_v1 = 3;
+    GetPositionV1 get_position_v1 = 4;
+    GetRecoveryCountV1 get_recovery_count_v1 = 5;
+    IncrementRecoveryCountV1 increment_recovery_count_v1 = 6;
   }
 }
 
-message SetSpeedV1Full {
-  SpeedV1Full speed = 1             [(scalapb.field).required = true];
+message SetSpeedV1 {
+  SpeedV1 speed = 1             [(scalapb.field).required = true];
 }
-message SetPositionV1Full {
-  LatLonV1Full position = 1         [(scalapb.field).required = true];
+message SetPositionV1 {
+  LatLonV1 position = 1         [(scalapb.field).required = true];
 }
-message GetSpeedV1Full {}
-message GetPositionV1Full {}
-message GetRecoveryCountV1Full {}
-message IncrementRecoveryCountV1Full {}
+message GetSpeedV1 {}
+message GetPositionV1 {}
+message GetRecoveryCountV1 {}
+message IncrementRecoveryCountV1 {}

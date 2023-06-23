@@ -4,8 +4,8 @@ package endless.example.proto.vehicle;
 
 import "vehicle/models.proto";
 
-message VehicleStateV1Full {
-  LatLonV1Full position = 1;
-  SpeedV1Full speed = 2;
+message VehicleStateV1 {
+  LatLonV1 position = 1;
+  SpeedV1 speed = 2;
   uint32 recovery_count = 3;
 }

@@ -5,11 +5,11 @@ import endless.example.algebra.VehicleAlg
 import endless.example.data.{LatLon, Speed}
 import endless.example.proto.vehicle.commands.VehicleCommand.Command
 import endless.example.proto.vehicle.commands._
-import endless.example.proto.vehicle.models.{LatLonV1Full, SpeedV1Full}
+import endless.example.proto.vehicle.models.{LatLonV1, SpeedV1}
 import endless.example.proto.vehicle.replies.{
-  GetPositionV1FullReply,
-  GetRecoveryCountV1FullReply,
-  GetSpeedV1FullReply,
+  GetPositionReply,
+  GetRecoveryCountReply,
+  GetSpeedReply,
   UnitReply
 }
 import endless.example.protocol.VehicleCommandProtocol.UnexpectedCommandException
@@ -30,23 +30,22 @@ class VehicleCommandProtocol extends ProtobufCommandProtocol[VehicleAlg] {
           _ => UnitReply()
         )
       case Command.GetSpeedV1(_) =>
-        incomingCommand[F, GetSpeedV1FullReply, Option[Speed]](
+        incomingCommand[F, GetSpeedReply, Option[Speed]](
           _.getSpeed,
-          maybeSpeed =>
-            GetSpeedV1FullReply.of(maybeSpeed.map(speed => SpeedV1Full.of(speed.metersPerSecond)))
+          maybeSpeed => GetSpeedReply.of(maybeSpeed.map(speed => SpeedV1.of(speed.metersPerSecond)))
         )
       case Command.GetPositionV1(_) =>
-        incomingCommand[F, GetPositionV1FullReply, Option[LatLon]](
+        incomingCommand[F, GetPositionReply, Option[LatLon]](
           _.getPosition,
           maybePosition =>
-            GetPositionV1FullReply.of(
-              maybePosition.map(position => LatLonV1Full.of(position.lat, position.lon))
+            GetPositionReply.of(
+              maybePosition.map(position => LatLonV1.of(position.lat, position.lon))
             )
         )
       case Command.GetRecoveryCountV1(_) =>
-        incomingCommand[F, GetRecoveryCountV1FullReply, Int](
+        incomingCommand[F, GetRecoveryCountReply, Int](
           _.getRecoveryCount,
-          recoveryCount => GetRecoveryCountV1FullReply.of(recoveryCount)
+          recoveryCount => GetRecoveryCountReply.of(recoveryCount)
         )
       case Command.IncrementRecoveryCountV1(_) =>
         incomingCommand[F, UnitReply, Unit](_.incrementRecoveryCount, _ => UnitReply())
@@ -56,7 +55,7 @@ class VehicleCommandProtocol extends ProtobufCommandProtocol[VehicleAlg] {
     def setSpeed(speed: Speed): OutgoingCommand[Unit] =
       outgoingCommand[VehicleCommand, UnitReply, Unit](
         VehicleCommand.of(
-          Command.SetSpeedV1(SetSpeedV1Full.of(SpeedV1Full.of(speed.metersPerSecond)))
+          Command.SetSpeedV1(SetSpeedV1.of(SpeedV1.of(speed.metersPerSecond)))
         ),
         _ => ()
       )
@@ -64,32 +63,32 @@ class VehicleCommandProtocol extends ProtobufCommandProtocol[VehicleAlg] {
     def setPosition(position: LatLon): OutgoingCommand[Unit] =
       outgoingCommand[VehicleCommand, UnitReply, Unit](
         VehicleCommand.of(
-          Command.SetPositionV1(SetPositionV1Full.of(LatLonV1Full.of(position.lat, position.lon)))
+          Command.SetPositionV1(SetPositionV1.of(LatLonV1.of(position.lat, position.lon)))
         ),
         _ => ()
       )
 
     def getSpeed: OutgoingCommand[Option[Speed]] =
-      outgoingCommand[VehicleCommand, GetSpeedV1FullReply, Option[Speed]](
-        VehicleCommand.of(Command.GetSpeedV1(GetSpeedV1Full())),
+      outgoingCommand[VehicleCommand, GetSpeedReply, Option[Speed]](
+        VehicleCommand.of(Command.GetSpeedV1(GetSpeedV1())),
         _.speed.map(speed => Speed(speed.metersPerSecond))
       )
 
     def getPosition: OutgoingCommand[Option[LatLon]] =
-      outgoingCommand[VehicleCommand, GetPositionV1FullReply, Option[LatLon]](
-        VehicleCommand.of(Command.GetPositionV1(GetPositionV1Full())),
+      outgoingCommand[VehicleCommand, GetPositionReply, Option[LatLon]](
+        VehicleCommand.of(Command.GetPositionV1(GetPositionV1())),
         _.position.map(position => LatLon(position.lat, position.lon))
       )
 
     def getRecoveryCount: OutgoingCommand[Int] =
-      outgoingCommand[VehicleCommand, GetRecoveryCountV1FullReply, Int](
-        VehicleCommand.of(Command.GetRecoveryCountV1(GetRecoveryCountV1Full())),
+      outgoingCommand[VehicleCommand, GetRecoveryCountReply, Int](
+        VehicleCommand.of(Command.GetRecoveryCountV1(GetRecoveryCountV1())),
         _.recoveryCount
       )
 
     def incrementRecoveryCount: OutgoingCommand[Unit] =
       outgoingCommand[VehicleCommand, UnitReply, Unit](
-        VehicleCommand.of(Command.IncrementRecoveryCountV1(IncrementRecoveryCountV1Full())),
+        VehicleCommand.of(Command.IncrementRecoveryCountV1(IncrementRecoveryCountV1())),
         _ => ()
       )
   }

@@ -1,0 +1,47 @@
+syntax = "proto3";
+
+package endless.example.proto.booking;
+
+import "google/protobuf/timestamp.proto";
+import "scalapb/scalapb.proto";
+import "booking/models.proto";
+
+option (scalapb.options) = {
+  // All generated classes have to be in a single file to implement a sealed trait
+  single_file: true
+  // Generate the base trait.
+  preamble: [
+    "sealed trait BookingEvent"
+  ];
+};
+
+message BookingPlacedV1 {
+  option (scalapb.message).extends = "BookingEvent";
+  BookingID booking_ID = 1                              [(scalapb.field).required = true];
+  google.protobuf.Timestamp time = 2                    [(scalapb.field).required = true];
+  LatLonV1 origin = 3                                   [(scalapb.field).required = true];
+  LatLonV1 destination = 4                              [(scalapb.field).required = true];
+  uint32 passenger_count = 5;
+}
+
+message OriginChangedV1 {
+  option (scalapb.message).extends = "BookingEvent";
+  LatLonV1 new_origin = 1                               [(scalapb.field).required = true];
+}
+
+message DestinationChangedV1 {
+  option (scalapb.message).extends = "BookingEvent";
+  LatLonV1 new_destination = 1                          [(scalapb.field).required = true];
+}
+
+message BookingAcceptedV1 {
+  option (scalapb.message).extends = "BookingEvent";
+ }
+
+message BookingRejectedV1 {
+  option (scalapb.message).extends = "BookingEvent";
+}
+
+message BookingCanceledV1 {
+  option (scalapb.message).extends = "BookingEvent";
+}

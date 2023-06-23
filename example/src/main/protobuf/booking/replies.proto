@@ -1,0 +1,65 @@
+syntax = "proto3";
+
+package endless.example.proto.booking;
+
+import "scalapb/scalapb.proto";
+import "booking/models.proto";
+
+message PlaceBookingReply {
+  oneof reply {
+    UnitReply unit = 1;
+    BookingAlreadyExistsV1 already_exists = 2;
+  }
+}
+
+message GetBookingReply {
+  oneof reply {
+    BookingV1 booking = 1;
+    BookingUnknown unknown = 2;
+  }
+}
+
+message ChangeOriginReply {
+  oneof reply {
+    UnitReply unit = 1;
+    BookingUnknown unknown = 2;
+  }
+}
+
+message ChangeDestinationReply {
+  oneof reply {
+    UnitReply unit = 1;
+    BookingUnknown unknown = 2;
+  }
+}
+
+message ChangeOriginAndDestinationReply {
+  oneof reply {
+    UnitReply unit = 1;
+    BookingUnknown unknown = 2;
+  }
+}
+
+message CancelBookingReply {
+  oneof reply {
+    UnitReply unit = 1;
+    BookingUnknown unknown = 2;
+    BookingWasRejectedV1 rejected = 3;
+  }
+}
+
+message NotifyCapacityReply {
+  oneof reply {
+    UnitReply unit = 1;
+    BookingUnknown unknown = 2;
+  }
+}
+
+message UnitReply {}
+message BookingUnknown {}
+message BookingAlreadyExistsV1 {
+  BookingID booking_id = 1 [(scalapb.field).required = true];
+}
+message BookingWasRejectedV1 {
+  BookingID booking_id = 1 [(scalapb.field).required = true];
+}

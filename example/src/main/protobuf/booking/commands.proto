@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+package endless.example.proto.booking;
+
+import "scalapb/scalapb.proto";
+import "booking/models.proto";
+import "google/protobuf/timestamp.proto";
+
+
+message BookingCommand {
+  oneof command {
+    PlaceBookingV1 place_booking_v1 = 1;
+    GetBookingV1 get_booking_v1 = 2;
+    ChangeOriginV1 change_origin_v1 = 3;
+    ChangeDestinationV1 change_destination_v1 = 4;
+    ChangeOriginAndDestinationV1 change_origin_and_destination_v1 = 5;
+    CancelBookingV1 cancel_booking_v1 = 6;
+    NotifyCapacityV1 notify_capacity_v1 = 7;
+  }
+}
+
+message PlaceBookingV1 {
+  BookingID booking_id = 1              [(scalapb.field).required = true];
+  google.protobuf.Timestamp time = 2    [(scalapb.field).required = true];
+  int32 passenger_count = 3;
+  LatLonV1 origin = 4                   [(scalapb.field).required = true];
+  LatLonV1 destination = 5              [(scalapb.field).required = true];
+}
+message GetBookingV1 {}
+message ChangeOriginV1 {
+  LatLonV1 new_origin = 1               [(scalapb.field).required = true];
+}
+message ChangeDestinationV1 {
+  LatLonV1 new_destination = 1          [(scalapb.field).required = true];
+}
+message ChangeOriginAndDestinationV1 {
+  LatLonV1 new_origin = 1               [(scalapb.field).required = true];
+  LatLonV1 new_destination = 2          [(scalapb.field).required = true];
+}
+message CancelBookingV1 {}
+message NotifyCapacityV1 {
+  bool is_available = 1;
+}
