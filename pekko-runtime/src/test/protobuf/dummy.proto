@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package endless.protobuf.test.proto;
+
+message DummyCommand {
+  string x = 1;
+  int32 y = 2;
+}
+
+message DummyReply {
+  bool ok = 1;
+}
