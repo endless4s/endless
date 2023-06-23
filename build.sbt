@@ -50,19 +50,44 @@ lazy val core = (project in file("core"))
 lazy val akkaRuntime = (project in file("akka-runtime"))
   .dependsOn(core)
   .settings(commonSettings: _*)
-  .settings(libraryDependencies ++= catsEffectStd ++ akkaProvided ++ log4cats)
   .settings(
+    libraryDependencies ++= catsEffectStd ++ akkaProvided ++ log4cats ++ (mUnit :+ akkaTypedTestkit % akkaVersion)
+      .map(_ % Test)
+  )
+  .settings(
+    Project.inConfig(Test)(sbtprotoc.ProtocPlugin.protobufConfigSettings),
     Compile / PB.targets := Seq(
       scalapb.gen() -> (Compile / sourceManaged).value / "scalapb"
+    ),
+    Test / PB.targets := Seq(
+      scalapb.gen() -> (Test / sourceManaged).value / "scalapb"
     )
   )
   .settings(name := "endless-runtime-akka")
+
+lazy val pekkoRuntime = (project in file("pekko-runtime"))
+  .dependsOn(core)
+  .settings(commonSettings: _*)
+  .settings(
+    resolvers += "Apache Pekko Staging" at "https://repository.apache.org/content/groups/staging",
+    libraryDependencies ++= catsEffectStd ++ pekkoProvided ++ log4cats ++ (mUnit :+ pekkoTypedTestkit % pekkoVersion)
+      .map(_ % Test)
+  )
+  .settings(
+    Compile / PB.targets := Seq(
+      scalapb.gen() -> (Compile / sourceManaged).value / "scalapb"
+    ),
+    Test / PB.targets := Seq(
+      scalapb.gen() -> (Test / sourceManaged).value / "scalapb"
+    )
+  )
+  .settings(name := "endless-runtime-pekko")
 
 lazy val circeHelpers = (project in file("circe"))
   .dependsOn(core)
   .settings(commonSettings: _*)
   .settings(
-    libraryDependencies ++= (circe :+ (akkaActorTyped % akkaVersion)) ++ mUnit.map(_ % Test)
+    libraryDependencies ++= circe ++ mUnit.map(_ % Test)
   )
   .settings(name := "endless-circe-helpers")
 
@@ -76,13 +101,10 @@ lazy val protobufHelpers = (project in file("protobuf"))
   .dependsOn(core)
   .settings(commonSettings: _*)
   .settings(
-    libraryDependencies ++= (akkaActorTyped % akkaVersion) +: mUnit.map(
-      _ % Test
-    ) :+ akkaTypedTestkit % akkaVersion % Test
+    libraryDependencies ++= mUnit.map(_ % Test)
   )
   .settings(name := "endless-protobuf-helpers")
   .settings(
-    Project.inConfig(Test)(sbtprotoc.ProtocPlugin.protobufConfigSettings),
     Compile / PB.targets := Seq(
       scalapb.gen() -> (Compile / sourceManaged).value / "scalapb"
     ),
@@ -92,10 +114,10 @@ lazy val protobufHelpers = (project in file("protobuf"))
   )
 
 lazy val example = (project in file("example"))
-  .dependsOn(core, akkaRuntime, circeHelpers, protobufHelpers)
+  .dependsOn(core, akkaRuntime, pekkoRuntime, circeHelpers, protobufHelpers)
   .settings(commonSettings: _*)
   .settings(
-    libraryDependencies ++= catsEffect ++ http4s ++ blaze ++ akka ++ scalapbCustomizations ++ akkaTest ++ logback ++ log4catsSlf4j ++ (mUnit ++ catsEffectMUnit ++ scalacheckEffect ++ log4catsTesting)
+    libraryDependencies ++= catsEffect ++ http4s ++ blaze ++ akka ++ pekko ++ scalapbCustomizations ++ akkaTest ++ pekkoTest ++ logback ++ log4catsSlf4j ++ (mUnit ++ catsEffectMUnit ++ scalacheckEffect ++ log4catsTesting)
       .map(_ % Test)
   )
   .settings(name := "endless-example", run / fork := true, publish / skip := true)
@@ -167,7 +189,7 @@ lazy val documentation = (project in file("documentation"))
 
 lazy val root = project
   .in(file("."))
-  .aggregate(core, akkaRuntime, circeHelpers, scodecHelpers, protobufHelpers, example)
+  .aggregate(core, akkaRuntime, pekkoRuntime, circeHelpers, scodecHelpers, protobufHelpers, example)
   .dependsOn(example)
   .settings(Compile / mainClass := (example / Compile / mainClass).value)
   .settings(commonSettings: _*)

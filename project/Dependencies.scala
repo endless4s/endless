@@ -1,4 +1,4 @@
-import sbt._
+import sbt.*
 
 object Dependencies {
   lazy val akkaVersion = "2.6.17"
@@ -21,6 +21,22 @@ object Dependencies {
   lazy val akkaProvided = akka.map(_ % Provided)
 
   lazy val akkaTest = Seq(akkaPersistenceTestkit).map(_ % akkaVersion)
+
+  lazy val pekkoVersion = "1.0.0-RC2"
+  lazy val pekkoActorTyped = "org.apache.pekko" %% "pekko-actor-typed"
+  lazy val pekkoPersistenceTyped = "org.apache.pekko" %% "pekko-persistence-typed"
+  lazy val pekkoClusterTyped = "org.apache.pekko" %% "pekko-cluster-typed"
+  lazy val pekkoClusterShardingTyped = "org.apache.pekko" %% "pekko-cluster-sharding-typed"
+
+  lazy val pekkoTypedTestkit = "org.apache.pekko" %% "pekko-actor-testkit-typed"
+  lazy val pekkoPersistenceTestkit = "org.apache.pekko" %% "pekko-persistence-testkit"
+
+  lazy val pekko =
+    Seq(pekkoActorTyped, pekkoClusterTyped, pekkoClusterShardingTyped, pekkoPersistenceTyped).map(
+      _ % pekkoVersion
+    )
+  lazy val pekkoProvided = pekko.map(_ % Provided)
+  lazy val pekkoTest = Seq(pekkoPersistenceTestkit).map(_ % pekkoVersion)
 
   lazy val catsVersion = "2.9.0"
   lazy val cats =
