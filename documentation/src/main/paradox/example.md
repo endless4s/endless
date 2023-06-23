@@ -5,12 +5,14 @@ Endless example application is a small API for managing imaginary bookings for p
 ## API
 It has a simple CRUD API for bookings and vehicles:
 
-@@snip [ExampleApp](/example/src/main/scala/endless/example/ExampleApp.scala) { #api }
+@@snip [ExampleApp](/example/src/main/scala/endless/example/app/HttpServer.scala) { #api }
 
 ## Scaffolding
-The application is assembled via calls to @scaladoc[deployEntity](endless.runtime.akka.deploy.Deployer.deployEntity) (for bookings) and @scaladoc[deployDurableEntity](endless.runtime.akka.deploy.Deployer.deployDurableEntity) (for vehicles) (see @ref:[runtime](runtime.md) for more details)
+The application is assembled via calls to @scaladoc[deployEntity](endless.runtime.pekko.deploy.Deployer.deployEntity) (for bookings) and @scaladoc[deployDurableEntity](endless.runtime.pekko.deploy.Deployer.deployDurableEntity) (for vehicles) (see @ref:[runtime](runtime.md) for more details)
 
-@@snip [ExampleApp](/example/src/main/scala/endless/example/ExampleApp.scala) { #main }
+Akka and Pekko runtimes essentially have the same API, so we'll use Pekko for the example:
+
+@@snip [PekkoApp](/example/src/main/scala/endless/example/app/pekko/PekkoApp.scala) { #main } 
 
 ## Algebras
 You might have spotted the two algebra types in the snippet above: 
@@ -72,4 +74,4 @@ Command protocol can be also easily be covered with synchronous round-trip tests
 
 @@snip [BookingCommandProtocolSuite](/example/src/test/scala/endless/example/protocol/BookingCommandProtocolSuite.scala) { #example }
 
-Component and integration tests using akka testkit are also advisable and work as usual, see @github[ExampleAppSuite](/example/src/test/scala/endless/example/ExampleAppSuite.scala).
+Component and integration tests using Akka or Pekko testkit are also advisable and work as usual, see @github[PekkoExampleAppSuite](/example/src/test/scala/endless/example/PekkoExampleAppSuite.scala).

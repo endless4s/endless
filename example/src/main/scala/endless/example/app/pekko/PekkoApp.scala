@@ -56,10 +56,10 @@ object PekkoApp extends Bookings with Vehicles with Availabilities {
       }).void
     )
 
-  // #main
   private def createPekkoApp(port: Int)(actorSystem: ActorSystem[Nothing]): Resource[IO, Server] = {
     implicit val askTimeout: Timeout = Timeout(10.seconds)
 
+    // #main
     Resource
       .eval(Slf4jLogger.create[IO])
       .flatMap { implicit logger: Logger[IO] =>
@@ -111,6 +111,6 @@ object PekkoApp extends Bookings with Vehicles with Availabilities {
               }
         }
       }
+    // #main
   }
-  // #main
 }

@@ -1,13 +1,13 @@
-# Akka runtime
+# Akka and Pekko runtimes
 
-Once required interpreters and typeclass instances have been defined, deploying an entity with Akka boils down to a single call to @scaladoc[deployEntity](endless.runtime.akka.deploy.Deployer). This requires an actor system and the cluster sharding extension in implicit scope, bundled in the type @scaladoc[AkkaCluster](endless.runtime.akka.deploy.AkkaCluster). The recommended pattern is to use the built-in @scaladoc[managedResource](endless.runtime.akka.deploy.AkkaCluster.managedResource) helper method to obtain an instance of this class, which wraps actor system creation and shutdown with a cats effect @link:[Resource](https://typelevel.org/cats-effect/docs/std/resource) { open=new }.  
+Once required interpreters and typeclass instances have been defined, deploying an entity with Akka or Pekko boils down to a single call to @scaladoc[deployEntity](endless.runtime.akka.deploy.Deployer). This requires an actor system and the cluster sharding extension in implicit scope, bundled in the type @scaladoc[AkkaCluster](endless.runtime.akka.deploy.AkkaCluster). The recommended pattern is to use the built-in @scaladoc[managedResource](endless.runtime.akka.deploy.AkkaCluster.managedResource) helper method to obtain an instance of this class, which wraps actor system creation and shutdown with a cats effect @link:[Resource](https://typelevel.org/cats-effect/docs/std/resource) { open=new }.  
 
 ## `deployEntity`
 This function brings everything together and delivers a cats effect @link:[Resource](https://typelevel.org/cats-effect/docs/std/resource) { open=new } with the repository instance in context `F` bundled with the ref to the shard region actor returned by the call to Akka's @link:[ClusterSharding.init](https://doc.akka.io/docs/akka/current/typed/cluster-sharding.html#basic-example) { open=new }.
 
-The following snippet is the scaffolding for the library's sample application, a simple API to manage bookings:
+The following snippet is the scaffolding for the library's sample application (in its Pekko form), a simple API to manage vehicles and bookings:
 
-@@snip [ExampleApp](/example/src/main/scala/endless/example/ExampleApp.scala) { #main }
+@@snip [ExampleApp](/example/src/main/scala/endless/example/app/pekko/PekkoApp.scala) { #main }
 
 `deployEntity` is parameterized with the context `F` and the various involved types: `S` for  entity state, `E` for events, `ID` for entity ID and `Alg` & `RepositoryAlg` for entity and repository algebras respectively (both higher-kinded type constructors).
 

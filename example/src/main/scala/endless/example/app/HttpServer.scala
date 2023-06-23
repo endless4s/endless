@@ -28,7 +28,6 @@ object HttpServer {
 
   final case class BookingPatch(origin: Option[LatLon], destination: Option[LatLon])
 
-  // #api
   def apply(
       port: Int,
       bookingRepository: BookingRepositoryAlg[IO],
@@ -37,6 +36,7 @@ object HttpServer {
   ): Resource[IO, Server] =
     Resource
       .pure(
+        // #api
         HttpRoutes
           .of[IO] {
             case req @ POST -> Root / "booking"        => postBooking(bookingRepository, req)
@@ -63,13 +63,13 @@ object HttpServer {
           }
           .orNotFound
       )
+      // #api
       .flatMap(service =>
         BlazeServerBuilder[IO]
           .bindHttp(port, "localhost")
           .withHttpApp(service)
           .resource
       )
-  // #api
 
   private def postBooking(bookingRepository: BookingRepositoryAlg[IO], req: Request[IO]) =
     for {
