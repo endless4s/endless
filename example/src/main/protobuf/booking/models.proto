@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+import "scalapb/scalapb.proto";
+import "google/protobuf/timestamp.proto";
+
+package endless.example.proto.booking;
+
+message BookingID {
+  string value = 1;
+}
+
+message LatLonV1 {
+  double lat = 1;
+  double lon = 2;
+}
+
+message BookingV1 {
+  BookingID id = 1                      [(scalapb.field).required = true];
+  google.protobuf.Timestamp time = 2    [(scalapb.field).required = true];
+  LatLonV1 origin = 3               [(scalapb.field).required = true];
+  LatLonV1 destination = 4          [(scalapb.field).required = true];
+  int32 passenger_count = 5;
+  BookingStatusV1 status = 6        [(scalapb.field).required = true];
+}
+
+message BookingStatusV1 {
+  enum Status {
+    PENDING = 0;
+    ACCEPTED = 1;
+    REJECTED = 2;
+    CANCELLED = 3;
+  }
+
+  Status value = 1;
+}

@@ -1,54 +1,30 @@
 package endless.example
 
-import akka.actor.typed.ActorSystem
-import akka.persistence.testkit.{
-  PersistenceTestKitDurableStateStorePlugin,
-  PersistenceTestKitPlugin
-}
-import cats.effect.{IO, Resource}
+import cats.effect.IO
 import cats.syntax.show._
-import com.typesafe.config.ConfigFactory
-import endless.example.ExampleApp._
+import endless.example.app.HttpServer._
 import endless.example.data.Booking.BookingID
 import endless.example.data.Vehicle.VehicleID
 import endless.example.data.{Booking, LatLon, Speed}
 import io.circe.generic.auto._
 import org.http4s.Method._
+import org.http4s.Uri
 import org.http4s.blaze.client.BlazeClientBuilder
 import org.http4s.circe.CirceEntityCodec._
+import org.http4s.client.Client
 import org.http4s.client.dsl.io._
-import org.http4s.implicits._
 
 import java.time.Instant
 import java.util.UUID
-import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
-class ExampleAppSuite extends munit.CatsEffectSuite {
-  private def actorSystem(executionContext: ExecutionContext): ActorSystem[Nothing] =
-    ActorSystem.wrap(
-      akka.actor.ActorSystem(
-        "example-as",
-        config = Some(
-          PersistenceTestKitPlugin.config
-            .withFallback(PersistenceTestKitDurableStateStorePlugin.config)
-            .withFallback(ConfigFactory.defaultApplication)
-            .resolve()
-        ),
-        defaultExecutionContext = Some(executionContext)
-      )
-    )
-
-  private val server = ResourceSuiteLocalFixture(
-    "booking-server",
-    Resource.eval(IO.executionContext).map(actorSystem).flatMap(system => ExampleApp.apply(system))
-  )
-  private val client = ResourceSuiteLocalFixture("booking-client", BlazeClientBuilder[IO].resource)
-  private val baseUri = uri"http://localhost:8080"
+trait ExampleAppSuite { self: munit.CatsEffectSuite =>
+  protected val client: Fixture[Client[IO]] =
+    ResourceSuiteLocalFixture("booking-client", BlazeClientBuilder[IO].resource)
+  def port: Int
+  private lazy val baseUri = Uri.unsafeFromString(s"http://localhost:$port")
   private val baseBookingUri = baseUri / "booking"
   private val baseVehicleUri = baseUri / "vehicle"
-
-  override def munitFixtures = List(server, client)
 
   test("POST booking creates booking") {
     val bookingRequest = BookingRequest(Instant.now, 1, LatLon(0, 0), LatLon(1, 1))

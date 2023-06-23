@@ -6,14 +6,14 @@ import "vehicle/models.proto";
 
 message UnitReply {}
 
-message GetSpeedV1FullReply {
-  SpeedV1Full speed = 1;
+message GetSpeedReply {
+  SpeedV1 speed = 1;
 }
 
-message GetPositionV1FullReply {
-  LatLonV1Full position = 1;
+message GetPositionReply {
+  LatLonV1 position = 1;
 }
 
-message GetRecoveryCountV1FullReply {
+message GetRecoveryCountReply {
   int32 recovery_count = 1;
 }

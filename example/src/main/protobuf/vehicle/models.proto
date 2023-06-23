@@ -2,11 +2,11 @@ syntax = "proto3";
 
 package endless.example.proto.vehicle;
 
-message SpeedV1Full {
+message SpeedV1 {
   double metersPerSecond = 1;
 }
 
-message LatLonV1Full {
+message LatLonV1 {
   double lat = 1;
   double lon = 2;
 }
