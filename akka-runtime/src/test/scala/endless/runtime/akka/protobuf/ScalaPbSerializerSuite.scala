@@ -42,6 +42,8 @@ object ScalaPbSerializerSuite {
     """
       |akka {
       |  actor {
+      |    provider = local
+      |
       |    serializers {
       |      scalapb = "endless.runtime.akka.protobuf.ScalaPbSerializer"
       |    }
