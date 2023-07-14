@@ -114,7 +114,7 @@ trait Deployer {
       ]] => akka.cluster.sharding.typed.scaladsl.Entity[Command, ShardingEnvelope[Command]] =
         identity
   )(implicit
-      akkaCluster: AkkaCluster,
+      akkaCluster: AkkaCluster[F],
       nameProvider: EntityNameProvider[ID],
       commandProtocol: CommandProtocol[Alg],
       eventApplier: EventApplier[S, E],
@@ -151,7 +151,7 @@ trait Deployer {
       ]] => akka.cluster.sharding.typed.scaladsl.Entity[Command, ShardingEnvelope[Command]] =
         identity
   )(implicit
-      akkaCluster: AkkaCluster,
+      akkaCluster: AkkaCluster[F],
       nameProvider: EntityNameProvider[ID],
       commandProtocol: CommandProtocol[Alg],
       eventApplier: EventApplier[S, E],
@@ -175,7 +175,7 @@ trait Deployer {
         Command
       ]] => akka.cluster.sharding.typed.scaladsl.Entity[Command, ShardingEnvelope[Command]]
   )(implicit
-      akkaCluster: AkkaCluster,
+      akkaCluster: AkkaCluster[F],
       nameProvider: EntityNameProvider[ID],
       commandProtocol: CommandProtocol[Alg],
       eventApplier: EventApplier[S, E],
