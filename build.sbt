@@ -69,7 +69,6 @@ lazy val pekkoRuntime = (project in file("pekko-runtime"))
   .dependsOn(core)
   .settings(commonSettings: _*)
   .settings(
-    resolvers += "Apache Pekko Staging" at "https://repository.apache.org/content/groups/staging",
     libraryDependencies ++= catsEffectStd ++ pekkoProvided ++ log4cats ++ (mUnit :+ pekkoTypedTestkit % pekkoVersion)
       .map(_ % Test)
   )
