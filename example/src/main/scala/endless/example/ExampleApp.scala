@@ -42,7 +42,7 @@ object ExampleApp {
   final case class BookingPatch(origin: Option[LatLon], destination: Option[LatLon])
 
   // #main
-  def apply(implicit createActorSystem: => ActorSystem[Nothing]): Resource[IO, Server] = {
+  def apply(createActorSystem: => ActorSystem[Nothing]): Resource[IO, Server] = {
     implicit val bookingCommandProtocol: BookingCommandProtocol = new BookingCommandProtocol
     implicit val vehicleCommandProtocol: VehicleCommandProtocol = new VehicleCommandProtocol
     implicit val eventApplier: BookingEventApplier = new BookingEventApplier
@@ -58,7 +58,7 @@ object ExampleApp {
       .eval(Slf4jLogger.create[IO])
       .flatMap { implicit logger: Logger[IO] =>
         AkkaCluster.managedResource[IO](createActorSystem).flatMap {
-          implicit cluster: AkkaCluster =>
+          implicit cluster: AkkaCluster[IO] =>
             Resource
               .both(
                 deployEntity[
@@ -82,7 +82,7 @@ object ExampleApp {
                 )
               )
               .map { case ((bookingRepository, _), (vehicleRepository, _)) =>
-                httpService(bookingRepository, vehicleRepository)
+                httpService(bookingRepository, vehicleRepository, cluster)
               }
               .flatMap(service =>
                 BlazeServerBuilder[IO]
@@ -98,7 +98,8 @@ object ExampleApp {
   // #api
   private def httpService(
       bookingRepository: BookingRepositoryAlg[IO],
-      vehicleRepository: VehicleRepositoryAlg[IO]
+      vehicleRepository: VehicleRepositoryAlg[IO],
+      akkaCluster: AkkaCluster[IO]
   ): HttpApp[IO] = HttpRoutes
     .of[IO] {
       case req @ POST -> Root / "booking"                => postBooking(bookingRepository, req)
@@ -114,6 +115,11 @@ object ExampleApp {
         setVehicleSpeed(vehicleRepository, id, req)
       case req @ POST -> Root / "vehicle" / UUIDVar(id) / "position" =>
         setVehiclePosition(vehicleRepository, id, req)
+      case GET -> Root / "health" =>
+        akkaCluster.isMemberUp.flatMap {
+          case true  => Ok("OK")
+          case false => ServiceUnavailable("Cluster member is down")
+        }
     }
     .orNotFound
   // #api

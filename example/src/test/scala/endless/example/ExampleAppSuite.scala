@@ -5,7 +5,7 @@ import akka.persistence.testkit.{
   PersistenceTestKitDurableStateStorePlugin,
   PersistenceTestKitPlugin
 }
-import cats.effect.IO
+import cats.effect.{IO, Resource}
 import cats.syntax.show._
 import com.typesafe.config.ConfigFactory
 import endless.example.ExampleApp._
@@ -21,21 +21,28 @@ import org.http4s.implicits._
 
 import java.time.Instant
 import java.util.UUID
+import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
 class ExampleAppSuite extends munit.CatsEffectSuite {
-  implicit def actorSystem: ActorSystem[Nothing] =
+  private def actorSystem(executionContext: ExecutionContext): ActorSystem[Nothing] =
     ActorSystem.wrap(
       akka.actor.ActorSystem(
         "example-as",
-        PersistenceTestKitPlugin.config
-          .withFallback(PersistenceTestKitDurableStateStorePlugin.config)
-          .withFallback(ConfigFactory.defaultApplication)
-          .resolve()
+        config = Some(
+          PersistenceTestKitPlugin.config
+            .withFallback(PersistenceTestKitDurableStateStorePlugin.config)
+            .withFallback(ConfigFactory.defaultApplication)
+            .resolve()
+        ),
+        defaultExecutionContext = Some(executionContext)
       )
     )
 
-  private val server = ResourceSuiteLocalFixture("booking-server", ExampleApp.apply)
+  private val server = ResourceSuiteLocalFixture(
+    "booking-server",
+    Resource.eval(IO.executionContext).map(actorSystem).flatMap(system => ExampleApp.apply(system))
+  )
   private val client = ResourceSuiteLocalFixture("booking-client", BlazeClientBuilder[IO].resource)
   private val baseUri = uri"http://localhost:8080"
   private val baseBookingUri = baseUri / "booking"
@@ -189,5 +196,9 @@ class ExampleAppSuite extends munit.CatsEffectSuite {
         .map(_.code),
       400
     )
+  }
+
+  test("GET health returns OK") {
+    assertIO(client().status(GET(baseUri / "health")).map(_.code), 200)
   }
 }

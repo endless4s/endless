@@ -27,7 +27,7 @@ inThisBuild(
     sonatypeProjectHosting := Some(
       xerial.sbt.Sonatype.GitHubHosting("endless4s", "endless", "me@jonaschapuis.com")
     ),
-    scalaVersion := "2.13.8",
+    scalaVersion := "2.13.10",
     Global / onChangedBuildSource := ReloadOnSourceChanges,
     PB.protocVersion := "3.17.3", // works on Apple Silicon,
     versionPolicyIntention := Compatibility.None,
@@ -124,7 +124,13 @@ val scaladocSiteProjects = List(
 )
 
 lazy val documentation = (project in file("documentation"))
-  .enablePlugins(ParadoxMaterialThemePlugin, ParadoxPlugin, ParadoxSitePlugin, SiteScaladocPlugin)
+  .enablePlugins(
+    ParadoxMaterialThemePlugin,
+    SitePreviewPlugin,
+    ParadoxPlugin,
+    ParadoxSitePlugin,
+    SiteScaladocPlugin
+  )
   .settings(
     paradoxProperties ++= (
       scaladocSiteProjects.map { case (_, (_, pkg, path)) =>
