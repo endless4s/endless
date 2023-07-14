@@ -7,7 +7,7 @@ import scalapb.GeneratedMessageCompanion
 import java.util.concurrent.atomic.AtomicReference
 
 /*
- Akka serializer making use of scalapb-generated classes for protobuf serialization
+ Pekko serializer making use of scalapb-generated classes for protobuf serialization
  Inspired by https://gist.github.com/thesamet/5d0349b40d3dc92859a1a2eafba448d5
  */
 @SuppressWarnings(

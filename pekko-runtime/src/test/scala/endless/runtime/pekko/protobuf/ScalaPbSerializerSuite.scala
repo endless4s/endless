@@ -21,7 +21,7 @@ class ScalaPbSerializerSuite extends munit.FunSuite {
   )
 
   pekkoSerialization.test(
-    "be found by akka serialization extension when asked for it for test type"
+    "be found by pekko serialization extension when asked for it for test type"
   ) { serialization =>
     val clasz = serialization.serializerFor(classOf[DummyCommand]).getClass
     assert(clasz == classOf[ScalaPbSerializer])
@@ -41,6 +41,7 @@ object ScalaPbSerializerSuite {
   val serializationConfig: String =
     """
       |pekko {
+      |  provider = local
       |  actor {
       |    serializers {
       |      scalapb = "endless.runtime.pekko.protobuf.ScalaPbSerializer"
