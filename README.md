@@ -8,7 +8,7 @@
 [![Typelevel Affiliate Project](https://img.shields.io/badge/typelevel-affiliate%20project-FFB4B5.svg)](https://typelevel.org/projects/affiliate/)
 <a href="https://typelevel.org/cats/"><img src="https://typelevel.org/cats/img/cats-badge.svg" height="40px" align="right" alt="Cats friendly" /></a>
 
-*endless* is a Scala library to describe event sourced entities using tagless-final algebras, running with built-in implementations for Akka.
+*endless* is a Scala library to describe event sourced entities using tagless-final algebras, running with built-in implementations for Akka and Pekko.
 
 Head to the [documentation](https://endless4s.github.io/index.html) to learn more.
 
