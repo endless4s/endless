@@ -18,6 +18,8 @@ import endless.example.data.Vehicle.VehicleID
 import endless.example.data._
 import endless.example.logic._
 import endless.runtime.akka.deploy.AkkaCluster
+import endless.runtime.akka.deploy.AkkaDeployer.AkkaDeploymentParameters
+import endless.runtime.akka.deploy.AkkaDurableDeployer.AkkaDurableDeploymentParameters
 import endless.runtime.akka.syntax.deploy._
 import org.http4s.server.Server
 import org.typelevel.log4cats.Logger
@@ -64,49 +66,62 @@ object AkkaApp extends Bookings with Vehicles with Availabilities {
       .eval(Slf4jLogger.create[IO])
       .flatMap { implicit logger: Logger[IO] =>
         AkkaCluster.managedResource[IO](actorSystem).flatMap { implicit cluster: AkkaCluster[IO] =>
+          implicit val eventSourcingDeploymentParameters
+              : AkkaDeploymentParameters[IO, Booking, BookingEvent] =
+            AkkaDeploymentParameters[IO, Booking, BookingEvent](
+              customizeBehavior = (_, behavior) =>
+                behavior.eventAdapter(
+                  new EventAdapter[
+                    BookingEvent,
+                    endless.example.proto.booking.events.BookingEvent
+                  ] {
+                    def toJournal(
+                        event: BookingEvent
+                    ): endless.example.proto.booking.events.BookingEvent =
+                      eventAdapter.toJournal(event)
+                    def manifest(event: BookingEvent): String = event.getClass.getName
+                    def fromJournal(
+                        event: endless.example.proto.booking.events.BookingEvent,
+                        manifest: String
+                    ): EventSeq[BookingEvent] = EventSeq.single(eventAdapter.fromJournal(event))
+                  }
+                )
+            )
+          implicit val durableDeploymentParameters: AkkaDurableDeploymentParameters[IO, Vehicle] =
+            AkkaDurableDeploymentParameters[IO, Vehicle](
+              customizeBehavior = (_, behavior) =>
+                behavior.snapshotAdapter(new SnapshotAdapter[Option[Vehicle]] {
+                  def toJournal(state: Option[Vehicle]): Any = stateAdapter.toJournal(state)
+                  def fromJournal(from: Any): Option[Vehicle] = stateAdapter.fromJournal(from)
+                })
+            )
           Resource
             .both(
-              deployEntity[
+              deployRepository[
                 IO,
+                BookingID,
                 Booking,
                 BookingEvent,
-                BookingID,
                 BookingAlg,
                 BookingRepositoryAlg
               ](
-                BookingEntity(_),
-                BookingRepository(_),
-                { case (effector, _, _) => BookingEffector(effector) },
-                customizeBehavior = (_, behavior) =>
-                  behavior.eventAdapter(
-                    new EventAdapter[
-                      BookingEvent,
-                      endless.example.proto.booking.events.BookingEvent
-                    ] {
-                      def toJournal(event: BookingEvent)
-                          : endless.example.proto.booking.events.BookingEvent =
-                        eventAdapter.toJournal(event)
-                      def manifest(event: BookingEvent): String = event.getClass.getName
-                      def fromJournal(
-                          event: endless.example.proto.booking.events.BookingEvent,
-                          manifest: String
-                      ): EventSeq[BookingEvent] = EventSeq.single(eventAdapter.fromJournal(event))
-                    }
-                  )
+                BookingRepository(_).pure[IO],
+                BookingEntity(_).pure[IO],
+                { case (effector, _, _) => BookingEffector(effector).pure[IO] }
               ),
-              deployDurableEntityF[IO, Vehicle, VehicleID, VehicleAlg, VehicleRepositoryAlg](
-                VehicleEntity(_).pure[IO],
+              deployDurableRepository[IO, VehicleID, Vehicle, VehicleAlg, VehicleRepositoryAlg](
                 VehicleRepository(_).pure[IO],
-                { case (effector, _, _) => VehicleEffector.apply[IO](effector).map(_.apply) },
-                customizeBehavior = (_, behavior) =>
-                  behavior.snapshotAdapter(new SnapshotAdapter[Option[Vehicle]] {
-                    def toJournal(state: Option[Vehicle]): Any = stateAdapter.toJournal(state)
-                    def fromJournal(from: Any): Option[Vehicle] = stateAdapter.fromJournal(from)
-                  })
+                VehicleEntity(_).pure[IO],
+                { case (effector, _, _) => VehicleEffector.apply[IO](effector).map(_.apply) }
               )
             )
-            .flatMap { case ((bookingRepository, _), (vehicleRepository, _)) =>
-              HttpServer(port, bookingRepository, vehicleRepository, cluster.isMemberUp)
+            .flatMap { case (bookingDeployment, vehicleDeployment) =>
+              HttpServer(
+                port,
+                bookingDeployment.repository,
+                vehicleDeployment.repository,
+                cluster.isMemberUp
+              )
             }
         }
       }

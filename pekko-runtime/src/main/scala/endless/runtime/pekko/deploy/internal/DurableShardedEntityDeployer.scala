@@ -19,14 +19,13 @@ import endless.core.interpret._
 import endless.core.protocol.{CommandProtocol, EntityIDCodec}
 import endless.runtime.pekko.EntityPassivator
 import endless.runtime.pekko.data._
-import endless.runtime.pekko.deploy.DurableDeployer.EffectorParameters
 import org.typelevel.log4cats.Logger
 
 private[deploy] class DurableShardedEntityDeployer[F[_]: Async: Logger, S, ID: EntityIDCodec, Alg[
     _[_]
 ]: FunctorK, RepositoryAlg[_[_]]](
     interpretedEntityAlg: Alg[DurableEntityT[F, S, *]],
-    createEffector: EffectorParameters[F, S, Alg, RepositoryAlg] => F[EffectorT[F, S, Alg, Unit]],
+    createEffector: EffectorInterpreter[F, S, Alg, RepositoryAlg],
     customizeBehavior: (
         EntityContext[Command],
         DurableStateBehavior[Command, Option[S]]

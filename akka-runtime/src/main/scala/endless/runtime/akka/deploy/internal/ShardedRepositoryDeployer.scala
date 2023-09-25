@@ -9,7 +9,7 @@ import cats.effect.kernel.{Async, Resource}
 import cats.effect.std.Dispatcher
 import cats.tagless.FunctorK
 import endless.core.entity._
-import endless.core.interpret.RepositoryT
+import endless.core.interpret.{RepositoryInterpreter, RepositoryT}
 import endless.core.protocol.{CommandProtocol, CommandRouter, EntityIDEncoder}
 import endless.runtime.akka.ShardingCommandRouter
 import endless.runtime.akka.data._
@@ -21,7 +21,7 @@ trait ShardedRepositoryDeployer[F[_], RepositoryAlg[_[_]], Alg[_[_]], ID] {
   protected lazy val entityTypeKey: EntityTypeKey[Command] = EntityTypeKey[Command](nameProvider())
 
   def deployShardedRepository(
-      createRepository: Repository[F, ID, Alg] => F[RepositoryAlg[F]],
+      repositoryInterpreter: RepositoryInterpreter[F, ID, Alg, RepositoryAlg],
       customizeEntity: akka.cluster.sharding.typed.scaladsl.Entity[Command, ShardingEnvelope[
         Command
       ]] => akka.cluster.sharding.typed.scaladsl.Entity[Command, ShardingEnvelope[Command]]
@@ -38,7 +38,7 @@ trait ShardedRepositoryDeployer[F[_], RepositoryAlg[_[_]], Alg[_[_]], ID] {
     implicit val commandRouter: CommandRouter[F, ID] = ShardingCommandRouter.apply
     val repositoryT = RepositoryT.apply[F, ID, Alg]
     Resource
-      .eval(createRepository(repositoryT))
+      .eval(repositoryInterpreter(repositoryT))
       .map(repository => {
         implicit val dispatcher: Dispatcher[F] = akkaCluster.dispatcher
         val akkaEntity =

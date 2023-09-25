@@ -17,5 +17,6 @@ All definitions make use of the following type parameters:
 * [Effector](effector.md)
 * [NameProvider](name.md)
 * [IDEncoder](id.md)
+* [Deployer](deployer.md)
 @@@
 

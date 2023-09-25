@@ -1,8 +1,8 @@
 package endless.runtime.pekko
 
 import endless.core.interpret.LoggerLiftingHelper
-import endless.runtime.pekko.deploy.{Deployer, DurableDeployer}
+import endless.runtime.pekko.deploy.{PekkoDeployer, PekkoDurableDeployer}
 
 package object syntax {
-  object deploy extends Deployer with DurableDeployer with LoggerLiftingHelper
+  object deploy extends PekkoDeployer with PekkoDurableDeployer with LoggerLiftingHelper
 }
