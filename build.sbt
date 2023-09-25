@@ -158,7 +158,10 @@ lazy val documentation = (project in file("documentation"))
         s"scaladoc.${pkg}.base_url" -> s"api/${path}"
       }.toMap
     ),
-    paradoxProperties += ("akka.min.version" -> akkaVersion),
+    paradoxProperties ++= List(
+      ("akka.min.version" -> akkaVersion),
+      ("pekko.min.version" -> pekkoVersion)
+    ).toMap,
     scaladocSiteProjects.flatMap { case (project, (conf, _, path)) =>
       SiteScaladocPlugin.scaladocSettings(
         conf,

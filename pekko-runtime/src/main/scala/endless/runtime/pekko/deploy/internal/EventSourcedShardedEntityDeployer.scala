@@ -14,11 +14,10 @@ import cats.tagless.FunctorK
 import endless.core.entity.EntityNameProvider
 import endless.core.event.EventApplier
 import endless.core.interpret.EffectorT._
-import endless.core.interpret.{EffectorT, EntityT, RepositoryT}
+import endless.core.interpret.{EffectorInterpreter, EffectorT, EntityT, RepositoryT}
 import endless.core.protocol.{CommandProtocol, EntityIDCodec}
 import endless.runtime.pekko.EntityPassivator
 import endless.runtime.pekko.data.{Command, Reply}
-import endless.runtime.pekko.deploy.Deployer.EffectorParameters
 import endless.runtime.pekko.deploy.internal.EventSourcedShardedEntityDeployer._
 import org.typelevel.log4cats.Logger
 
@@ -28,7 +27,7 @@ private[deploy] class EventSourcedShardedEntityDeployer[F[
     _[_]
 ]: FunctorK, RepositoryAlg[_[_]]](
     interpretedEntityAlg: Alg[EntityT[F, S, E, *]],
-    createEffector: EffectorParameters[F, S, Alg, RepositoryAlg] => F[EffectorT[F, S, Alg, Unit]],
+    effectorInterpreter: EffectorInterpreter[F, S, Alg, RepositoryAlg],
     customizeBehavior: (
         EntityContext[Command],
         EventSourcedBehavior[Command, E, Option[S]]
@@ -51,7 +50,7 @@ private[deploy] class EventSourcedShardedEntityDeployer[F[
     implicit val entity: Alg[F] =
       repositoryT.entityFor(implicitly[EntityIDCodec[ID]].decode(context.entityId))
     implicit val effector: EffectorT[F, S, Alg, Unit] =
-      dispatcher.unsafeRunSync(createEffector(EffectorT.instance, repository, entity))
+      dispatcher.unsafeRunSync(effectorInterpreter(EffectorT.instance, repository, entity))
     customizeBehavior(
       context,
       EventSourcedBehavior
