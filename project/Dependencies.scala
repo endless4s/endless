@@ -50,7 +50,7 @@ object Dependencies {
   lazy val catsTaglessVersion = "0.15.0"
   lazy val catsTagless = Seq("org.typelevel" %% "cats-tagless-macros" % catsTaglessVersion)
 
-  lazy val catsEffectVersion = "3.5.1"
+  lazy val catsEffectVersion = "3.5.2"
   lazy val catsEffectKernel = Seq("org.typelevel" %% "cats-effect-kernel" % catsEffectVersion)
   lazy val catsEffectLaws = Seq("org.typelevel" %% "cats-effect-laws" % catsEffectVersion)
   lazy val catsEffectTestKit = Seq("org.typelevel" %% "cats-effect-testkit" % catsEffectVersion)
@@ -69,7 +69,7 @@ object Dependencies {
     "org.http4s" %% "http4s-blaze-client" % blazeVersion
   )
 
-  lazy val circeVersion = "0.14.5"
+  lazy val circeVersion = "0.14.6"
   lazy val circe = Seq(
     "io.circe" %% "circe-core",
     "io.circe" %% "circe-generic",
