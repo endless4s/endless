@@ -23,11 +23,10 @@ object BookingEffector {
     val availabilityProcess: Booking => F[Unit] = booking =>
       booking.status match {
         case Status.Pending =>
-          for {
-            isAvailable <- availabilityAlg.isCapacityAvailable(booking.time, booking.passengerCount)
-            entity <- self
-            _ <- entity.notifyCapacity(isAvailable)
-          } yield ()
+          (availabilityAlg.isCapacityAvailable(
+            booking.time,
+            booking.passengerCount
+          ) >>= self.notifyCapacity).void
         case _ => ().pure
       }
 

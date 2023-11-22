@@ -9,13 +9,12 @@ import cats.effect.kernel.Async
 import cats.effect.std.Dispatcher
 import cats.syntax.applicative._
 import cats.syntax.flatMap._
+import cats.syntax.functor._
 import cats.syntax.show._
-import cats.tagless.FunctorK
-import endless.core.entity.EntityNameProvider
+import endless.core.entity.{Effector, EntityNameProvider, Repository}
 import endless.core.event.EventApplier
-import endless.core.interpret.EffectorT._
-import endless.core.interpret.{EffectorInterpreter, EffectorT, EntityT, RepositoryT}
-import endless.core.protocol.{CommandProtocol, EntityIDCodec}
+import endless.core.interpret.{EffectorInterpreter, EntityT}
+import endless.core.protocol.{CommandProtocol, CommandSender, EntityIDCodec}
 import endless.runtime.akka.EntityPassivator
 import endless.runtime.akka.data.{Command, Reply}
 import endless.runtime.akka.deploy.internal.EventSourcedShardedEntityDeployer._
@@ -23,32 +22,31 @@ import org.typelevel.log4cats.Logger
 
 private[deploy] class EventSourcedShardedEntityDeployer[F[
     _
-]: Async: Logger, S, E, ID: EntityIDCodec, Alg[_[_]]: FunctorK, RepositoryAlg[_[_]]](
+]: Async: Logger, S, E, ID: EntityIDCodec, Alg[_[_]], RepositoryAlg[_[_]]](
     interpretedEntityAlg: Alg[EntityT[F, S, E, *]],
-    effectorInterpreter: EffectorInterpreter[F, S, Alg, RepositoryAlg],
+    createEffectorInterpreter: F[EffectorInterpreter[F, S, Alg, RepositoryAlg]],
     customizeBehavior: (
         EntityContext[Command],
         EventSourcedBehavior[Command, E, Option[S]]
     ) => Behavior[Command]
 )(implicit
-    val nameProvider: EntityNameProvider[ID],
-    commandProtocol: CommandProtocol[Alg],
-    eventApplier: EventApplier[S, E]
+  val nameProvider: EntityNameProvider[ID],
+  commandProtocol: CommandProtocol[ID, Alg],
+  commandSender: CommandSender[F, ID],
+  eventApplier: EventApplier[S, E]
 ) extends ShardedRepositoryDeployer[F, RepositoryAlg, Alg, ID] {
 
-  protected override def createBehaviorFor(
-      repository: RepositoryAlg[F],
-      repositoryT: RepositoryT[F, ID, Alg]
-  )(implicit
+  protected override def createBehaviorFor(repositoryAlg: RepositoryAlg[F])(implicit
       dispatcher: Dispatcher[F],
       actor: ActorContext[Command],
       context: EntityContext[Command]
   ): Behavior[Command] = {
     implicit val passivator: EntityPassivator[F] = dispatcher.unsafeRunSync(EntityPassivator[F])
     implicit val entity: Alg[F] =
-      repositoryT.entityFor(implicitly[EntityIDCodec[ID]].decode(context.entityId))
-    implicit val effector: EffectorT[F, S, Alg, Unit] =
-      dispatcher.unsafeRunSync(effectorInterpreter(EffectorT.instance, repository, entity))
+      Repository[F, ID, Alg].entityFor(implicitly[EntityIDCodec[ID]].decode(context.entityId))
+    implicit val repository: RepositoryAlg[F] = repositoryAlg
+    implicit val effectorInterpreter: EffectorInterpreter[F, S, Alg, RepositoryAlg] =
+      dispatcher.unsafeRunSync(createEffectorInterpreter)
     customizeBehavior(
       context,
       EventSourcedBehavior
@@ -60,11 +58,11 @@ private[deploy] class EventSourcedShardedEntityDeployer[F[
         )
         .receiveSignal {
           case (state, RecoveryCompleted) =>
-            dispatcher.unsafeRunAndForget(
-              Logger[F].info(
-                show"Recovery of ${nameProvider()} entity ${context.entityId} completed"
-              ) >> effector.runS(state, entity).flatMap(passivator.apply)
-            )
+            dispatcher.unsafeRunAndForget {
+              Logger[F]
+                .info(show"Recovery of ${nameProvider()} entity ${context.entityId} completed") >>
+                handleSideEffects(effectorInterpreter, repositoryAlg, entity, passivator, state)
+            }
           case (_, RecoveryFailed(failure)) =>
             dispatcher.unsafeRunSync(
               Logger[F].warn(
@@ -73,6 +71,21 @@ private[deploy] class EventSourcedShardedEntityDeployer[F[
             )
         }
     )
+  }
+
+  private def handleSideEffects(
+      effectorInterpreter: EffectorInterpreter[F, S, Alg, RepositoryAlg],
+      repositoryAlg: RepositoryAlg[F],
+      entity: Alg[F],
+      passivator: EntityPassivator[F],
+      state: Option[S]
+  ) = {
+    for {
+      effector <- Effector[F, S, Alg](entity, state)
+      _ <- effectorInterpreter.apply(effector, repositoryAlg, entity)
+      passivationState <- effector.passivationState
+      _ <- passivator.apply(passivationState)
+    } yield ()
   }
 
   private def handleEvent(state: Option[S], event: E)(implicit dispatcher: Dispatcher[F]) =
@@ -85,9 +98,10 @@ private[deploy] class EventSourcedShardedEntityDeployer[F[
 
   private def handleCommand(state: Option[S], command: Command)(implicit
       entity: Alg[F],
+      repository: RepositoryAlg[F],
       dispatcher: Dispatcher[F],
       passivator: EntityPassivator[F],
-      effector: EffectorT[F, S, Alg, Unit]
+      effectorInterpreter: EffectorInterpreter[F, S, Alg, RepositoryAlg]
   ) = {
     val incomingCommand =
       commandProtocol.server[EntityT[F, S, E, *]].decode(command.payload)
@@ -104,7 +118,10 @@ private[deploy] class EventSourcedShardedEntityDeployer[F[
             .persist(events.toList)
             .thenRun((state: Option[S]) =>
               // run the effector asynchronously, as it can describe long-running processes
-              dispatcher.unsafeRunAndForget(effector.runS(state, entity).flatMap(passivator.apply))
+              dispatcher
+                .unsafeRunAndForget(
+                  handleSideEffects(effectorInterpreter, repository, entity, passivator, state)
+                )
             )
             .thenReply(command.replyTo) { _: Option[S] =>
               Reply(incomingCommand.replyEncoder.encode(reply))

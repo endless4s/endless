@@ -13,7 +13,7 @@ All definitions make use of the following type parameters:
 * [DurableEntity](durable-entity.md)
 * [EventApplier](applier.md)
 * [CommandProtocol](protocol.md)
-* [CommandRouter](router.md)
+* [CommandSender](sender.md)
 * [Effector](effector.md)
 * [NameProvider](name.md)
 * [IDEncoder](id.md)

@@ -1,5 +1,7 @@
 package endless.core.entity
 
+import endless.core.entity.Effector.PassivationState
+
 import scala.concurrent.duration.{Duration, FiniteDuration}
 
 /** `Passivator` represents the ability to "passivate" an entity, i.e. flush out an entity from the
@@ -20,4 +22,8 @@ trait Passivator[F[_]] {
     * message)
     */
   def disablePassivation: F[Unit]
+
+  /** Get the current passivation state
+    */
+  def passivationState: F[PassivationState]
 }

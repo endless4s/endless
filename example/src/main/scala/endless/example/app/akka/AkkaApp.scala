@@ -8,8 +8,13 @@ import akka.persistence.testkit.{
 import akka.persistence.typed.{EventAdapter, EventSeq, SnapshotAdapter}
 import akka.util.Timeout
 import cats.effect._
-import cats.syntax.applicative._
 import com.typesafe.config.ConfigFactory
+import endless.core.interpret.{
+  DurableEntityInterpreter,
+  EffectorInterpreter,
+  EntityInterpreter,
+  RepositoryInterpreter
+}
 import endless.example.algebra._
 import endless.example.app.HttpServer
 import endless.example.app.impl.{Availabilities, Bookings, Vehicles}
@@ -105,14 +110,14 @@ object AkkaApp extends Bookings with Vehicles with Availabilities {
                 BookingAlg,
                 BookingRepositoryAlg
               ](
-                BookingRepository(_).pure[IO],
-                BookingEntity(_).pure[IO],
-                { case (effector, _, _) => BookingEffector(effector).pure[IO] }
+                RepositoryInterpreter.pure(BookingRepository(_)),
+                EntityInterpreter.pure(BookingEntity(_)),
+                EffectorInterpreter.pure { case (effector, _, _) => BookingEffector(effector) }
               ),
               deployDurableRepository[IO, VehicleID, Vehicle, VehicleAlg, VehicleRepositoryAlg](
-                VehicleRepository(_).pure[IO],
-                VehicleEntity(_).pure[IO],
-                { case (effector, _, _) => VehicleEffector.apply[IO](effector).map(_.apply) }
+                RepositoryInterpreter.pure(VehicleRepository(_)),
+                DurableEntityInterpreter.pure(VehicleEntity(_)),
+                VehicleEffector.apply
               )
             )
             .flatMap { case (bookingDeployment, vehicleDeployment) =>

@@ -1,10 +1,11 @@
 package endless.example.protocol
 
 import cats.Id
-import cats.syntax.functor._
 import endless.\/
+import endless.core.protocol.CommandSender
 import endless.example.algebra.BookingAlg
 import endless.example.algebra.BookingAlg.CancelError
+import endless.example.data.Booking.BookingID
 import endless.example.data.{Booking, LatLon}
 import endless.example.logic.Generators
 import org.scalacheck.Prop.forAll
@@ -13,20 +14,12 @@ import java.time.Instant
 
 //#example
 class BookingCommandProtocolSuite extends munit.ScalaCheckSuite with Generators {
-  val protocol = new BookingCommandProtocol
 
   test("place booking") {
     forAll { (booking: Booking, reply: BookingAlg.BookingAlreadyExists \/ Unit) =>
-      val outgoingCommand = protocol.client.place(
-        booking.id,
-        booking.time,
-        booking.passengerCount,
-        booking.origin,
-        booking.destination
-      )
-      val incomingCommand = protocol.server[Id].decode(outgoingCommand.payload)
-      val encodedReply = incomingCommand
-        .runWith(new TestBookingAlg {
+      implicit val sender: CommandSender[Id, Booking.BookingID] = CommandSender.local(
+        protocol,
+        new TestBookingAlg {
           override def place(
               bookingID: Booking.BookingID,
               time: Instant,
@@ -34,89 +27,103 @@ class BookingCommandProtocolSuite extends munit.ScalaCheckSuite with Generators 
               origin: LatLon,
               destination: LatLon
           ): Id[BookingAlg.BookingAlreadyExists \/ Unit] = reply
-        })
-        .map(incomingCommand.replyEncoder.encode(_))
-      assertEquals(outgoingCommand.replyDecoder.decode(encodedReply), reply)
+        }
+      )
+      val actualReply = protocol
+        .clientFor(booking.id)
+        .place(
+          booking.id,
+          booking.time,
+          booking.passengerCount,
+          booking.origin,
+          booking.destination
+        )
+      assertEquals(actualReply, reply)
     }
   }
 //#example
 
   test("get booking") {
-    forAll { (reply: BookingAlg.BookingUnknown.type \/ Booking) =>
-      val outgoingCommand = protocol.client.get
-      val incomingCommand = protocol.server[Id].decode(outgoingCommand.payload)
-      val encodedReply = incomingCommand
-        .runWith(new TestBookingAlg {
+    forAll { (id: BookingID, reply: BookingAlg.BookingUnknown.type \/ Booking) =>
+      implicit val sender: CommandSender[Id, Booking.BookingID] = CommandSender.local(
+        protocol,
+        new TestBookingAlg {
           override def get: Id[BookingAlg.BookingUnknown.type \/ Booking] = reply
-        })
-        .map(incomingCommand.replyEncoder.encode(_))
-      assertEquals(outgoingCommand.replyDecoder.decode(encodedReply), reply)
+        }
+      )
+      val actualReply = protocol.clientFor(id).get
+      assertEquals(actualReply, reply)
     }
   }
 
   test("change origin") {
-    forAll { (newOrigin: LatLon, reply: BookingAlg.BookingUnknown.type \/ Unit) =>
-      val outgoingCommand = protocol.client.changeOrigin(newOrigin)
-      val incomingCommand = protocol.server[Id].decode(outgoingCommand.payload)
-      val encodedReply = incomingCommand
-        .runWith(new TestBookingAlg {
-          override def changeOrigin(
-              origin: LatLon
-          ): Id[BookingAlg.BookingUnknown.type \/ Unit] = reply
-        })
-        .map(incomingCommand.replyEncoder.encode(_))
-      assertEquals(outgoingCommand.replyDecoder.decode(encodedReply), reply)
+    forAll { (id: BookingID, newOrigin: LatLon, reply: BookingAlg.BookingUnknown.type \/ Unit) =>
+      implicit val sender: CommandSender[Id, Booking.BookingID] = CommandSender.local(
+        protocol,
+        new TestBookingAlg {
+          override def changeOrigin(newOrigin: LatLon): Id[BookingAlg.BookingUnknown.type \/ Unit] =
+            reply
+        }
+      )
+      val actualReply = protocol.clientFor(id).changeOrigin(newOrigin)
+      assertEquals(actualReply, reply)
     }
   }
 
   test("change destination") {
-    forAll { (newDestination: LatLon, reply: BookingAlg.BookingUnknown.type \/ Unit) =>
-      val outgoingCommand = protocol.client.changeDestination(newDestination)
-      val incomingCommand = protocol.server[Id].decode(outgoingCommand.payload)
-      val encodedReply = incomingCommand
-        .runWith(new TestBookingAlg {
-          override def changeDestination(
-              destination: LatLon
-          ): Id[BookingAlg.BookingUnknown.type \/ Unit] = reply
-        })
-        .map(incomingCommand.replyEncoder.encode(_))
-      assertEquals(outgoingCommand.replyDecoder.decode(encodedReply), reply)
+    forAll {
+      (id: BookingID, newDestination: LatLon, reply: BookingAlg.BookingUnknown.type \/ Unit) =>
+        implicit val sender: CommandSender[Id, BookingID] = CommandSender.local(
+          protocol,
+          new TestBookingAlg {
+            override def changeDestination(
+                newDestination: LatLon
+            ): Id[BookingAlg.BookingUnknown.type \/ Unit] = reply
+          }
+        )
+        val actualReply = protocol.clientFor(id).changeDestination(newDestination)
+        assertEquals(actualReply, reply)
     }
   }
 
   test("change origin and destination") {
     forAll {
       (
+          bookingID: BookingID,
           newOrigin: LatLon,
           newDestination: LatLon,
           reply: BookingAlg.BookingUnknown.type \/ Unit
       ) =>
-        val outgoingCommand = protocol.client.changeOriginAndDestination(newOrigin, newDestination)
-        val incomingCommand = protocol.server[Id].decode(outgoingCommand.payload)
-        val encodedReply = incomingCommand
-          .runWith(new TestBookingAlg {
+        implicit val sender: CommandSender[Id, BookingID] = CommandSender.local(
+          protocol,
+          new TestBookingAlg {
             override def changeOriginAndDestination(
-                origin: LatLon,
-                destination: LatLon
+                newOrigin: LatLon,
+                newDestination: LatLon
             ): Id[BookingAlg.BookingUnknown.type \/ Unit] = reply
-          })
-          .map(incomingCommand.replyEncoder.encode(_))
-        assertEquals(outgoingCommand.replyDecoder.decode(encodedReply), reply)
+          }
+        )
+        val actualReply = protocol
+          .clientFor(bookingID)
+          .changeOriginAndDestination(newOrigin, newDestination)
+        assertEquals(actualReply, reply)
     }
   }
 
   test("cancel") {
-    forAll { (reply: CancelError \/ Unit) =>
-      val outgoingCommand = protocol.client.cancel
-      val incomingCommand = protocol.server[Id].decode(outgoingCommand.payload)
-      val encodedReply = incomingCommand
-        .runWith(new TestBookingAlg {
+    forAll { (bookingID: BookingID, reply: CancelError \/ Unit) =>
+      implicit val sender: CommandSender[Id, BookingID] = CommandSender.local(
+        protocol,
+        new TestBookingAlg {
           override def cancel: Id[CancelError \/ Unit] = reply
-        })
-        .map(incomingCommand.replyEncoder.encode(_))
-      assertEquals(outgoingCommand.replyDecoder.decode(encodedReply), reply)
+        }
+      )
+      val actualReply = protocol.clientFor(bookingID).cancel
+      assertEquals(actualReply, reply)
     }
   }
+
+  val protocol = new BookingCommandProtocol
 
   trait TestBookingAlg extends BookingAlg[Id] {
     def place(

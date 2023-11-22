@@ -8,13 +8,14 @@ import cats.syntax.flatMap._
 import cats.syntax.show._
 import cats.~>
 import endless.core.entity.EntityNameProvider
-import endless.core.protocol.{CommandRouter, EntityIDEncoder, OutgoingCommand}
+import endless.core.protocol.{CommandSender, EntityIDEncoder, OutgoingCommand}
 import endless.runtime.akka.data.{Command, Reply}
 import org.typelevel.log4cats.Logger
 
-/** Implementation of [[CommandRouter]] for Akka cluster sharding
+/** Implementation of [[CommandSender]] for Akka cluster sharding
   *
   * Retrieves the entity ref and asks the command, then decodes the reply and lifts it into `F`
+  *
   * @param sharding
   *   Akka cluster sharding extension
   * @param askTimeout
@@ -28,14 +29,14 @@ import org.typelevel.log4cats.Logger
   * @tparam ID
   *   entity ID
   */
-private[akka] final class ShardingCommandRouter[F[_]: Logger, ID](implicit
-    sharding: ClusterSharding,
-    askTimeout: Timeout,
-    idEncoder: EntityIDEncoder[ID],
-    nameProvider: EntityNameProvider[ID],
-    F: Async[F]
-) extends CommandRouter[F, ID] {
-  def routerForID(id: ID): OutgoingCommand[*] ~> F =
+private[akka] final class ShardingCommandSender[F[_]: Logger, ID](implicit
+                                                                  sharding: ClusterSharding,
+                                                                  askTimeout: Timeout,
+                                                                  idEncoder: EntityIDEncoder[ID],
+                                                                  nameProvider: EntityNameProvider[ID],
+                                                                  F: Async[F]
+) extends CommandSender[F, ID] {
+  def senderForID(id: ID): OutgoingCommand[*] ~> F =
     new (OutgoingCommand[*] ~> F) {
       def apply[A](fa: OutgoingCommand[A]): F[A] = {
         val encodedID = idEncoder.encode(id)
@@ -58,12 +59,12 @@ private[akka] final class ShardingCommandRouter[F[_]: Logger, ID](implicit
     }
 }
 
-object ShardingCommandRouter {
+object ShardingCommandSender {
   implicit def apply[F[_]: Logger, ID](implicit
       sharding: ClusterSharding,
       askTimeout: Timeout,
       idEncoder: EntityIDEncoder[ID],
       nameProvider: EntityNameProvider[ID],
       F: Async[F]
-  ): CommandRouter[F, ID] = new ShardingCommandRouter
+  ): CommandSender[F, ID] = new ShardingCommandSender
 }

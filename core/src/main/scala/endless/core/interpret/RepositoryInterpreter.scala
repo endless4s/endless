@@ -1,5 +1,6 @@
 package endless.core.interpret
 
+import cats.Applicative
 import endless.core.entity.Repository
 
 /** Interprets an algebra `RepositoryAlg` expressed using `Repository` in context `F`
@@ -17,4 +18,11 @@ import endless.core.entity.Repository
   */
 trait RepositoryInterpreter[F[_], ID, Alg[_[_]], RepositoryAlg[_[_]]] {
   def apply(repository: Repository[F, ID, Alg]): F[RepositoryAlg[F]]
+}
+
+object RepositoryInterpreter {
+  def pure[F[_]: Applicative, ID, Alg[_[_]], RepositoryAlg[_[_]]](
+      f: Repository[F, ID, Alg] => RepositoryAlg[F]
+  ): RepositoryInterpreter[F, ID, Alg, RepositoryAlg] = (repository: Repository[F, ID, Alg]) =>
+    Applicative[F].pure(f(repository))
 }

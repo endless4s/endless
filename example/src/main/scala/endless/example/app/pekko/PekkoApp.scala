@@ -7,8 +7,13 @@ import org.apache.pekko.persistence.testkit.{
 }
 import org.apache.pekko.util.Timeout
 import cats.effect._
-import cats.syntax.applicative._
 import com.typesafe.config.ConfigFactory
+import endless.core.interpret.{
+  DurableEntityInterpreter,
+  EffectorInterpreter,
+  EntityInterpreter,
+  RepositoryInterpreter
+}
 import endless.example.algebra._
 import endless.example.app.HttpServer
 import endless.example.app.impl.{Availabilities, Bookings, Vehicles}
@@ -24,7 +29,6 @@ import org.apache.pekko.persistence.typed.{EventAdapter, EventSeq, SnapshotAdapt
 import org.http4s.server.Server
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
-
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
@@ -109,14 +113,14 @@ object PekkoApp extends Bookings with Vehicles with Availabilities {
                   BookingAlg,
                   BookingRepositoryAlg
                 ](
-                  BookingRepository(_).pure[IO],
-                  BookingEntity(_).pure[IO],
-                  { case (effector, _, _) => BookingEffector(effector).pure[IO] }
+                  RepositoryInterpreter.pure(BookingRepository(_)),
+                  EntityInterpreter.pure(BookingEntity(_)),
+                  EffectorInterpreter.pure { case (effector, _, _) => BookingEffector(effector) }
                 ),
                 deployDurableRepository[IO, VehicleID, Vehicle, VehicleAlg, VehicleRepositoryAlg](
-                  VehicleRepository(_).pure[IO],
-                  VehicleEntity(_).pure[IO],
-                  { case (effector, _, _) => VehicleEffector.apply[IO](effector).map(_.apply) }
+                  RepositoryInterpreter.pure(VehicleRepository(_)),
+                  DurableEntityInterpreter.pure(VehicleEntity(_)),
+                  VehicleEffector.apply
                 )
               )
               .flatMap { case (bookingDeployment, vehicleDeployment) =>

@@ -1,6 +1,5 @@
 package endless.example.algebra
 
-import cats.tagless.{Derive, FunctorK}
 import endless.\/
 import endless.example.algebra.BookingAlg.{BookingAlreadyExists, BookingUnknown, CancelError}
 import endless.example.data.Booking.BookingID
@@ -35,6 +34,4 @@ object BookingAlg {
 
   sealed trait CancelError
   final case class BookingWasRejected(bookingID: BookingID) extends CancelError
-
-  implicit lazy val functorKInstance: FunctorK[BookingAlg] = Derive.functorK[BookingAlg]
 }

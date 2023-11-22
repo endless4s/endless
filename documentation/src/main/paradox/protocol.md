@@ -3,11 +3,11 @@
 ```scala
 trait CommandProtocol[Alg[_[_]]] {
   def server[F[_]]: Decoder[IncomingCommand[F, Alg]]
-  def client: Alg[OutgoingCommand[*]]
+  def clientFor[F[_]](id: ID)(implicit sender: CommandSender[F, ID]): Alg[F]
 }
 ```
 
-@scaladoc[CommandProtocol](endless.core.protocol.CommandProtocol) is to be implemented for each entity algebra. It provides a `client` interpretation wrapping each function into a @scaladoc[OutgoingCommand](endless.core.protocol.OutgoingCommand) context and a `server` decoder which can deserialize an incoming command into @scaladoc[IncomingCommand](endless.core.protocol.IncomingCommand).
+@scaladoc[CommandProtocol](endless.core.protocol.CommandProtocol) is to be implemented for each entity algebra. It provides an RPC-like `client` in charge of transforming calls into instances of @scaladoc[OutgoingCommand](endless.core.protocol.OutgoingCommand), delivering such commands to the targeted entity using a @scaladoc[CommandSender](endless.core.protocol.CommandSender) and decoding the reply. It also defines the corresponding `server`, which can decode commands into @scaladoc[IncomingCommand](endless.core.protocol.IncomingCommand) instances, run the corresponding entity logic and encode the reply.
 
 `OutgoingCommand` is able to encode the command into a binary representation ready to be sent over the wire and also decode the expected subsequent reply. `IncomingCommand` is able to decode the incoming command, invoke the corresponding handler and encode the reply.
 

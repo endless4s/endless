@@ -1,7 +1,6 @@
 package endless.core.entity
 
 import cats.effect.kernel.{Async, Resource}
-import cats.tagless.FunctorK
 import endless.core.interpret.{DurableEntityInterpreter, EffectorInterpreter, RepositoryInterpreter}
 import endless.core.protocol.{CommandProtocol, EntityIDCodec}
 
@@ -56,10 +55,6 @@ trait DurableDeployer {
     * Since the behavior described above involves concurrent handling of repository interactions and
     * asynchronous side-effects, we expect `Async` from `F`.
     *
-    * We also require `FunctorK` for `Alg` to support natural transformations: we use them for
-    * interpretation of the entity algebra into actual platform-specific runnable code in `F`, and
-    * for translating calls into messages via the `CommandRouter` abstraction.
-    *
     * `EntityIDCodec` is used to encode/decode entity IDs to/from strings.
     *
     * @param repository
@@ -88,15 +83,15 @@ trait DurableDeployer {
     * @return
     *   a resource encapsulating access to the deployed repository algebra
     */
-  def deployDurableRepository[F[_]: Async, ID: EntityIDCodec, S, Alg[_[_]]: FunctorK, RepositoryAlg[
+  def deployDurableRepository[F[_]: Async, ID: EntityIDCodec, S, Alg[_[_]], RepositoryAlg[
       _[_]
   ]](
       repository: RepositoryInterpreter[F, ID, Alg, RepositoryAlg],
       entity: DurableEntityInterpreter[F, S, Alg],
-      effector: EffectorInterpreter[F, S, Alg, RepositoryAlg]
+      effector: F[EffectorInterpreter[F, S, Alg, RepositoryAlg]]
   )(implicit
       nameProvider: EntityNameProvider[ID],
-      commandProtocol: CommandProtocol[Alg],
+      commandProtocol: CommandProtocol[ID, Alg],
       parameters: DurableDeploymentParameters[F, ID, S]
   ): Resource[F, DurableDeployment[F, RepositoryAlg]]
 

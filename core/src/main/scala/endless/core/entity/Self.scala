@@ -7,7 +7,7 @@ package endless.core.entity
   *   entity algebra
   */
 trait Self[F[_], Alg[_[_]]] {
-  def self: F[Alg[F]]
+  def self: Alg[F]
 }
 
 object Self {

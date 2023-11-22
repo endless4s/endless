@@ -1,10 +1,14 @@
 package endless.core.interpret
 
 import cats.data.{IndexedStateT, StateT}
+import cats.effect.kernel.Clock
 import cats.{Applicative, Functor, Monad, ~>}
 import endless.core.entity.DurableEntity
+import org.typelevel.log4cats.Logger
 
-object DurableEntityT extends LoggerLiftingHelper {
+import scala.concurrent.duration.FiniteDuration
+
+object DurableEntityT {
   sealed trait State[+S]
   object State {
     case object None extends State[Nothing]
@@ -70,4 +74,18 @@ object DurableEntityT extends LoggerLiftingHelper {
         IndexedStateT.catsDataMonadForIndexedStateT
     }
 
+  implicit def clockForDurableEntityT[F[_]: Applicative: Clock, S](implicit
+      A0: Applicative[DurableEntityT[F, S, *]]
+  ): Clock[DurableEntityT[F, S, *]] =
+    new Clock[DurableEntityT[F, S, *]] {
+      def applicative: Applicative[DurableEntityT[F, S, *]] = A0
+
+      def monotonic: DurableEntityT[F, S, FiniteDuration] = liftF(Clock[F].monotonic)
+
+      def realTime: DurableEntityT[F, S, FiniteDuration] = liftF(Clock[F].realTime)
+    }
+
+  implicit def loggerForDurableEntityT[F[_]: Applicative, S](implicit
+      logger: Logger[F]
+  ): Logger[DurableEntityT[F, S, *]] = logger.mapK(liftK[F, S])
 }

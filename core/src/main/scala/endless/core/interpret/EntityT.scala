@@ -11,6 +11,7 @@ import cats.{Applicative, Functor, Monad, ~>}
 import endless.core.data.{EventsFolder, Folded}
 import endless.core.entity.Entity
 import endless.core.event.EventApplier
+import org.typelevel.log4cats.Logger
 
 import scala.concurrent.duration.FiniteDuration
 
@@ -57,7 +58,7 @@ final class EntityT[F[_], S, E, A](
     flatMap(a => EntityT.purr(f(a)))
 }
 
-object EntityT extends EntityRunFunctions with LoggerLiftingHelper {
+object EntityT extends EntityRunFunctions {
   def writer[F[_]: Applicative, S, E](newEvents: NonEmptyChain[E]): EntityT[F, S, E, Unit] =
     new EntityT((_, existing) => write(newEvents)(existing))
 
@@ -68,7 +69,7 @@ object EntityT extends EntityRunFunctions with LoggerLiftingHelper {
   def liftF[F[_]: Functor, S, E, A](fa: F[A]): EntityT[F, S, E, A] =
     new EntityT((_, events) => fa.map(a => (events, a).asRight))
 
-  implicit def liftK[F[_]: Functor, S, E, A]: F ~> EntityT[F, S, E, *] =
+  implicit def liftK[F[_]: Functor, S, E]: F ~> EntityT[F, S, E, *] =
     new (F ~> EntityT[F, S, E, *]) {
       def apply[B](fa: F[B]): EntityT[F, S, E, B] = liftF(fa)
     }
@@ -91,4 +92,8 @@ object EntityT extends EntityRunFunctions with LoggerLiftingHelper {
       def monotonic: EntityT[F, S, E, FiniteDuration] = liftF(Clock[F].monotonic)
       def realTime: EntityT[F, S, E, FiniteDuration] = liftF(Clock[F].realTime)
     }
+
+  implicit def loggerForEntityT[F[_]: Functor, S, E](implicit
+      logger: Logger[F]
+  ): Logger[EntityT[F, S, E, *]] = logger.mapK(liftK[F, S, E])
 }
