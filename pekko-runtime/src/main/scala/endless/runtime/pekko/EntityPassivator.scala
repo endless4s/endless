@@ -8,7 +8,7 @@ import cats.effect.kernel.{Ref, Sync}
 import cats.syntax.eq._
 import cats.syntax.flatMap._
 import cats.syntax.functor._
-import endless.core.interpret.EffectorT.PassivationState
+import endless.core.entity.Effector.PassivationState
 
 import scala.concurrent.duration.{Duration, FiniteDuration}
 

@@ -1,10 +1,10 @@
 package endless.runtime.pekko.deploy
 
 import cats.effect.kernel.{Async, Resource}
-import cats.tagless.FunctorK
 import endless.core.entity._
 import endless.core.interpret._
-import endless.core.protocol.{CommandProtocol, EntityIDCodec}
+import endless.core.protocol.{CommandProtocol, CommandSender, EntityIDCodec}
+import endless.runtime.pekko.ShardingCommandSender
 import endless.runtime.pekko.data._
 import endless.runtime.pekko.deploy.PekkoDurableDeployer.{
   DeployedPekkoDurableRepository,
@@ -13,7 +13,7 @@ import endless.runtime.pekko.deploy.PekkoDurableDeployer.{
 import endless.runtime.pekko.deploy.internal.DurableShardedEntityDeployer
 import org.apache.pekko.actor.typed.{ActorRef, Behavior}
 import org.apache.pekko.cluster.sharding.typed.ShardingEnvelope
-import org.apache.pekko.cluster.sharding.typed.scaladsl.EntityContext
+import org.apache.pekko.cluster.sharding.typed.scaladsl.{ClusterSharding, EntityContext}
 import org.apache.pekko.persistence.typed.state.scaladsl.DurableStateBehavior
 import org.apache.pekko.util.Timeout
 import org.typelevel.log4cats.Logger
@@ -23,18 +23,21 @@ trait PekkoDurableDeployer extends DurableDeployer {
   type DurableDeployment[F[_], RepositoryAlg[_[_]]] =
     DeployedPekkoDurableRepository[F, RepositoryAlg]
 
-  def deployDurableRepository[F[_]: Async, ID: EntityIDCodec, S, Alg[_[_]]: FunctorK, RepositoryAlg[
+  override def deployDurableRepository[F[_]: Async, ID: EntityIDCodec, S, Alg[_[_]], RepositoryAlg[
       _[_]
   ]](
       repository: RepositoryInterpreter[F, ID, Alg, RepositoryAlg],
       entity: DurableEntityInterpreter[F, S, Alg],
-      effector: EffectorInterpreter[F, S, Alg, RepositoryAlg]
+      effector: F[EffectorInterpreter[F, S, Alg, RepositoryAlg]]
   )(implicit
       nameProvider: EntityNameProvider[ID],
-      commandProtocol: CommandProtocol[Alg],
+      commandProtocol: CommandProtocol[ID, Alg],
       parameters: PekkoDurableDeploymentParameters[F, S]
   ): Resource[F, DeployedPekkoDurableRepository[F, RepositoryAlg]] = {
     import parameters._
+    implicit val sharding: ClusterSharding = pekkoCluster.sharding
+    implicit val sender: CommandSender[F, ID] = ShardingCommandSender[F, ID]
+
     for {
       interpretedEntityAlg <- Resource.eval(entity(DurableEntityT.instance))
       deployment <- new DurableShardedEntityDeployer(
@@ -72,7 +75,7 @@ object PekkoDurableDeployer {
       ]] = identity
   )(implicit
       val logger: Logger[F],
-      val PekkoCluster: PekkoCluster[F],
+      val pekkoCluster: PekkoCluster[F],
       val askTimeout: Timeout
   )
 }

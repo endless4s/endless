@@ -2,15 +2,8 @@
 'https://plantuml.com/sequence-diagram
 title Client side of ""bookingAlg.place(booking)""
 skinparam handwritten true
-skinparam TitleFontName Virgil 3 YOFF
-skinparam NoteFontName  Virgil 3 YOFF
-skinparam sequence {
- ParticipantFontName Virgil 3 YOFF
- ActorFontName Virgil 3 YOFF
- ReferenceFontName Virgil 3 YOFF
- MessageFontName Virgil 3 YOFF
- ArrowFontName Virgil 3 YOFF
-}
+skinparam defaultFontName Chalkboard
+
 participant "Domain logic" as Domain
 participant "BookingAlg[F]" as BookingAlg
 participant "OutgoingCommand" as OutgoingCommand

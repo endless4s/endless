@@ -41,8 +41,8 @@ inThisBuild(
 lazy val core = (project in file("core"))
   .settings(commonSettings: _*)
   .settings(
-    libraryDependencies ++= cats ++ catsTagless ++ catsEffectKernel ++ log4cats ++
-      (catsLaws ++ catsEffectLaws ++ catsEffect ++ catsTestkit ++ catsEffectTestKit ++ mUnit ++ kittens)
+    libraryDependencies ++= cats ++ catsEffectKernel ++ log4cats ++
+      (catsLaws ++ catsEffectLaws ++ catsEffect ++ catsTestkit ++ catsEffectTestKit ++ mUnit ++ catsEffectMUnit ++ scalacheckEffect ++ kittens)
         .map(_ % Test)
   )
   .settings(name := "endless-core")
@@ -134,14 +134,20 @@ lazy val example = (project in file("example"))
 
 // Create one configuration per module
 val Core = config("core")
+val Protobuf = config("protobuf")
 val Circe = config("circe")
-val Runtime = config("runtime")
+val Scodec = config("scodec")
+val AkkaRuntime = config("akka-runtime")
+val PekkoRuntime = config("pekko-runtime")
 
 // For each module define its package prefix and path in documentation API
 val scaladocSiteProjects = List(
   core -> (Core, "endless", "core"),
+  protobufHelpers -> (Protobuf, "endless.protobuf", "protobuf"),
+  scodecHelpers -> (Scodec, "endless.scodec", "scodec"),
   circeHelpers -> (Circe, "endless.circe", "circe"),
-  akkaRuntime -> (Runtime, "endless.runtime", "runtime")
+  akkaRuntime -> (AkkaRuntime, "endless.runtime.akka", "runtime"),
+  pekkoRuntime -> (PekkoRuntime, "endless.runtime.pekko", "runtime")
 )
 
 lazy val documentation = (project in file("documentation"))
@@ -193,7 +199,8 @@ lazy val root = project
   .in(file("."))
   .aggregate(core, akkaRuntime, pekkoRuntime, circeHelpers, scodecHelpers, protobufHelpers, example)
   .dependsOn(example)
-  .settings(Compile / mainClass := (example / Compile / mainClass).value)
   .settings(commonSettings: _*)
   .settings(publish / skip := true)
   .settings(name := "endless")
+
+Compile / mainClass := Some("endless.example.app.pekko.Main")

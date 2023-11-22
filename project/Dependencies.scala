@@ -47,8 +47,6 @@ object Dependencies {
 
   lazy val catsLaws = Seq("org.typelevel" %% "cats-laws" % catsVersion)
   lazy val catsTestkit = Seq("org.typelevel" %% "cats-testkit" % catsVersion)
-  lazy val catsTaglessVersion = "0.15.0"
-  lazy val catsTagless = Seq("org.typelevel" %% "cats-tagless-macros" % catsTaglessVersion)
 
   lazy val catsEffectVersion = "3.5.2"
   lazy val catsEffectKernel = Seq("org.typelevel" %% "cats-effect-kernel" % catsEffectVersion)

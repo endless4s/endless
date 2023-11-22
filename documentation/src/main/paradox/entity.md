@@ -24,7 +24,8 @@ Advantages of this abstraction are:
 - the command is the call and the reply is simply the final resulting value in the monadic chain, there are no explicit representations
 - maximal composability since it's just `flatMap` all the way down, making it easier to work with a reduced set of events
 - `read` always provides the up-to-date state and event folding happens transparently behind the scenes
-- pure & side-effect free logic that is easy to test
+- pure & side-effect-free logic that is easy to test
+- the algebra interpreter does not support asynchronicity or other such effects lower in the hierarchy, which makes it impossible to accidentally introduce them in the command handling logic
 
 @@@ warning { title="Responsivity" }
 When defining event-sourced entities, it is considered best practice to process commands and formulate a reply quickly as it makes the system responsive. Long-running processes should only initiate as the result of events, which also has the added benefit that they can be restored upon recovery or be driven by a projection. See @ref:[Effector](effector.md) to find out how to describe side effects with *endless*.  
@@ -37,7 +38,7 @@ It is also possible to benefit from cluster sharding without involving event-sou
 @@@ note { title="About performance" }
 When composing a sequence of computations which has multiple *writes* with interspersed *reads*, the state is folded before each read by the interpreter. This is necessary to provide a constant version of the state during interpretation.
 
-This is an operation that the runtime (Akka) will also do behind the scenes when evolving the entity state. Redundant invocations of the folding function can therefore occur with the elevated monadic abstraction. 
+This is an operation that the runtime (Pekko/Akka) will also do behind the scenes when evolving the entity state. Redundant invocations of the folding function can therefore occur with the elevated monadic abstraction. 
 
 However, in most cases this overhead is insignificant:
 

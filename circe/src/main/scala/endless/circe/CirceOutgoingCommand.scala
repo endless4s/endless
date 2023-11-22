@@ -8,8 +8,3 @@ final class CirceOutgoingCommand[C, +R: io.circe.Decoder](command: C)(implicit
   def payload: Array[Byte] = CirceEncoder[C].encode(command)
   def replyDecoder: Decoder[R] = CirceDecoder[R]
 }
-
-object CirceOutgoingCommand {
-  def apply[C: io.circe.Encoder, R: io.circe.Decoder](command: C): CirceOutgoingCommand[C, R] =
-    new CirceOutgoingCommand(command)
-}

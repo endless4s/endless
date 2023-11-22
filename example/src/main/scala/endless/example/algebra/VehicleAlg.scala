@@ -1,6 +1,5 @@
 package endless.example.algebra
 
-import cats.tagless.{Derive, FunctorK}
 import endless.example.data.{LatLon, Speed}
 
 //#definition
@@ -13,7 +12,3 @@ trait VehicleAlg[F[_]] {
   def incrementRecoveryCount: F[Unit]
 }
 //#definition
-
-object VehicleAlg {
-  implicit lazy val functorKInstance: FunctorK[VehicleAlg] = Derive.functorK[VehicleAlg]
-}

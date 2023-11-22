@@ -1,10 +1,9 @@
 package endless.core.interpret
 
+import cats.Applicative
 import endless.core.entity.Effector
-import endless.core.interpret.EffectorT.EffectorT
 
-/** Interprets a function `F[Unit]` describing side-effects using `Effector` in context `F` with
-  * `EffectorT`
+/** Interprets a function `F[Unit]` describing side-effects using `Effector` in context `F`
   *
   * @tparam F
   *   effect type
@@ -19,8 +18,22 @@ import endless.core.interpret.EffectorT.EffectorT
   */
 trait EffectorInterpreter[F[_], S, Alg[_[_]], RepositoryAlg[_[_]]] {
   def apply(
-      effector: Effector[EffectorT[F, S, Alg, *], S, Alg],
+      effector: Effector[F, S, Alg],
       repositoryAlg: RepositoryAlg[F],
       entityAlg: Alg[F]
-  ): F[EffectorT[F, S, Alg, Unit]]
+  ): F[Unit]
+}
+
+object EffectorInterpreter {
+  def pure[F[_]: Applicative, S, Alg[_[_]], RepositoryAlg[_[_]]](
+      f: (Effector[F, S, Alg], RepositoryAlg[F], Alg[F]) => F[Unit]
+  ): F[EffectorInterpreter[F, S, Alg, RepositoryAlg]] =
+    Applicative[F].pure(
+      (effector: Effector[F, S, Alg], repositoryAlg: RepositoryAlg[F], entityAlg: Alg[F]) =>
+        f(effector, repositoryAlg, entityAlg)
+    )
+
+  def unit[F[_]: Applicative, S, Alg[_[_]], RepositoryAlg[_[_]]]
+      : F[EffectorInterpreter[F, S, Alg, RepositoryAlg]] =
+    pure((_, _, _) => Applicative[F].unit)
 }

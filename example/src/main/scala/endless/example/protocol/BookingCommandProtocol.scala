@@ -3,7 +3,7 @@ package endless.example.protocol
 import cats.conversions.all._
 import com.google.protobuf.timestamp.Timestamp
 import endless.\/
-import endless.core.protocol.{Decoder, IncomingCommand, OutgoingCommand}
+import endless.core.protocol.{CommandSender, Decoder, IncomingCommand}
 import endless.example.algebra.BookingAlg
 import endless.example.algebra.BookingAlg._
 import endless.example.data.Booking.BookingID
@@ -22,17 +22,20 @@ import java.time.Instant
 import java.util.UUID
 
 //#example-client
-class BookingCommandProtocol extends ProtobufCommandProtocol[BookingAlg] {
-  override def client: BookingAlg[OutgoingCommand[*]] =
-    new BookingAlg[OutgoingCommand[*]] {
+class BookingCommandProtocol extends ProtobufCommandProtocol[BookingID, BookingAlg] {
+  override def clientFor[F[_]](
+      id: BookingID
+  )(implicit sender: CommandSender[F, BookingID]): BookingAlg[F] =
+    new BookingAlg[F] {
       def place(
           bookingID: BookingID,
           time: Instant,
           passengerCount: Int,
           origin: LatLon,
           destination: LatLon
-      ): OutgoingCommand[BookingAlreadyExists \/ Unit] =
-        outgoingCommand[BookingCommand, replies.PlaceBookingReply, BookingAlreadyExists \/ Unit](
+      ): F[BookingAlreadyExists \/ Unit] =
+        sendCommand[F, BookingCommand, replies.PlaceBookingReply, BookingAlreadyExists \/ Unit](
+          id,
           BookingCommand.of(
             Command.PlaceBookingV1(
               PlaceBookingV1(
@@ -57,8 +60,9 @@ class BookingCommandProtocol extends ProtobufCommandProtocol[BookingAlg] {
       // ...
       // #example-client
 
-      def get: OutgoingCommand[BookingUnknown.type \/ Booking] =
-        outgoingCommand[BookingCommand, replies.GetBookingReply, BookingUnknown.type \/ Booking](
+      def get: F[BookingUnknown.type \/ Booking] =
+        sendCommand[F, BookingCommand, replies.GetBookingReply, BookingUnknown.type \/ Booking](
+          id,
           BookingCommand.of(Command.GetBookingV1(GetBookingV1())),
           {
             case replies.GetBookingReply(replies.GetBookingReply.Reply.Booking(booking), _) =>
@@ -87,8 +91,9 @@ class BookingCommandProtocol extends ProtobufCommandProtocol[BookingAlg] {
 
       def changeOrigin(
           newOrigin: LatLon
-      ): OutgoingCommand[BookingUnknown.type \/ Unit] =
-        outgoingCommand[BookingCommand, replies.ChangeOriginReply, BookingUnknown.type \/ Unit](
+      ): F[BookingUnknown.type \/ Unit] =
+        sendCommand[F, BookingCommand, replies.ChangeOriginReply, BookingUnknown.type \/ Unit](
+          id,
           BookingCommand.of(
             Command.ChangeOriginV1(ChangeOriginV1(proto.LatLonV1(newOrigin.lat, newOrigin.lon)))
           ),
@@ -103,12 +108,9 @@ class BookingCommandProtocol extends ProtobufCommandProtocol[BookingAlg] {
 
       def changeDestination(
           newDestination: LatLon
-      ): OutgoingCommand[BookingUnknown.type \/ Unit] =
-        outgoingCommand[
-          BookingCommand,
-          replies.ChangeDestinationReply,
-          BookingUnknown.type \/ Unit
-        ](
+      ): F[BookingUnknown.type \/ Unit] =
+        sendCommand[F, BookingCommand, replies.ChangeDestinationReply, BookingUnknown.type \/ Unit](
+          id,
           BookingCommand.of(
             Command.ChangeDestinationV1(
               ChangeDestinationV1(proto.LatLonV1(newDestination.lat, newDestination.lon))
@@ -128,12 +130,14 @@ class BookingCommandProtocol extends ProtobufCommandProtocol[BookingAlg] {
       def changeOriginAndDestination(
           newOrigin: LatLon,
           newDestination: LatLon
-      ): OutgoingCommand[BookingUnknown.type \/ Unit] =
-        outgoingCommand[
+      ): F[BookingUnknown.type \/ Unit] =
+        sendCommand[
+          F,
           BookingCommand,
           replies.ChangeOriginAndDestinationReply,
           BookingUnknown.type \/ Unit
         ](
+          id,
           BookingCommand.of(
             Command.ChangeOriginAndDestinationV1(
               ChangeOriginAndDestinationV1(
@@ -161,8 +165,9 @@ class BookingCommandProtocol extends ProtobufCommandProtocol[BookingAlg] {
           }
         )
 
-      override def cancel: OutgoingCommand[CancelError \/ Unit] =
-        outgoingCommand[BookingCommand, replies.CancelBookingReply, CancelError \/ Unit](
+      override def cancel: F[CancelError \/ Unit] =
+        sendCommand[F, BookingCommand, replies.CancelBookingReply, CancelError \/ Unit](
+          id,
           BookingCommand.of(Command.CancelBookingV1(CancelBookingV1())),
           {
             case replies.CancelBookingReply(replies.CancelBookingReply.Reply.Unit(_), _) =>
@@ -182,8 +187,9 @@ class BookingCommandProtocol extends ProtobufCommandProtocol[BookingAlg] {
 
       override def notifyCapacity(
           isAvailable: Boolean
-      ): OutgoingCommand[BookingAlg.BookingUnknown.type \/ Unit] =
-        outgoingCommand[BookingCommand, replies.NotifyCapacityReply, BookingUnknown.type \/ Unit](
+      ): F[BookingAlg.BookingUnknown.type \/ Unit] =
+        sendCommand[F, BookingCommand, replies.NotifyCapacityReply, BookingUnknown.type \/ Unit](
+          id,
           BookingCommand.of(Command.NotifyCapacityV1(NotifyCapacityV1(isAvailable))),
           {
             case replies.NotifyCapacityReply(replies.NotifyCapacityReply.Reply.Unit(_), _) =>
@@ -203,7 +209,7 @@ class BookingCommandProtocol extends ProtobufCommandProtocol[BookingAlg] {
       case Command.PlaceBookingV1(
             PlaceBookingV1(bookingID, time, passengerCount, origin, destination, _)
           ) =>
-        incomingCommand[F, replies.PlaceBookingReply, BookingAlreadyExists \/ Unit](
+        handleCommand[F, replies.PlaceBookingReply, BookingAlreadyExists \/ Unit](
           _.place(
             BookingID(UUID.fromString(bookingID.value)),
             Instant.ofEpochSecond(time.seconds, time.nanos),
@@ -227,7 +233,7 @@ class BookingCommandProtocol extends ProtobufCommandProtocol[BookingAlg] {
       // #example-server
 
       case Command.GetBookingV1(_) =>
-        incomingCommand[F, replies.GetBookingReply, BookingUnknown.type \/ Booking](
+        handleCommand[F, replies.GetBookingReply, BookingUnknown.type \/ Booking](
           _.get,
           {
             case Left(BookingUnknown) =>
@@ -256,7 +262,7 @@ class BookingCommandProtocol extends ProtobufCommandProtocol[BookingAlg] {
         )
 
       case Command.ChangeOriginV1(ChangeOriginV1(newOrigin, _)) =>
-        incomingCommand[F, replies.ChangeOriginReply, BookingUnknown.type \/ Unit](
+        handleCommand[F, replies.ChangeOriginReply, BookingUnknown.type \/ Unit](
           _.changeOrigin(LatLon(newOrigin.lat, newOrigin.lon)),
           {
             case Left(BookingUnknown) =>
@@ -269,7 +275,7 @@ class BookingCommandProtocol extends ProtobufCommandProtocol[BookingAlg] {
         )
 
       case Command.ChangeDestinationV1(ChangeDestinationV1(newDestination, _)) =>
-        incomingCommand[F, replies.ChangeDestinationReply, BookingUnknown.type \/ Unit](
+        handleCommand[F, replies.ChangeDestinationReply, BookingUnknown.type \/ Unit](
           _.changeDestination(LatLon(newDestination.lat, newDestination.lon)),
           {
             case Left(BookingUnknown) =>
@@ -284,7 +290,7 @@ class BookingCommandProtocol extends ProtobufCommandProtocol[BookingAlg] {
       case Command.ChangeOriginAndDestinationV1(
             ChangeOriginAndDestinationV1(newOrigin, newDestination, _)
           ) =>
-        incomingCommand[F, replies.ChangeOriginAndDestinationReply, BookingUnknown.type \/ Unit](
+        handleCommand[F, replies.ChangeOriginAndDestinationReply, BookingUnknown.type \/ Unit](
           _.changeOriginAndDestination(
             LatLon(newOrigin.lat, newOrigin.lon),
             LatLon(newDestination.lat, newDestination.lon)
@@ -302,7 +308,7 @@ class BookingCommandProtocol extends ProtobufCommandProtocol[BookingAlg] {
         )
 
       case Command.CancelBookingV1(_) =>
-        incomingCommand[F, replies.CancelBookingReply, CancelError \/ Unit](
+        handleCommand[F, replies.CancelBookingReply, CancelError \/ Unit](
           _.cancel,
           {
             case Left(BookingUnknown) =>
@@ -321,7 +327,7 @@ class BookingCommandProtocol extends ProtobufCommandProtocol[BookingAlg] {
         )
 
       case Command.NotifyCapacityV1(NotifyCapacityV1(isAvailable, _)) =>
-        incomingCommand[F, replies.NotifyCapacityReply, BookingUnknown.type \/ Unit](
+        handleCommand[F, replies.NotifyCapacityReply, BookingUnknown.type \/ Unit](
           _.notifyCapacity(isAvailable),
           {
             case Left(BookingUnknown) =>

@@ -1,15 +1,15 @@
 package endless.core.protocol
 
-/** `CommandProtocol` represents the serialization aspects of the entity.
+/** `CommandProtocol` represents the transport aspects of the entity cluster.
   *
-  * `client` provides an interpretation of the algebra with `OutgoingCommand[*]` for issuing
-  * commands for each defined function in the algebra, and `server` is a decoder for an instance of
-  * `IncomingCommand[F, Alg]` which represents an incoming command that can be directly run and
-  * contains its own reply encoder as well.
+  * `client` provides an implementation of the algebra which sends commands for each defined
+  * function in the algebra and decodes the reply, and `server` is a decoder for instances of
+  * `IncomingCommand[F, Alg]` that represent incoming commands that can be run and contain their own
+  * reply encoder.
   * @tparam Alg
   *   the entity algebra
   */
-trait CommandProtocol[Alg[_[_]]] {
+trait CommandProtocol[ID, Alg[_[_]]] {
 
   /** Decoder for `IncomingCommand[F, Alg]` which can run the command and encode the reply
     * @tparam F
@@ -17,8 +17,31 @@ trait CommandProtocol[Alg[_[_]]] {
     */
   def server[F[_]]: Decoder[IncomingCommand[F, Alg]]
 
-  /** Instance of the entity algebra interpreted with `OutgoingCommand[*]` which contains the binary
-    * payload and can decode the command reply
+  /** Returns an instance of entity algebra that translates calls into commands, sends them via the
+    * `CommandSender` instance in implicit scope, and decodes the reply (implements an RPC-like
+    * client).
     */
-  def client: Alg[OutgoingCommand[*]]
+  def clientFor[F[_]](id: ID)(implicit sender: CommandSender[F, ID]): Alg[F]
+}
+
+object CommandProtocol {
+
+  /** Helper function that sends a command to the entity with the specified ID using the sender in
+    * implicit scope.
+    *
+    * @param id
+    *   entity ID
+    * @param command
+    *   command
+    * @param sender
+    *   command sender
+    * @tparam F
+    *   context
+    * @tparam R
+    *   reply type
+    * @return
+    */
+  def sendCommand[F[_], ID, R](id: ID, command: OutgoingCommand[R])(implicit
+      sender: CommandSender[F, ID]
+  ): F[R] = sender.senderForID(id)(command)
 }

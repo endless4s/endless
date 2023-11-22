@@ -2,21 +2,13 @@
 'https://plantuml.com/sequence-diagram
 title Server side of ""bookingAlg.place(booking)""
 skinparam handwritten true
-skinparam TitleFontName Virgil 3 YOFF
-skinparam NoteFontName  Virgil 3 YOFF
-skinparam sequence {
- ParticipantFontName Virgil 3 YOFF
- ActorFontName Virgil 3 YOFF
- ReferenceFontName Virgil 3 YOFF
- MessageFontName Virgil 3 YOFF
- ArrowFontName Virgil 3 YOFF
-}
+skinparam defaultFontName Chalkboard
+
 actor Ask as Ask
 actor Entity as Entity
 participant IncomingCommand as IncomingCommand
 participant BookingEntity as BookingEntity
-participant RepositoryT as RepositoryT
-
+participant Repository as Repository
 participant EntityT as EntityT
 participant "Akka Effect DSL" as Effect
 autonumber
@@ -25,12 +17,12 @@ autoactivate on
 
 Ask o->o Entity: Command
 
-Entity -> RepositoryT: runCommand(state, protocol.server.decode(command.payload))
-RepositoryT -> IncomingCommand: runWith(bookingEntity)
+Entity -> Repository: handleCommand(state, protocol.server.decode(command.payload))
+Repository -> IncomingCommand: runWith(bookingEntity)
 IncomingCommand -> BookingEntity: place(booking)
 return F[AlreadyExists.type \/ Unit]
 return EntityT[F, BookingState, BookingEvent, command.Reply]
-RepositoryT -> EntityT: run(state)
+Repository -> EntityT: run(state)
 return (events, reply)
 return (events, reply)
 Entity -> Effect: persist(events)

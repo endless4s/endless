@@ -1,13 +1,13 @@
 package endless.scodec
 
-import endless.core.protocol.{CommandProtocol, IncomingCommand, OutgoingCommand}
+import endless.core.protocol.{CommandProtocol, CommandSender, IncomingCommand}
 
-trait ScodecCommandProtocol[Alg[_[_]]] extends CommandProtocol[Alg] {
-  protected def outgoingCommand[C: scodec.Encoder, R: scodec.Decoder](
-      command: C
-  ): OutgoingCommand[R] = ScodecOutgoingCommand(command)
+trait ScodecCommandProtocol[ID, Alg[_[_]]] extends CommandProtocol[ID, Alg] {
+  protected def sendCommand[F[_], C: scodec.Encoder, R: scodec.Decoder](id: ID, command: C)(implicit
+      sender: CommandSender[F, ID]
+  ): F[R] = CommandProtocol.sendCommand(id, new ScodecOutgoingCommand(command))
 
-  protected def incomingCommand[F[_], R: scodec.Encoder](
+  protected def handleCommand[F[_], R: scodec.Encoder](
       run: Alg[F] => F[R]
   ): IncomingCommand[F, Alg] = ScodecIncomingCommand(run)
 }

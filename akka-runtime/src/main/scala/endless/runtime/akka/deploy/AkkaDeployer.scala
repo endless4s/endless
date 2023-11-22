@@ -2,38 +2,40 @@ package endless.runtime.akka.deploy
 
 import akka.actor.typed.{ActorRef, Behavior}
 import akka.cluster.sharding.typed.ShardingEnvelope
-import akka.cluster.sharding.typed.scaladsl.EntityContext
+import akka.cluster.sharding.typed.scaladsl.{ClusterSharding, EntityContext}
 import akka.persistence.typed.scaladsl.EventSourcedBehavior
 import akka.util.Timeout
 import cats.effect.kernel.{Async, Resource}
-import cats.tagless.FunctorK
 import endless.core.entity._
 import endless.core.event.EventApplier
 import endless.core.interpret._
-import endless.core.protocol.{CommandProtocol, EntityIDCodec}
+import endless.core.protocol.{CommandProtocol, CommandSender, EntityIDCodec}
 import endless.runtime.akka.data._
 import AkkaDeployer._
 import endless.runtime.akka.deploy.internal.EventSourcedShardedEntityDeployer
 import org.typelevel.log4cats.Logger
 import endless.core.entity.Deployer
+import endless.runtime.akka.ShardingCommandSender
 
 trait AkkaDeployer extends Deployer {
   type DeploymentParameters[F[_], _, S, E] = AkkaDeploymentParameters[F, S, E]
   type Deployment[F[_], RepositoryAlg[_[_]]] = DeployedAkkaRepository[F, RepositoryAlg]
 
-  def deployRepository[F[_]: Async, ID: EntityIDCodec, S, E, Alg[_[_]]: FunctorK, RepositoryAlg[_[
+  override def deployRepository[F[_]: Async, ID: EntityIDCodec, S, E, Alg[_[_]], RepositoryAlg[_[
       _
   ]]](
       repository: RepositoryInterpreter[F, ID, Alg, RepositoryAlg],
       entity: EntityInterpreter[F, S, E, Alg],
-      effector: EffectorInterpreter[F, S, Alg, RepositoryAlg]
+      effector: F[EffectorInterpreter[F, S, Alg, RepositoryAlg]]
   )(implicit
       nameProvider: EntityNameProvider[ID],
-      commandProtocol: CommandProtocol[Alg],
+      commandProtocol: CommandProtocol[ID, Alg],
       eventApplier: EventApplier[S, E],
       parameters: AkkaDeploymentParameters[F, S, E]
   ): Resource[F, DeployedAkkaRepository[F, RepositoryAlg]] = {
     import parameters._
+    implicit val sharding: ClusterSharding = akkaCluster.sharding
+    implicit val sender: CommandSender[F, ID] = ShardingCommandSender[F, ID]
     for {
       interpretedEntityAlg <- Resource.eval(entity(EntityT.instance))
       deployment <- new EventSourcedShardedEntityDeployer(

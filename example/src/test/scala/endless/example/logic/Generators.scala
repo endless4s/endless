@@ -33,6 +33,7 @@ trait Generators {
   implicit val cancelErrorGen: Gen[CancelError] =
     Gen.oneOf(bookingUnknownGen, bookingIDGen.map(BookingWasRejected))
 
+  implicit val arbBookingID: Arbitrary[BookingID] = Arbitrary(bookingIDGen)
   implicit val arbBooking: Arbitrary[Booking] = Arbitrary(bookingGen)
   implicit val arbLatLon: Arbitrary[LatLon] = Arbitrary(latLonGen)
   implicit val arbSpeed: Arbitrary[Speed] = Arbitrary(speedGen)

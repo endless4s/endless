@@ -1,34 +1,38 @@
 package endless.protobuf
 import cats.Id
-import cats.syntax.functor._
-import endless.core.protocol.{Decoder, IncomingCommand, OutgoingCommand}
+import endless.core.protocol.{CommandSender, Decoder, IncomingCommand}
 import endless.protobuf.test.proto.dummy.{DummyCommand, DummyReply}
 import org.scalacheck.Prop.forAll
 
 class ProtobufCommandProtocolSuite extends munit.ScalaCheckSuite {
   test("protobuf command protocol") {
-    forAll { (int: Int, str: String, reply: Boolean) =>
-      val outgoingCommand = protocol.client.dummy(str, int)
-      val incomingCommand = protocol.server[Id].decode(outgoingCommand.payload)
-      val encodedReply = incomingCommand
-        .runWith((_: String, _: Int) => reply)
-        .map(incomingCommand.replyEncoder.encode)
-      assertEquals(outgoingCommand.replyDecoder.decode(encodedReply), reply)
+    forAll { (int: Int, str: String, reply: Boolean, id: ID) =>
+      implicit val sender: CommandSender[Id, ID] = localCommandSenderWith(reply)
+      val actual = dummyProtocol.clientFor(id).dummy(str, int)
+      assertEquals(actual, reply)
     }
   }
 
-  val protocol = new ProtobufCommandProtocol[DummyAlg] {
+  val dummyProtocol = new ProtobufCommandProtocol[ID, DummyAlg] {
     override def server[F[_]]: Decoder[IncomingCommand[F, DummyAlg]] =
       ProtobufDecoder[DummyCommand].map { case DummyCommand(x, y, _) =>
-        incomingCommand[F, DummyReply, Boolean](_.dummy(x, y), DummyReply(_))
+        handleCommand[F, DummyReply, Boolean](_.dummy(x, y), DummyReply(_))
       }
 
-    override def client: DummyAlg[OutgoingCommand[*]] = (x: String, y: Int) =>
-      outgoingCommand[DummyCommand, DummyReply, Boolean](DummyCommand(x, y), _.ok)
+    def clientFor[F[_]](id: ID)(implicit sender: CommandSender[F, ID]): DummyAlg[F] =
+      (x: String, y: Int) =>
+        sendCommand[F, DummyCommand, DummyReply, Boolean](id, DummyCommand(x, y), _.ok)
   }
+
+  def localCommandSenderWith(reply: Boolean): CommandSender[Id, ID] = CommandSender.local(
+    dummyProtocol,
+    new DummyAlg[Id] {
+      def dummy(x: ID, y: Int): Id[Boolean] = reply
+    }
+  )
 
   trait DummyAlg[F[_]] {
     def dummy(x: String, y: Int): F[Boolean]
   }
-
+  type ID = String
 }

@@ -2,14 +2,14 @@ package endless.runtime.akka.deploy
 
 import akka.actor.typed.{ActorRef, Behavior}
 import akka.cluster.sharding.typed.ShardingEnvelope
-import akka.cluster.sharding.typed.scaladsl.EntityContext
+import akka.cluster.sharding.typed.scaladsl.{ClusterSharding, EntityContext}
 import akka.persistence.typed.state.scaladsl.DurableStateBehavior
 import akka.util.Timeout
 import cats.effect.kernel.{Async, Resource}
-import cats.tagless.FunctorK
 import endless.core.entity._
 import endless.core.interpret._
-import endless.core.protocol.{CommandProtocol, EntityIDCodec}
+import endless.core.protocol.{CommandProtocol, CommandSender, EntityIDCodec}
+import endless.runtime.akka.ShardingCommandSender
 import endless.runtime.akka.data._
 import endless.runtime.akka.deploy.AkkaDurableDeployer._
 import endless.runtime.akka.deploy.internal.DurableShardedEntityDeployer
@@ -20,18 +20,20 @@ trait AkkaDurableDeployer extends DurableDeployer {
   type DurableDeployment[F[_], RepositoryAlg[_[_]]] =
     DeployedAkkaDurableRepository[F, RepositoryAlg]
 
-  def deployDurableRepository[F[_]: Async, ID: EntityIDCodec, S, Alg[_[_]]: FunctorK, RepositoryAlg[
+  override def deployDurableRepository[F[_]: Async, ID: EntityIDCodec, S, Alg[_[_]], RepositoryAlg[
       _[_]
   ]](
       repository: RepositoryInterpreter[F, ID, Alg, RepositoryAlg],
       entity: DurableEntityInterpreter[F, S, Alg],
-      effector: EffectorInterpreter[F, S, Alg, RepositoryAlg]
+      effector: F[EffectorInterpreter[F, S, Alg, RepositoryAlg]]
   )(implicit
       nameProvider: EntityNameProvider[ID],
-      commandProtocol: CommandProtocol[Alg],
+      commandProtocol: CommandProtocol[ID, Alg],
       parameters: AkkaDurableDeploymentParameters[F, S]
   ): Resource[F, DeployedAkkaDurableRepository[F, RepositoryAlg]] = {
     import parameters._
+    implicit val sharding: ClusterSharding = akkaCluster.sharding
+    implicit val sender: CommandSender[F, ID] = ShardingCommandSender[F, ID]
     for {
       interpretedEntityAlg <- Resource.eval(entity(DurableEntityT.instance))
       deployment <- new DurableShardedEntityDeployer(
