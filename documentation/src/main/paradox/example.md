@@ -19,7 +19,7 @@ You might have spotted the two algebra types in the snippet above:
 
 ### Repository
 
-@@snip [BookingRepositoryAlg](/example/src/main/scala/endless/example/algebra/BookingRepositoryAlg.scala) { #definition }
+@@snip [BookingsAlg](/example/src/main/scala/endless/example/algebra/BookingsAlg.scala) { #definition }
 
 Here's the sequence of operations happening behind the scenes when retrieving an instance of entity algebra: 
 
@@ -30,11 +30,11 @@ Here's the sequence of operations happening behind the scenes when retrieving an
 @@snip [BookingAlg](/example/src/main/scala/endless/example/algebra/BookingAlg.scala) { #definition }
 
 ## Implementations
-Implementation of the repository algebra is trivial using `Repository` instance (injected by `deployRepository`):
+Implementation of the repository algebra is trivial using `Sharding` instance (injected by `deployRepository`):
 
-@@snip [BookingRepository](/example/src/main/scala/endless/example/logic/BookingRepository.scala) { #definition }
+@@snip [ShardedBookings](/example/src/main/scala/endless/example/logic/ShardedBookings.scala) { #definition }
 
-Implementation of entity algebra is done using the `Entity` typeclass instance (also injected by `deployRepository`):
+Implementation of behavior algebra is done using the `Entity` typeclass instance (also injected by `deployRepository`):
 
 @@snip [BookingEntity](/example/src/main/scala/endless/example/logic/BookingEntity.scala) { #definition }
 
@@ -61,7 +61,7 @@ Here's an illustration of the chain of interactions taking place when placing a 
 ## Side-effects
 We describe the *availability* process as well as entity passivation using `Effector`: 
 
-@@snip [BookingEffector](/example/src/main/scala/endless/example/logic/BookingEffector.scala) { #definition }
+@@snip [BookingSideEffect](/example/src/main/scala/endless/example/logic/BookingSideEffect.scala) { #definition }
 
 ## Testing
 
@@ -71,7 +71,7 @@ Unit testing for entity algebra implementation, event handling and effector bene
 
 @@snip [BookingEventApplierSuite](/example/src/test/scala/endless/example/logic/BookingEventApplierSuite.scala) { #example }
 
-@@snip [BookingEffectorSuite](/example/src/test/scala/endless/example/logic/BookingEffectorSuite.scala) { #example }
+@@snip [BookingSideEffectSuite](/example/src/test/scala/endless/example/logic/BookingSideEffectSuite.scala) { #example }
 
 Command protocol can be also be covered in isolation with synchronous round-trip tests:
 

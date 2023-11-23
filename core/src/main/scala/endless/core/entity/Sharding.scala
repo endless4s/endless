@@ -2,8 +2,8 @@ package endless.core.entity
 
 import endless.core.protocol.{CommandProtocol, CommandSender}
 
-/** `Repository` represents the entity repository and allows accessing an entity instance, i.e. an
-  * instance of the corresponding algebra
+/** `Sharding` represents the ability to access a specific entity in the sharded cluster, via a
+  * handle of the entity algebra
   *
   * @tparam F
   *   context
@@ -12,7 +12,7 @@ import endless.core.protocol.{CommandProtocol, CommandSender}
   * @tparam Alg
   *   entity command handling algebra
   */
-trait Repository[F[_], ID, Alg[_[_]]] {
+trait Sharding[F[_], ID, Alg[_[_]]] {
 
   /** Returns an instance of entity algebra `Alg` pointing to the entity with the specified ID
     * @param id
@@ -23,9 +23,9 @@ trait Repository[F[_], ID, Alg[_[_]]] {
   def entityFor(id: ID): Alg[F]
 }
 
-object Repository {
+object Sharding {
   implicit def apply[F[_], ID, Alg[_[_]]](implicit
       commandProtocol: CommandProtocol[ID, Alg],
       commandSender: CommandSender[F, ID]
-  ): Repository[F, ID, Alg] = (id: ID) => commandProtocol.clientFor(id)
+  ): Sharding[F, ID, Alg] = (id: ID) => commandProtocol.clientFor(id)
 }

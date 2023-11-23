@@ -27,8 +27,8 @@ trait PekkoDeployer extends Deployer {
       _
   ]]](
       repository: RepositoryInterpreter[F, ID, Alg, RepositoryAlg],
-      entity: EntityInterpreter[F, S, E, Alg],
-      effector: F[EffectorInterpreter[F, S, Alg, RepositoryAlg]]
+      behavior: BehaviorInterpreter[F, S, E, Alg],
+      sideEffect: SideEffectInterpreter[F, S, Alg, RepositoryAlg]
   )(implicit
       nameProvider: EntityNameProvider[ID],
       commandProtocol: CommandProtocol[ID, Alg],
@@ -39,10 +39,10 @@ trait PekkoDeployer extends Deployer {
     implicit val sharding: ClusterSharding = pekkoCluster.sharding
     implicit val sender: CommandSender[F, ID] = ShardingCommandSender[F, ID]
     for {
-      interpretedEntityAlg <- Resource.eval(entity(EntityT.instance))
+      interpretedEntityAlg <- Resource.eval(behavior(EntityT.instance))
       deployment <- new EventSourcedShardedEntityDeployer(
         interpretedEntityAlg,
-        effector,
+        sideEffect,
         parameters.customizeBehavior
       ).deployShardedRepository(repository, parameters.customizeEntity)
     } yield {

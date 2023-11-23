@@ -11,8 +11,11 @@ import endless.core.interpret._
 import endless.core.protocol.{CommandProtocol, CommandSender, EntityIDCodec}
 import endless.runtime.akka.ShardingCommandSender
 import endless.runtime.akka.data._
-import endless.runtime.akka.deploy.AkkaDurableDeployer._
-import endless.runtime.akka.deploy.internal.DurableShardedEntityDeployer
+import endless.runtime.akka.deploy.AkkaDurableDeployer.{
+  AkkaDurableDeploymentParameters,
+  DeployedAkkaDurableRepository
+}
+import endless.runtime.akka.deploy.internal.DurableShardedRepositoryDeployer
 import org.typelevel.log4cats.Logger
 
 trait AkkaDurableDeployer extends DurableDeployer {
@@ -24,8 +27,8 @@ trait AkkaDurableDeployer extends DurableDeployer {
       _[_]
   ]](
       repository: RepositoryInterpreter[F, ID, Alg, RepositoryAlg],
-      entity: DurableEntityInterpreter[F, S, Alg],
-      effector: F[EffectorInterpreter[F, S, Alg, RepositoryAlg]]
+      behavior: DurableBehaviorInterpreter[F, S, Alg],
+      sideEffect: SideEffectInterpreter[F, S, Alg, RepositoryAlg]
   )(implicit
       nameProvider: EntityNameProvider[ID],
       commandProtocol: CommandProtocol[ID, Alg],
@@ -35,10 +38,10 @@ trait AkkaDurableDeployer extends DurableDeployer {
     implicit val sharding: ClusterSharding = akkaCluster.sharding
     implicit val sender: CommandSender[F, ID] = ShardingCommandSender[F, ID]
     for {
-      interpretedEntityAlg <- Resource.eval(entity(DurableEntityT.instance))
-      deployment <- new DurableShardedEntityDeployer(
+      interpretedEntityAlg <- Resource.eval(behavior(DurableEntityT.instance))
+      deployment <- new DurableShardedRepositoryDeployer(
         interpretedEntityAlg,
-        effector,
+        sideEffect,
         parameters.customizeBehavior
       ).deployShardedRepository(repository, parameters.customizeEntity)
     } yield {

@@ -11,11 +11,14 @@ trait CommandProtocol[Alg[_[_]]] {
 
 `OutgoingCommand` is able to encode the command into a binary representation ready to be sent over the wire and also decode the expected subsequent reply. `IncomingCommand` is able to decode the incoming command, invoke the corresponding handler and encode the reply.
 
-In other words, `client` materializes algebra invocations into concrete serializable outgoing commands and `server` acts as a switchboard for incoming commands. See @github[BookingCommandProtocol](/example/src/main/scala/endless/example/protocol/BookingCommandProtocol.scala) for a concrete example.
+In other words, `clientFor` materializes algebra invocations into outgoing commands delivered to `server`, which acts as a switchboard for incoming commands. See @github[BookingCommandProtocol](/example/src/main/scala/endless/example/protocol/BookingCommandProtocol.scala) for a concrete example.
 
 @@@ note { .info title="Explicit or implicit representations" }
-`CommandProtocol` is the entry point for implementations to map algebra entries to concrete commands and replies. We tend to prefer explicit materialization for migration safety but nothing prevents protocol implementers to opt for automatic serialization via macros. 
-We provide helpers for definition of binary protocols in `endless-protobuf-helpers` as well as `endless-scodec-helpers` and JSON protocols in `endless-circe-helpers`.     
+`CommandProtocol` is the entry point for implementations to map algebra entries to concrete commands and replies. Having these lower-level aspects described separately makes it easier to have precise control of versions and to deal with migration challenges. 
+
+We provide helpers for definition of binary protocols in `endless-protobuf-helpers` as well as `endless-scodec-helpers` and JSON protocols in `endless-circe-helpers`.
+
+Definition of protobuf protocols is very convenient using `endless-protobuf-helpers` because scalaPB-generated types can be referenced directly, there is no need for a separate representation of commands (and associated data-mapping headaches).
 @@@
 
 @@@ note { .tip title="Testing" }

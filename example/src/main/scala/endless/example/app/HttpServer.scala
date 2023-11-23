@@ -4,7 +4,7 @@ import cats.effect.{IO, Resource}
 import cats.syntax.applicative._
 import cats.syntax.either._
 import cats.syntax.show._
-import endless.example.algebra.{BookingRepositoryAlg, VehicleRepositoryAlg}
+import endless.example.algebra.{BookingsAlg, VehiclesAlg}
 import endless.example.data.Booking.BookingID
 import endless.example.data.Vehicle.VehicleID
 import endless.example.data._
@@ -29,10 +29,10 @@ object HttpServer {
   final case class BookingPatch(origin: Option[LatLon], destination: Option[LatLon])
 
   def apply(
-      port: Int,
-      bookingRepository: BookingRepositoryAlg[IO],
-      vehicleRepository: VehicleRepositoryAlg[IO],
-      isUp: IO[Boolean]
+             port: Int,
+             bookingRepository: BookingsAlg[IO],
+             vehicleRepository: VehiclesAlg[IO],
+             isUp: IO[Boolean]
   ): Resource[IO, Server] =
     Resource
       .pure(
@@ -71,7 +71,7 @@ object HttpServer {
           .resource
       )
 
-  private def postBooking(bookingRepository: BookingRepositoryAlg[IO], req: Request[IO]) =
+  private def postBooking(bookingRepository: BookingsAlg[IO], req: Request[IO]) =
     for {
       bookingRequest <- req.as[BookingRequest]
       bookingID <- IO(UUID.randomUUID()).map(BookingID(_))
@@ -91,22 +91,22 @@ object HttpServer {
       }
     } yield result
 
-  private def getBooking(bookingRepository: BookingRepositoryAlg[IO], id: UUID) =
+  private def getBooking(bookingRepository: BookingsAlg[IO], id: UUID) =
     bookingRepository.bookingFor(BookingID(id)).get.flatMap {
       case Right(booking) => Ok(booking)
       case Left(_)        => BadRequest(show"Booking with $id doesn't exist")
     }
 
-  private def cancelBooking(bookingRepository: BookingRepositoryAlg[IO], id: UUID) =
+  private def cancelBooking(bookingRepository: BookingsAlg[IO], id: UUID) =
     bookingRepository.bookingFor(BookingID(id)).cancel.flatMap {
       case Right(_) => Ok()
       case Left(_)  => BadRequest(show"Booking with $id doesn't exist")
     }
 
   private def patchBooking(
-      bookingRepository: BookingRepositoryAlg[IO],
-      req: Request[IO],
-      id: UUID
+                            bookingRepository: BookingsAlg[IO],
+                            req: Request[IO],
+                            id: UUID
   ) =
     for {
       bookingPatch <- req.as[BookingPatch]
@@ -131,25 +131,25 @@ object HttpServer {
       }
     } yield result
 
-  private def getVehicleSpeed(vehicleRepository: VehicleRepositoryAlg[IO], id: UUID) =
+  private def getVehicleSpeed(vehicleRepository: VehiclesAlg[IO], id: UUID) =
     vehicleRepository.vehicleFor(VehicleID(id)).getSpeed.flatMap {
       case Some(speed) => Ok(speed)
       case None        => BadRequest(show"Speed for vehicle with $id is unknown")
     }
 
-  private def getVehiclePosition(vehicleRepository: VehicleRepositoryAlg[IO], id: UUID) =
+  private def getVehiclePosition(vehicleRepository: VehiclesAlg[IO], id: UUID) =
     vehicleRepository.vehicleFor(VehicleID(id)).getPosition.flatMap {
       case Some(position) => Ok(position)
       case None           => BadRequest(show"Position for vehicle with $id is unknown")
     }
 
-  private def getVehicleRecoveryCount(vehicleRepository: VehicleRepositoryAlg[IO], id: UUID) =
+  private def getVehicleRecoveryCount(vehicleRepository: VehiclesAlg[IO], id: UUID) =
     vehicleRepository.vehicleFor(VehicleID(id)).getRecoveryCount.flatMap(count => Ok(count))
 
   private def setVehicleSpeed(
-      vehicleRepository: VehicleRepositoryAlg[IO],
-      id: UUID,
-      req: Request[IO]
+                               vehicleRepository: VehiclesAlg[IO],
+                               id: UUID,
+                               req: Request[IO]
   ) =
     for {
       speed <- req.as[Speed]
@@ -157,9 +157,9 @@ object HttpServer {
     } yield ok
 
   private def setVehiclePosition(
-      vehicleRepository: VehicleRepositoryAlg[IO],
-      id: UUID,
-      req: Request[IO]
+                                  vehicleRepository: VehiclesAlg[IO],
+                                  id: UUID,
+                                  req: Request[IO]
   ) =
     for {
       position <- req.as[LatLon]

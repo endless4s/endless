@@ -24,8 +24,8 @@ trait ShardedRepositoryDeployer[F[_], RepositoryAlg[_[_]], Alg[_[_]], ID] {
   protected lazy val entityTypeKey: EntityTypeKey[Command] = EntityTypeKey[Command](nameProvider())
 
   def deployShardedRepository(
-      repositoryInterpreter: RepositoryInterpreter[F, ID, Alg, RepositoryAlg],
-      customizeEntity: org.apache.pekko.cluster.sharding.typed.scaladsl.Entity[
+                               repositoryInterpreter: RepositoryInterpreter[F, ID, Alg, RepositoryAlg],
+                               customizeEntity: org.apache.pekko.cluster.sharding.typed.scaladsl.Entity[
         Command,
         ShardingEnvelope[
           Command
@@ -43,7 +43,7 @@ trait ShardedRepositoryDeployer[F[_], RepositoryAlg[_[_]], Alg[_[_]], ID] {
   ): Resource[F, (RepositoryAlg[F], ActorRef[ShardingEnvelope[Command]])] = {
     implicit val clusterSharding: ClusterSharding = pekkoCluster.sharding
     implicit val commandSender: CommandSender[F, ID] = ShardingCommandSender.apply
-    val repositoryT = Repository.apply[F, ID, Alg]
+    val repositoryT = Sharding.apply[F, ID, Alg]
     Resource
       .eval(repositoryInterpreter(repositoryT))
       .map(repository => {

@@ -1,6 +1,5 @@
 package endless.example.logic
 
-import cats.Applicative
 import cats.effect.IO
 import cats.syntax.either._
 import cats.syntax.show._
@@ -16,13 +15,12 @@ import java.time.Instant
 import scala.concurrent.duration._
 
 //#example
-class BookingEffectorSuite
+class BookingSideEffectSuite
     extends munit.CatsEffectSuite
     with munit.ScalaCheckEffectSuite
     with Generators {
   implicit private val logger: TestingLogger[IO] = TestingLogger.impl[IO]()
-  implicit private def availabilityAlg[F[_]: Applicative]: AvailabilityAlg[F] =
-    (_: Instant, _: Int) => Applicative[F].pure(true)
+  implicit private def availabilityAlg: AvailabilityAlg[IO] = (_: Instant, _: Int) => IO(true)
 
   test("some state logs") {
     forAllF { booking: Booking =>
@@ -32,7 +30,7 @@ class BookingEffectorSuite
           new SelfEntity {},
           Some(acceptedBooking)
         )
-        _ <- BookingEffector(effector)
+        _ <- BookingSideEffect().apply(effector)
         _ <- assertIO(logger.logged.map(_.map(_.message).last), show"State is now $acceptedBooking")
       } yield ()
     }
@@ -45,7 +43,7 @@ class BookingEffectorSuite
           new SelfEntity {},
           Some(booking.copy(status = Booking.Status.Accepted))
         )
-        _ <- BookingEffector(effector)
+        _ <- BookingSideEffect().apply(effector)
         _ <- assertIO(effector.passivationState, Effector.PassivationState.After(1.hour))
       } yield ()
     }
@@ -58,7 +56,7 @@ class BookingEffectorSuite
           new SelfEntity {},
           Some(booking.copy(status = Booking.Status.Cancelled))
         )
-        _ <- BookingEffector(effector)
+        _ <- BookingSideEffect().apply(effector)
         _ <- assertIO(effector.passivationState, PassivationState.After(Duration.Zero))
       } yield ()
     }
@@ -78,43 +76,34 @@ class BookingEffectorSuite
           },
           Some(booking.copy(status = Booking.Status.Pending))
         )
-        _ <- BookingEffector(effector)
+        _ <- BookingSideEffect().apply(effector)
       } yield ()
     }
   }
 
   trait SelfEntity extends BookingAlg[IO] {
+    lazy val raiseError = IO.raiseError(new RuntimeException("should not be called"))
+
     override def place(
         bookingID: Booking.BookingID,
         time: Instant,
         passengerCount: Int,
         origin: LatLon,
         destination: LatLon
-    ): IO[BookingAlg.BookingAlreadyExists \/ Unit] =
-      IO.raiseError(new RuntimeException("should not be called"))
-
-    override def get: IO[BookingAlg.BookingUnknown.type \/ Booking] =
-      IO.raiseError(new RuntimeException("should not be called"))
-
+    ): IO[BookingAlg.BookingAlreadyExists \/ Unit] = raiseError
+    override def get: IO[BookingAlg.BookingUnknown.type \/ Booking] = raiseError
     override def changeOrigin(newOrigin: LatLon): IO[BookingAlg.BookingUnknown.type \/ Unit] =
-      IO.raiseError(new RuntimeException("should not be called"))
-
+      raiseError
     override def changeDestination(
         newDestination: LatLon
-    ): IO[BookingAlg.BookingUnknown.type \/ Unit] =
-      IO.raiseError(new RuntimeException("should not be called"))
-
+    ): IO[BookingAlg.BookingUnknown.type \/ Unit] = raiseError
     override def changeOriginAndDestination(
         newOrigin: LatLon,
         newDestination: LatLon
-    ): IO[BookingAlg.BookingUnknown.type \/ Unit] =
-      IO.raiseError(new RuntimeException("should not be called"))
-
-    override def cancel: IO[BookingAlg.CancelError \/ Unit] =
-      IO.raiseError(new RuntimeException("should not be called"))
-
+    ): IO[BookingAlg.BookingUnknown.type \/ Unit] = raiseError
+    override def cancel: IO[BookingAlg.CancelError \/ Unit] = raiseError
     override def notifyCapacity(isAvailable: Boolean): IO[BookingAlg.BookingUnknown.type \/ Unit] =
-      IO.raiseError(new RuntimeException("should not be called"))
+      raiseError
   }
 
 }
