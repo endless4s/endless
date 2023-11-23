@@ -20,11 +20,13 @@ import endless.runtime.akka.EntityPassivator
 import endless.runtime.akka.data._
 import org.typelevel.log4cats.Logger
 
-private[deploy] class DurableShardedEntityDeployer[F[_]: Async: Logger, S, ID: EntityIDCodec, Alg[_[
+private[deploy] class DurableShardedRepositoryDeployer[F[
+    _
+]: Async: Logger, S, ID: EntityIDCodec, Alg[_[
     _
 ]], RepositoryAlg[_[_]]](
     interpretedEntityAlg: Alg[DurableEntityT[F, S, *]],
-    createEffectorInterpreter: F[EffectorInterpreter[F, S, Alg, RepositoryAlg]],
+    sideEffectInterpreter: SideEffectInterpreter[F, S, Alg, RepositoryAlg],
     customizeBehavior: (
         EntityContext[Command],
         DurableStateBehavior[Command, Option[S]]
@@ -43,9 +45,9 @@ private[deploy] class DurableShardedEntityDeployer[F[_]: Async: Logger, S, ID: E
     implicit val passivator: EntityPassivator[F] = dispatcher.unsafeRunSync(EntityPassivator[F])
     implicit val repository: RepositoryAlg[F] = repositoryAlg
     implicit val entity: Alg[F] =
-      Repository[F, ID, Alg].entityFor(implicitly[EntityIDCodec[ID]].decode(context.entityId))
-    implicit val effectorInterpreter: EffectorInterpreter[F, S, Alg, RepositoryAlg] =
-      dispatcher.unsafeRunSync(createEffectorInterpreter)
+      Sharding[F, ID, Alg].entityFor(implicitly[EntityIDCodec[ID]].decode(context.entityId))
+    implicit val sideEffect: SideEffect[F, S, Alg] =
+      dispatcher.unsafeRunSync(sideEffectInterpreter(repository, entity))
     customizeBehavior(
       context,
       DurableStateBehavior
@@ -59,7 +61,7 @@ private[deploy] class DurableShardedEntityDeployer[F[_]: Async: Logger, S, ID: E
             dispatcher.unsafeRunAndForget(
               Logger[F].info(
                 show"Recovery of ${nameProvider()} entity ${context.entityId} completed"
-              ) >> handleSideEffects(effectorInterpreter, repository, entity, passivator, state)
+              ) >> handleSideEffect(state)
             )
           case (_, RecoveryFailed(failure)) =>
             dispatcher.unsafeRunSync(
@@ -71,16 +73,12 @@ private[deploy] class DurableShardedEntityDeployer[F[_]: Async: Logger, S, ID: E
     )
   }
 
-  private def handleSideEffects(
-      effectorInterpreter: EffectorInterpreter[F, S, Alg, RepositoryAlg],
-      repositoryAlg: RepositoryAlg[F],
-      entity: Alg[F],
-      passivator: EntityPassivator[F],
+  private def handleSideEffect(
       state: Option[S]
-  ) = {
+  )(implicit sideEffect: SideEffect[F, S, Alg], entity: Alg[F], passivator: EntityPassivator[F]) = {
     for {
       effector <- Effector[F, S, Alg](entity, state)
-      _ <- effectorInterpreter.apply(effector, repositoryAlg, entity)
+      _ <- sideEffect.apply(effector)
       passivationState <- effector.passivationState
       _ <- passivator.apply(passivationState)
     } yield ()
@@ -88,10 +86,9 @@ private[deploy] class DurableShardedEntityDeployer[F[_]: Async: Logger, S, ID: E
 
   private def handleCommand(state: Option[S], command: Command)(implicit
       entity: Alg[F],
-      repository: RepositoryAlg[F],
       dispatcher: Dispatcher[F],
       passivator: EntityPassivator[F],
-      effectorInterpreter: EffectorInterpreter[F, S, Alg, RepositoryAlg]
+      sideEffect: SideEffect[F, S, Alg]
   ) = {
     val incomingCommand =
       commandProtocol.server[DurableEntityT[F, S, *]].decode(command.payload)
@@ -111,9 +108,7 @@ private[deploy] class DurableShardedEntityDeployer[F[_]: Async: Logger, S, ID: E
         })
           .thenRun((state: Option[S]) =>
             // run the effector asynchronously, as it can describe long-running processes
-            dispatcher.unsafeRunAndForget(
-              handleSideEffects(effectorInterpreter, repository, entity, passivator, state)
-            )
+            dispatcher.unsafeRunAndForget(handleSideEffect(state))
           )
           .thenReply(command.replyTo) { _: Option[S] =>
             Reply(incomingCommand.replyEncoder.encode(reply))

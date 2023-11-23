@@ -27,8 +27,8 @@ trait PekkoDurableDeployer extends DurableDeployer {
       _[_]
   ]](
       repository: RepositoryInterpreter[F, ID, Alg, RepositoryAlg],
-      entity: DurableEntityInterpreter[F, S, Alg],
-      effector: F[EffectorInterpreter[F, S, Alg, RepositoryAlg]]
+      behavior: DurableBehaviorInterpreter[F, S, Alg],
+      sideEffect: SideEffectInterpreter[F, S, Alg, RepositoryAlg]
   )(implicit
       nameProvider: EntityNameProvider[ID],
       commandProtocol: CommandProtocol[ID, Alg],
@@ -39,10 +39,10 @@ trait PekkoDurableDeployer extends DurableDeployer {
     implicit val sender: CommandSender[F, ID] = ShardingCommandSender[F, ID]
 
     for {
-      interpretedEntityAlg <- Resource.eval(entity(DurableEntityT.instance))
+      interpretedEntityAlg <- Resource.eval(behavior(DurableEntityT.instance))
       deployment <- new DurableShardedEntityDeployer(
         interpretedEntityAlg,
-        effector,
+        sideEffect,
         parameters.customizeBehavior
       ).deployShardedRepository(repository, parameters.customizeEntity)
     } yield {

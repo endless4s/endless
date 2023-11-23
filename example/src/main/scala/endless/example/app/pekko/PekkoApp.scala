@@ -9,9 +9,9 @@ import org.apache.pekko.util.Timeout
 import cats.effect._
 import com.typesafe.config.ConfigFactory
 import endless.core.interpret.{
-  DurableEntityInterpreter,
-  EffectorInterpreter,
-  EntityInterpreter,
+  DurableBehaviorInterpreter,
+  SideEffectInterpreter,
+  BehaviorInterpreter,
   RepositoryInterpreter
 }
 import endless.example.algebra._
@@ -111,16 +111,16 @@ object PekkoApp extends Bookings with Vehicles with Availabilities {
                   Booking,
                   BookingEvent,
                   BookingAlg,
-                  BookingRepositoryAlg
+                  BookingsAlg
                 ](
-                  RepositoryInterpreter.pure(BookingRepository(_)),
-                  EntityInterpreter.pure(BookingEntity(_)),
-                  EffectorInterpreter.pure { case (effector, _, _) => BookingEffector(effector) }
+                  RepositoryInterpreter.lift(ShardedBookings(_)),
+                  BehaviorInterpreter.lift(BookingEntity(_)),
+                  SideEffectInterpreter.lift { case (_, _) => BookingSideEffect() }
                 ),
-                deployDurableRepository[IO, VehicleID, Vehicle, VehicleAlg, VehicleRepositoryAlg](
-                  RepositoryInterpreter.pure(VehicleRepository(_)),
-                  DurableEntityInterpreter.pure(VehicleEntity(_)),
-                  VehicleEffector.apply
+                deployDurableRepository[IO, VehicleID, Vehicle, VehicleAlg, VehiclesAlg](
+                  RepositoryInterpreter.lift(ShardedVehicles(_)),
+                  DurableBehaviorInterpreter.lift(VehicleEntity(_)),
+                  (_, _) => VehicleSideEffect()
                 )
               )
               .flatMap { case (bookingDeployment, vehicleDeployment) =>

@@ -12,7 +12,7 @@ import endless.core.interpret._
 import endless.core.protocol.{CommandProtocol, CommandSender, EntityIDCodec}
 import endless.runtime.akka.data._
 import AkkaDeployer._
-import endless.runtime.akka.deploy.internal.EventSourcedShardedEntityDeployer
+import endless.runtime.akka.deploy.internal.EventSourcedShardedRepositoryDeployer
 import org.typelevel.log4cats.Logger
 import endless.core.entity.Deployer
 import endless.runtime.akka.ShardingCommandSender
@@ -25,8 +25,8 @@ trait AkkaDeployer extends Deployer {
       _
   ]]](
       repository: RepositoryInterpreter[F, ID, Alg, RepositoryAlg],
-      entity: EntityInterpreter[F, S, E, Alg],
-      effector: F[EffectorInterpreter[F, S, Alg, RepositoryAlg]]
+      behavior: BehaviorInterpreter[F, S, E, Alg],
+      effector: SideEffectInterpreter[F, S, Alg, RepositoryAlg]
   )(implicit
       nameProvider: EntityNameProvider[ID],
       commandProtocol: CommandProtocol[ID, Alg],
@@ -37,8 +37,8 @@ trait AkkaDeployer extends Deployer {
     implicit val sharding: ClusterSharding = akkaCluster.sharding
     implicit val sender: CommandSender[F, ID] = ShardingCommandSender[F, ID]
     for {
-      interpretedEntityAlg <- Resource.eval(entity(EntityT.instance))
-      deployment <- new EventSourcedShardedEntityDeployer(
+      interpretedEntityAlg <- Resource.eval(behavior(EntityT.instance))
+      deployment <- new EventSourcedShardedRepositoryDeployer(
         interpretedEntityAlg,
         effector,
         parameters.customizeBehavior

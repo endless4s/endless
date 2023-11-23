@@ -146,8 +146,8 @@ val scaladocSiteProjects = List(
   protobufHelpers -> (Protobuf, "endless.protobuf", "protobuf"),
   scodecHelpers -> (Scodec, "endless.scodec", "scodec"),
   circeHelpers -> (Circe, "endless.circe", "circe"),
-  akkaRuntime -> (AkkaRuntime, "endless.runtime.akka", "runtime"),
-  pekkoRuntime -> (PekkoRuntime, "endless.runtime.pekko", "runtime")
+  akkaRuntime -> (AkkaRuntime, "endless.runtime.akka", "akka-runtime"),
+  pekkoRuntime -> (PekkoRuntime, "endless.runtime.pekko", "pekko-runtime")
 )
 
 lazy val documentation = (project in file("documentation"))

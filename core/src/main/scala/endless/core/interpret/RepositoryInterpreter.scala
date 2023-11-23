@@ -1,9 +1,10 @@
 package endless.core.interpret
 
 import cats.Applicative
-import endless.core.entity.Repository
+import endless.core.entity.Sharding
 
-/** Interprets an algebra `RepositoryAlg` expressed using `Repository` in context `F`
+/** Interpret an algebra `RepositoryAlg` expressed using `Sharding` in context `F`, materializing
+  * the distributed repository
   *
   * @tparam F
   *   effect type
@@ -17,12 +18,27 @@ import endless.core.entity.Repository
   *   interpreted repository algebra in context `F`
   */
 trait RepositoryInterpreter[F[_], ID, Alg[_[_]], RepositoryAlg[_[_]]] {
-  def apply(repository: Repository[F, ID, Alg]): F[RepositoryAlg[F]]
+  def apply(sharding: Sharding[F, ID, Alg]): F[RepositoryAlg[F]]
 }
 
 object RepositoryInterpreter {
-  def pure[F[_]: Applicative, ID, Alg[_[_]], RepositoryAlg[_[_]]](
-      f: Repository[F, ID, Alg] => RepositoryAlg[F]
-  ): RepositoryInterpreter[F, ID, Alg, RepositoryAlg] = (repository: Repository[F, ID, Alg]) =>
-    Applicative[F].pure(f(repository))
+
+  /** Lifts a pure interpreter into an `RepositoryInterpreter` (which is expressed in context `F`)
+    * @param pureInterpreter
+    *   pure interpreter (i.e. it doesn't require any effect to create the algebra instance)
+    * @tparam F
+    *   effect type
+    * @tparam ID
+    *   entity ID
+    * @tparam Alg
+    *   entity algebra
+    * @tparam RepositoryAlg
+    *   repository algebra
+    * @return
+    *   repository algebra interpreter in context `F`
+    */
+  def lift[F[_]: Applicative, ID, Alg[_[_]], RepositoryAlg[_[_]]](
+      pureInterpreter: Sharding[F, ID, Alg] => RepositoryAlg[F]
+  ): RepositoryInterpreter[F, ID, Alg, RepositoryAlg] = (sharding: Sharding[F, ID, Alg]) =>
+    Applicative[F].pure(pureInterpreter(sharding))
 }

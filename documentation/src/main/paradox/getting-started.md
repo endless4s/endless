@@ -8,9 +8,9 @@ libraryDependencies += "io.github.endless4s" %% "endless-core" % "$project.versi
 ```
 @@@
 
-This will pull in the core endless module, containing typeclasses and interpreters. You should add this as a dependency to your domain project.
+This will pull in the core endless module, containing typeclasses and interpreters. You should add this dependency to the project that contains your business domain logic (typically "domain").
 
-Pekko runtime is available in `endless-runtime-pekko` (for Akka, use `endless-runtime-akka`). There are also helpers for defining protobuf protocols in `endless-protobuf-helpers`, scodec in `endless-scodec-helpers`, circe in `endless-circe-helpers`. Add those dependencies to your infrastructure module (the domain should be isolated for the runtime).
+Pekko runtime is available in `endless-runtime-pekko` (for Akka, use `endless-runtime-akka`). There are also helpers for defining protobuf protocols in `endless-protobuf-helpers`, scodec in `endless-scodec-helpers` and circe in `endless-circe-helpers`. Add those dependencies to the project where your application wiring code resides (typically "infrastructure").
 
 You can also clone this repository and run the example application with `sbt run`. 
 
