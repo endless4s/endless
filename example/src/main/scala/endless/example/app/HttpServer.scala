@@ -29,10 +29,10 @@ object HttpServer {
   final case class BookingPatch(origin: Option[LatLon], destination: Option[LatLon])
 
   def apply(
-             port: Int,
-             bookingRepository: BookingsAlg[IO],
-             vehicleRepository: VehiclesAlg[IO],
-             isUp: IO[Boolean]
+      port: Int,
+      bookingRepository: BookingsAlg[IO],
+      vehicleRepository: VehiclesAlg[IO],
+      isUp: IO[Boolean]
   ): Resource[IO, Server] =
     Resource
       .pure(
@@ -104,9 +104,9 @@ object HttpServer {
     }
 
   private def patchBooking(
-                            bookingRepository: BookingsAlg[IO],
-                            req: Request[IO],
-                            id: UUID
+      bookingRepository: BookingsAlg[IO],
+      req: Request[IO],
+      id: UUID
   ) =
     for {
       bookingPatch <- req.as[BookingPatch]
@@ -147,9 +147,9 @@ object HttpServer {
     vehicleRepository.vehicleFor(VehicleID(id)).getRecoveryCount.flatMap(count => Ok(count))
 
   private def setVehicleSpeed(
-                               vehicleRepository: VehiclesAlg[IO],
-                               id: UUID,
-                               req: Request[IO]
+      vehicleRepository: VehiclesAlg[IO],
+      id: UUID,
+      req: Request[IO]
   ) =
     for {
       speed <- req.as[Speed]
@@ -157,9 +157,9 @@ object HttpServer {
     } yield ok
 
   private def setVehiclePosition(
-                                  vehicleRepository: VehiclesAlg[IO],
-                                  id: UUID,
-                                  req: Request[IO]
+      vehicleRepository: VehiclesAlg[IO],
+      id: UUID,
+      req: Request[IO]
   ) =
     for {
       position <- req.as[LatLon]

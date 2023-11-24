@@ -15,7 +15,7 @@ jobs:
           jvm: temurin:17
           apps: sbt
       - name: Test and compute coverage
-        run: sbt coverage test coverageReport coverageAggregate
+        run: sbt scalafmtCheckAll coverage test coverageReport coverageAggregate
       - name: Codecov
         uses: codecov/codecov-action@v2.1.0
 
