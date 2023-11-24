@@ -30,11 +30,11 @@ import org.typelevel.log4cats.Logger
   *   entity ID
   */
 private[pekko] final class ShardingCommandSender[F[_]: Logger, ID](implicit
-                                                                   sharding: ClusterSharding,
-                                                                   askTimeout: Timeout,
-                                                                   idEncoder: EntityIDEncoder[ID],
-                                                                   nameProvider: EntityNameProvider[ID],
-                                                                   F: Async[F]
+    sharding: ClusterSharding,
+    askTimeout: Timeout,
+    idEncoder: EntityIDEncoder[ID],
+    nameProvider: EntityNameProvider[ID],
+    F: Async[F]
 ) extends CommandSender[F, ID] {
   def senderForID(id: ID): OutgoingCommand[*] ~> F =
     new (OutgoingCommand[*] ~> F) {

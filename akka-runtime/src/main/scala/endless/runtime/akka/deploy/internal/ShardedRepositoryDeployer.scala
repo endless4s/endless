@@ -20,8 +20,8 @@ trait ShardedRepositoryDeployer[F[_], RepositoryAlg[_[_]], Alg[_[_]], ID] {
   protected lazy val entityTypeKey: EntityTypeKey[Command] = EntityTypeKey[Command](nameProvider())
 
   def deployShardedRepository(
-                               repositoryInterpreter: RepositoryInterpreter[F, ID, Alg, RepositoryAlg],
-                               customizeEntity: akka.cluster.sharding.typed.scaladsl.Entity[Command, ShardingEnvelope[
+      repositoryInterpreter: RepositoryInterpreter[F, ID, Alg, RepositoryAlg],
+      customizeEntity: akka.cluster.sharding.typed.scaladsl.Entity[Command, ShardingEnvelope[
         Command
       ]] => akka.cluster.sharding.typed.scaladsl.Entity[Command, ShardingEnvelope[Command]]
   )(implicit
