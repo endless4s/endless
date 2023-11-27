@@ -1,7 +1,8 @@
 package endless.example.data
 
 import cats.Show
-import endless.example.data.Booking._
+import cats.implicits.toContravariantOps
+import endless.example.data.Booking.*
 
 import java.time.Instant
 import java.util.UUID
@@ -16,10 +17,10 @@ final case class Booking(
 )
 
 object Booking {
-  final case class BookingID(id: UUID) extends AnyVal
+  final case class BookingID(id: UUID)
   object BookingID {
     def fromString(str: String): BookingID = BookingID(UUID.fromString(str))
-    implicit val show: Show[BookingID] = Show.show(_.id.toString)
+    implicit val show: Show[BookingID] = Show.catsShowForUUID.contramap(_.id)
   }
   sealed trait Status
   object Status {

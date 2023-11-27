@@ -2,8 +2,9 @@ package endless.example.adapter
 
 import com.google.protobuf.timestamp.Timestamp
 import endless.example.data.{Booking, BookingEvent, LatLon}
-import endless.example.proto.booking.events._
-import endless.example.proto.booking.models._
+import endless.example.proto.booking.events.*
+import endless.example.proto.booking.models.*
+import cats.syntax.show.*
 import endless.example.proto.booking.{events => proto}
 
 class BookingEventAdapter {
@@ -11,7 +12,7 @@ class BookingEventAdapter {
     event match {
       case BookingEvent.BookingPlaced(bookingID, time, origin, destination, passengerCount) =>
         proto.BookingPlacedV1(
-          BookingID(bookingID.id.toString),
+          BookingID(bookingID.show),
           Timestamp(time.getEpochSecond, time.getNano),
           LatLonV1(origin.lat, origin.lon),
           LatLonV1(destination.lat, destination.lon),

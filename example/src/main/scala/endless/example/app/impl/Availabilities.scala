@@ -2,14 +2,14 @@ package endless.example.app.impl
 
 import cats.Monad
 import cats.effect.Async
-import cats.syntax.applicative._
-import cats.syntax.flatMap._
-import cats.syntax.show._
+import cats.syntax.applicative.*
+import cats.syntax.flatMap.*
+import cats.syntax.show.*
 import endless.example.algebra.AvailabilityAlg
 import org.typelevel.log4cats.Logger
 
 import java.time.Instant
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
 trait Availabilities {
   implicit def alwaysAvailable[F[_]: Logger: Monad: Async]: AvailabilityAlg[F] =

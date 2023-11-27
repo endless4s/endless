@@ -2,13 +2,13 @@ package endless.example.logic
 
 import cats.Applicative
 import cats.effect.{Concurrent, Ref}
-import cats.syntax.flatMap._
-import cats.syntax.functor._
+import cats.syntax.flatMap.*
+import cats.syntax.functor.*
 import endless.core.entity.{Effector, SideEffect}
 import endless.example.algebra.VehicleAlg
 import endless.example.data.Vehicle
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
 class VehicleSideEffect[F[_]: Concurrent](justRecoveredRef: Ref[F, Boolean])
     extends SideEffect[F, Vehicle, VehicleAlg] {

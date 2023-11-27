@@ -1,9 +1,9 @@
 package endless.example.logic
 
-import cats.syntax.either._
+import cats.syntax.either.*
 import endless.\/
 import endless.core.event.EventApplier
-import endless.example.data.BookingEvent._
+import endless.example.data.BookingEvent.*
 import endless.example.data.{Booking, BookingEvent}
 
 //#definition

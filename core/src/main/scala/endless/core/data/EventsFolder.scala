@@ -1,7 +1,7 @@
 package endless.core.data
 
 import cats.Foldable
-import cats.syntax.foldable._
+import cats.syntax.foldable.*
 import endless.\/
 import endless.core.event.EventApplier
 
@@ -16,7 +16,6 @@ import endless.core.event.EventApplier
   *   event
   */
 final case class EventsFolder[S, E](state: Option[S], applier: EventApplier[S, E]) {
-  @SuppressWarnings(Array("org.wartremover.warts.OptionPartial"))
   def applyOnFoldable[G[_]: Foldable](foldable: G[E]): String \/ Option[S] =
     foldable.foldM(state)(applier.apply)
 }

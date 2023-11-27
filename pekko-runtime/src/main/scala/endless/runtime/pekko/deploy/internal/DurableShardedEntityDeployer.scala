@@ -8,16 +8,16 @@ import org.apache.pekko.persistence.typed.state.scaladsl.{DurableStateBehavior, 
 import org.apache.pekko.persistence.typed.state.{RecoveryCompleted, RecoveryFailed}
 import cats.effect.kernel.Async
 import cats.effect.std.Dispatcher
-import cats.syntax.applicative._
-import cats.syntax.flatMap._
-import cats.syntax.functor._
-import cats.syntax.show._
-import endless.core.entity._
+import cats.syntax.applicative.*
+import cats.syntax.flatMap.*
+import cats.syntax.functor.*
+import cats.syntax.show.*
+import endless.core.entity.*
 import endless.core.interpret.DurableEntityT.{DurableEntityT, State}
-import endless.core.interpret._
+import endless.core.interpret.*
 import endless.core.protocol.{CommandProtocol, CommandSender, EntityIDCodec}
 import endless.runtime.pekko.EntityPassivator
-import endless.runtime.pekko.data._
+import endless.runtime.pekko.data.*
 import org.typelevel.log4cats.Logger
 
 private[deploy] class DurableShardedEntityDeployer[F[_]: Async: Logger, S, ID: EntityIDCodec, Alg[_[
@@ -108,7 +108,7 @@ private[deploy] class DurableShardedEntityDeployer[F[_]: Async: Logger, S, ID: E
             // run the effector asynchronously, as it can describe long-running processes
             dispatcher.unsafeRunAndForget(handleSideEffect(state))
           )
-          .thenReply(command.replyTo) { _: Option[S] =>
+          .thenReply(command.replyTo) { (_: Option[S]) =>
             Reply(incomingCommand.replyEncoder.encode(reply))
           }
           .pure[F]

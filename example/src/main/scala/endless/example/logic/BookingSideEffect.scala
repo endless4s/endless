@@ -1,9 +1,9 @@
 package endless.example.logic
 
-import cats.syntax.applicative._
-import cats.syntax.flatMap._
-import cats.syntax.functor._
-import cats.syntax.show._
+import cats.syntax.applicative.*
+import cats.syntax.flatMap.*
+import cats.syntax.functor.*
+import cats.syntax.show.*
 import cats.{Applicative, Monad}
 import endless.core.entity.{Effector, SideEffect}
 import endless.example.algebra.{AvailabilityAlg, BookingAlg}
@@ -11,14 +11,14 @@ import endless.example.data.Booking
 import endless.example.data.Booking.Status
 import org.typelevel.log4cats.Logger
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
 //#definition
-final case class BookingSideEffect[F[_]: Logger: Monad]()(implicit
+class BookingSideEffect[F[_]: Logger: Monad]()(implicit
     availabilityAlg: AvailabilityAlg[F]
 ) extends SideEffect[F, Booking, BookingAlg] {
   def apply(effector: Effector[F, Booking, BookingAlg]): F[Unit] = {
-    import effector._
+    import effector.*
 
     val availabilityProcess: Booking => F[Unit] = booking =>
       booking.status match {

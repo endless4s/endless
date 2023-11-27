@@ -3,10 +3,10 @@ import cats.Id
 import endless.core.protocol.{CommandSender, Decoder, IncomingCommand}
 import org.scalacheck.Prop.forAll
 import scodec.Codec
-import scodec.codecs.implicits._
+import scodec.Codec.given_Codec_Boolean
 
 class ScodecCommandProtocolSuite extends munit.ScalaCheckSuite {
-  test("scodec command protocol") {
+  property("scodec command protocol") {
     forAll { (int: Int, str: String, reply: Boolean, id: String) =>
       implicit val sender: CommandSender[Id, ID] = localCommandSenderWith(reply)
       val actual = dummyProtocol.clientFor(id).dummy(int, str)
@@ -37,8 +37,8 @@ class ScodecCommandProtocolSuite extends munit.ScalaCheckSuite {
 
   case class DummyCommand(x: Int, y: String)
   object DummyCommand {
-    implicit val scodecDecoder: scodec.Decoder[DummyCommand] = Codec[DummyCommand].asDecoder
-    implicit val scodecEncoder: scodec.Encoder[DummyCommand] = Codec[DummyCommand].asEncoder
+    implicit val scodecDecoder: scodec.Decoder[DummyCommand] = Codec.derived[DummyCommand].asDecoder
+    implicit val scodecEncoder: scodec.Encoder[DummyCommand] = Codec.derived[DummyCommand].asEncoder
   }
   type ID = String
 

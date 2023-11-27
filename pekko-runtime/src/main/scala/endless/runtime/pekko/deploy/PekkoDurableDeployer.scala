@@ -1,11 +1,11 @@
 package endless.runtime.pekko.deploy
 
 import cats.effect.kernel.{Async, Resource}
-import endless.core.entity._
-import endless.core.interpret._
+import endless.core.entity.*
+import endless.core.interpret.*
 import endless.core.protocol.{CommandProtocol, CommandSender, EntityIDCodec}
 import endless.runtime.pekko.ShardingCommandSender
-import endless.runtime.pekko.data._
+import endless.runtime.pekko.data.*
 import endless.runtime.pekko.deploy.PekkoDurableDeployer.{
   DeployedPekkoDurableRepository,
   PekkoDurableDeploymentParameters
@@ -34,7 +34,7 @@ trait PekkoDurableDeployer extends DurableDeployer {
       commandProtocol: CommandProtocol[ID, Alg],
       parameters: PekkoDurableDeploymentParameters[F, S]
   ): Resource[F, DeployedPekkoDurableRepository[F, RepositoryAlg]] = {
-    import parameters._
+    import parameters.*
     implicit val sharding: ClusterSharding = pekkoCluster.sharding
     implicit val sender: CommandSender[F, ID] = ShardingCommandSender[F, ID]
 

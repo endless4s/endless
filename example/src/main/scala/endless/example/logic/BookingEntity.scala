@@ -2,16 +2,16 @@ package endless.example.logic
 
 import cats.data.EitherT
 import cats.effect.kernel.Clock
-import cats.syntax.applicative._
-import cats.syntax.eq._
-import cats.syntax.flatMap._
-import cats.syntax.show._
+import cats.syntax.applicative.*
+import cats.syntax.eq.*
+import cats.syntax.flatMap.*
+import cats.syntax.show.*
 import endless.\/
 import endless.core.entity.Entity
 import endless.example.algebra.BookingAlg
 import endless.example.algebra.BookingAlg.{BookingAlreadyExists, BookingUnknown, CancelError}
-import endless.example.data.Booking._
-import endless.example.data.BookingEvent._
+import endless.example.data.Booking.*
+import endless.example.data.BookingEvent.*
 import endless.example.data.{Booking, BookingEvent, LatLon}
 import org.typelevel.log4cats.Logger
 
@@ -20,7 +20,7 @@ import java.time.Instant
 //#definition
 final case class BookingEntity[F[_]: Logger: Clock](entity: Entity[F, Booking, BookingEvent])
     extends BookingAlg[F] {
-  import entity._
+  import entity.*
 
   def place(
       bookingID: BookingID,

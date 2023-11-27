@@ -1,6 +1,6 @@
 package endless.example.app.impl
 
-import cats.syntax.show._
+import cats.syntax.show.*
 import endless.core.entity.EntityNameProvider
 import endless.core.protocol.EntityIDCodec
 import endless.example.adapter.VehicleStateAdapter

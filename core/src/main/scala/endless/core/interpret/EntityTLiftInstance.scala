@@ -1,12 +1,12 @@
 package endless.core.interpret
 
 import cats.Monad
-import cats.conversions.all._
+import cats.conversions.all.*
 import cats.data.NonEmptyChain
-import cats.syntax.applicative._
-import cats.syntax.either._
-import cats.syntax.flatMap._
-import cats.syntax.functor._
+import cats.syntax.applicative.*
+import cats.syntax.either.*
+import cats.syntax.flatMap.*
+import cats.syntax.functor.*
 import endless.core.entity.Entity
 
 class EntityTLiftInstance[F[_], S, E](implicit fMonad: Monad[F])
@@ -38,7 +38,7 @@ class EntityTLiftInstance[F[_], S, E](implicit fMonad: Monad[F])
 
   override def read: EntityT[F, S, E, Option[S]] = EntityT.reader[F, S, E]
   override def write(event: E, other: E*): EntityT[F, S, E, Unit] =
-    EntityT.writer(NonEmptyChain(event, other: _*))
+    EntityT.writer(NonEmptyChain(event, other *))
 
   def pure[A](x: A): EntityT[F, S, E, A] = monad.pure(x)
 

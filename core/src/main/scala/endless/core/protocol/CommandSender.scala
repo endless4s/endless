@@ -1,7 +1,7 @@
 package endless.core.protocol
 
 import cats.{Functor, ~>}
-import cats.syntax.functor._
+import cats.syntax.functor.*
 
 /** `CommandSender[F, ID]` provides a natural transformation to deliver an outgoing command to where
   * the entity resides and decode the reply as a simple value in the `F` context.

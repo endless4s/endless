@@ -7,7 +7,7 @@ import akka.persistence.testkit.{
 }
 import akka.persistence.typed.{EventAdapter, EventSeq, SnapshotAdapter}
 import akka.util.Timeout
-import cats.effect._
+import cats.effect.*
 import com.typesafe.config.ConfigFactory
 import endless.core.interpret.{
   DurableBehaviorInterpreter,
@@ -15,23 +15,23 @@ import endless.core.interpret.{
   BehaviorInterpreter,
   RepositoryInterpreter
 }
-import endless.example.algebra._
+import endless.example.algebra.*
 import endless.example.app.HttpServer
 import endless.example.app.impl.{Availabilities, Bookings, Vehicles}
 import endless.example.data.Booking.BookingID
 import endless.example.data.Vehicle.VehicleID
-import endless.example.data._
-import endless.example.logic._
+import endless.example.data.*
+import endless.example.logic.*
 import endless.runtime.akka.deploy.AkkaCluster
 import endless.runtime.akka.deploy.AkkaDeployer.AkkaDeploymentParameters
 import endless.runtime.akka.deploy.AkkaDurableDeployer.AkkaDurableDeploymentParameters
-import endless.runtime.akka.syntax.deploy._
+import endless.runtime.akka.syntax.deploy.*
 import org.http4s.server.Server
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
 
 import scala.concurrent.ExecutionContext
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
 object AkkaApp extends Bookings with Vehicles with Availabilities {
 
@@ -112,7 +112,7 @@ object AkkaApp extends Bookings with Vehicles with Availabilities {
               ](
                 RepositoryInterpreter.lift(ShardedBookings(_)),
                 BehaviorInterpreter.lift(BookingEntity(_)),
-                SideEffectInterpreter.lift((_, _) => BookingSideEffect())
+                SideEffectInterpreter.lift((_, _) => new BookingSideEffect())
               ),
               deployDurableRepository[IO, VehicleID, Vehicle, VehicleAlg, VehiclesAlg](
                 RepositoryInterpreter.lift(ShardedVehicles(_)),
