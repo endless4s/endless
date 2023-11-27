@@ -26,7 +26,7 @@ trait AkkaDeployer extends Deployer {
   ]]](
       repository: RepositoryInterpreter[F, ID, Alg, RepositoryAlg],
       behavior: BehaviorInterpreter[F, S, E, Alg],
-      effector: SideEffectInterpreter[F, S, Alg, RepositoryAlg]
+      sideEffect: SideEffectInterpreter[F, S, Alg, RepositoryAlg]
   )(implicit
       nameProvider: EntityNameProvider[ID],
       commandProtocol: CommandProtocol[ID, Alg],
@@ -40,7 +40,7 @@ trait AkkaDeployer extends Deployer {
       interpretedEntityAlg <- Resource.eval(behavior(EntityT.instance))
       deployment <- new EventSourcedShardedRepositoryDeployer(
         interpretedEntityAlg,
-        effector,
+        sideEffect,
         parameters.customizeBehavior
       ).deployShardedRepository(repository, parameters.customizeEntity)
     } yield {
