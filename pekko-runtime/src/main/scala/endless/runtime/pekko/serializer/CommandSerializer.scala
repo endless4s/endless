@@ -3,7 +3,7 @@ package endless.runtime.pekko.serializer
 import org.apache.pekko.actor.typed.ActorRefResolver
 import org.apache.pekko.actor.typed.scaladsl.adapter.ClassicActorSystemOps
 import org.apache.pekko.serialization.{BaseSerializer, SerializerWithStringManifest}
-import cats.syntax.show._
+import cats.syntax.show.*
 import com.google.protobuf.ByteString
 import endless.runtime.pekko.data.Command
 import endless.runtime.pekko.serializer.CommandSerializer.ManifestKey

@@ -19,7 +19,7 @@ import java.util.concurrent.atomic.AtomicReference
 )
 class ScalaPbSerializer(val system: ExtendedActorSystem) extends BaseSerializer {
   private val classToCompanionMapRef =
-    new AtomicReference[Map[Class[_], GeneratedMessageCompanion[_]]](Map.empty)
+    new AtomicReference[Map[Class[?], GeneratedMessageCompanion[?]]](Map.empty)
 
   override def toBinary(o: AnyRef): Array[Byte] = o match {
     case e: scalapb.GeneratedMessage => e.toByteArray
@@ -28,14 +28,14 @@ class ScalaPbSerializer(val system: ExtendedActorSystem) extends BaseSerializer 
 
   override def includeManifest: Boolean = true
 
-  override def fromBinary(bytes: Array[Byte], manifest: Option[Class[_]]): AnyRef =
+  override def fromBinary(bytes: Array[Byte], manifest: Option[Class[?]]): AnyRef =
     manifest match {
       case Some(clazz) =>
         // noinspection ScalaStyle
         @scala.annotation.tailrec
         def messageCompanion(
-            companion: GeneratedMessageCompanion[_] = null
-        ): GeneratedMessageCompanion[_] = {
+            companion: GeneratedMessageCompanion[?] = null
+        ): GeneratedMessageCompanion[?] = {
           val classToCompanion = classToCompanionMapRef.get()
           classToCompanion.get(clazz) match {
             case Some(cachedCompanion) => cachedCompanion
@@ -46,7 +46,7 @@ class ScalaPbSerializer(val system: ExtendedActorSystem) extends BaseSerializer 
                     .forName(clazz.getName + "$", true, clazz.getClassLoader)
                     .getField("MODULE$")
                     .get(())
-                    .asInstanceOf[GeneratedMessageCompanion[_]]
+                    .asInstanceOf[GeneratedMessageCompanion[?]]
                 else companion
               if (
                 classToCompanionMapRef.compareAndSet(

@@ -1,6 +1,6 @@
 package endless.circe
 
-import cats.syntax.either._
+import cats.syntax.either.*
 import endless.circe.CirceDecoder.{DecodingException, ParsingException}
 import endless.core.protocol.Decoder
 import io.circe.parser.parse

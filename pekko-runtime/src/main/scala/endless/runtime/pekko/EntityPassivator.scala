@@ -5,17 +5,17 @@ import org.apache.pekko.actor.typed.scaladsl.ActorContext
 import org.apache.pekko.cluster.sharding.typed.scaladsl.{ClusterSharding, EntityContext}
 import cats.Applicative
 import cats.effect.kernel.{Ref, Sync}
-import cats.syntax.eq._
-import cats.syntax.flatMap._
-import cats.syntax.functor._
+import cats.syntax.eq.*
+import cats.syntax.flatMap.*
+import cats.syntax.functor.*
 import endless.core.entity.Effector.PassivationState
 
 import scala.concurrent.duration.{Duration, FiniteDuration}
 
 private[pekko] class EntityPassivator[F[_]: Sync](upcomingPassivation: Ref[F, Option[Cancellable]])(
     implicit
-    entityContext: EntityContext[_],
-    actorContext: ActorContext[_]
+    entityContext: EntityContext[?],
+    actorContext: ActorContext[?]
 ) {
   private lazy val passivateMessage = ClusterSharding.Passivate(actorContext.self)
   private lazy val passivate = Sync[F].delay(entityContext.shard.tell(passivateMessage))
@@ -44,8 +44,8 @@ private[pekko] class EntityPassivator[F[_]: Sync](upcomingPassivation: Ref[F, Op
 
 object EntityPassivator {
   def apply[F[_]: Sync](implicit
-      entityContext: EntityContext[_],
-      actorContext: ActorContext[_]
+      entityContext: EntityContext[?],
+      actorContext: ActorContext[?]
   ): F[EntityPassivator[F]] =
     Ref.of[F, Option[Cancellable]](Option.empty[Cancellable]).map(new EntityPassivator(_))
 }

@@ -5,12 +5,12 @@ import akka.actor.CoordinatedShutdown
 import akka.actor.typed.ActorSystem
 import akka.cluster.{Cluster, MemberStatus}
 import akka.cluster.sharding.typed.scaladsl.ClusterSharding
-import cats.effect.kernel.implicits._
+import cats.effect.kernel.implicits.*
 import cats.effect.kernel.{Async, Deferred, Resource, Sync}
 import cats.effect.std.Dispatcher
 import cats.implicits.catsSyntaxApplicativeError
-import cats.syntax.flatMap._
-import cats.syntax.functor._
+import cats.syntax.flatMap.*
+import cats.syntax.functor.*
 import org.typelevel.log4cats.Logger
 
 import scala.concurrent.TimeoutException
@@ -27,7 +27,7 @@ import scala.concurrent.duration.{Duration, DurationInt}
   *   effects dispatcher tied to the cluster resource scope
   */
 final case class AkkaCluster[F[_]: Async](
-    system: ActorSystem[_],
+    system: ActorSystem[?],
     dispatcher: Dispatcher[F],
     cluster: Cluster,
     sharding: ClusterSharding
@@ -65,7 +65,7 @@ object AkkaCluster {
     *   seconds by default).
     */
   def managedResource[F[_]: Async: Logger](
-      createActorSystem: => ActorSystem[_],
+      createActorSystem: => ActorSystem[?],
       catsEffectReleaseTimeout: Duration = 5.seconds,
       akkaReleaseTimeout: Duration = 5.seconds
   ): Resource[F, AkkaCluster[F]] =
@@ -115,7 +115,7 @@ object AkkaCluster {
       )
 
   private def createCluster[F[_]: Async: Logger](
-      createActorSystem: => ActorSystem[_],
+      createActorSystem: => ActorSystem[?],
       dispatcher: Dispatcher[F]
   ) = for {
     system <- Sync[F].delay(createActorSystem)

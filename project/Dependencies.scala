@@ -1,7 +1,7 @@
 import sbt.*
 
 object Dependencies {
-  lazy val akkaVersion = "2.6.17"
+  lazy val akkaVersion = "2.6.20"
   lazy val akkaActorTyped = "com.typesafe.akka" %% "akka-actor-typed"
   lazy val akkaPersistenceTyped = "com.typesafe.akka" %% "akka-persistence-typed"
   lazy val akkaClusterTyped = "com.typesafe.akka" %% "akka-cluster-typed"
@@ -102,7 +102,7 @@ object Dependencies {
   lazy val kittensVersion = "3.1.0"
   lazy val kittens = Seq("org.typelevel" %% "kittens" % kittensVersion)
 
-  lazy val scodecCore = Seq("org.scodec" %% "scodec-core" % "1.11.10")
+  lazy val scodecCore = Seq("org.scodec" %% "scodec-core" % "2.2.2")
 
   lazy val scalapbCustomizations = Seq(
     "com.thesamet.scalapb" %% "scalapb-runtime" % scalapb.compiler.Version.scalapbVersion % "protobuf"

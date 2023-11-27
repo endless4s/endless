@@ -2,10 +2,10 @@ package endless.core.entity
 
 import cats.Monad
 import cats.data.EitherT
-import cats.syntax.applicative._
-import cats.syntax.either._
-import cats.syntax.flatMap._
-import cats.syntax.functor._
+import cats.syntax.applicative.*
+import cats.syntax.either.*
+import cats.syntax.flatMap.*
+import cats.syntax.functor.*
 import endless.\/
 
 /** Set of convenience functions augmenting `StateReader` (that assume a `Monad` instance exists for

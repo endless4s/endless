@@ -2,9 +2,9 @@ package endless.example.logic
 
 import cats.effect.IO
 import endless.core.interpret.DurableEntityT
-import endless.core.interpret.DurableEntityT._
+import endless.core.interpret.DurableEntityT.*
 import endless.example.data.{LatLon, Speed, Vehicle}
-import org.scalacheck.effect.PropF._
+import org.scalacheck.effect.PropF.*
 import org.typelevel.log4cats.testing.TestingLogger
 
 class VehicleEntitySuite
@@ -15,7 +15,7 @@ class VehicleEntitySuite
   private val vehicleAlg = VehicleEntity(DurableEntityT.instance[IO, Vehicle])
 
   test("set position") {
-    forAllF { latLon: LatLon =>
+    forAllF { (latLon: LatLon) =>
       vehicleAlg
         .setPosition(latLon)
         .run(State.None)
@@ -29,7 +29,7 @@ class VehicleEntitySuite
   }
 
   test("set speed") {
-    forAllF { speed: Speed =>
+    forAllF { (speed: Speed) =>
       vehicleAlg
         .setSpeed(speed)
         .run(State.None)

@@ -1,18 +1,18 @@
 package endless.example.logic
 
 import cats.effect.IO
-import cats.syntax.either._
-import cats.syntax.show._
+import cats.syntax.either.*
+import cats.syntax.show.*
 import endless.\/
 import endless.core.entity.Effector
 import endless.core.entity.Effector.PassivationState
 import endless.example.algebra.{AvailabilityAlg, BookingAlg}
 import endless.example.data.{Booking, LatLon}
-import org.scalacheck.effect.PropF._
+import org.scalacheck.effect.PropF.forAllF
 import org.typelevel.log4cats.testing.TestingLogger
 
 import java.time.Instant
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
 //#example
 class BookingSideEffectSuite
@@ -23,47 +23,47 @@ class BookingSideEffectSuite
   implicit private def availabilityAlg: AvailabilityAlg[IO] = (_: Instant, _: Int) => IO(true)
 
   test("some state logs") {
-    forAllF { booking: Booking =>
+    forAllF { (booking: Booking) =>
       val acceptedBooking = booking.copy(status = Booking.Status.Accepted)
       for {
         effector <- Effector.apply[IO, Booking, BookingAlg](
           new SelfEntity {},
           Some(acceptedBooking)
         )
-        _ <- BookingSideEffect().apply(effector)
+        _ <- new BookingSideEffect().apply(effector)
         _ <- assertIO(logger.logged.map(_.map(_.message).last), show"State is now $acceptedBooking")
       } yield ()
     }
   }
 
   test("some state passivates after one hour") {
-    forAllF { booking: Booking =>
+    forAllF { (booking: Booking) =>
       for {
         effector <- Effector.apply[IO, Booking, BookingAlg](
           new SelfEntity {},
           Some(booking.copy(status = Booking.Status.Accepted))
         )
-        _ <- BookingSideEffect().apply(effector)
+        _ <- new BookingSideEffect().apply(effector)
         _ <- assertIO(effector.passivationState, Effector.PassivationState.After(1.hour))
       } yield ()
     }
   }
 
   test("passivates immediately when cancelled") {
-    forAllF { booking: Booking =>
+    forAllF { (booking: Booking) =>
       for {
         effector <- Effector.apply[IO, Booking, BookingAlg](
           new SelfEntity {},
           Some(booking.copy(status = Booking.Status.Cancelled))
         )
-        _ <- BookingSideEffect().apply(effector)
+        _ <- new BookingSideEffect().apply(effector)
         _ <- assertIO(effector.passivationState, PassivationState.After(Duration.Zero))
       } yield ()
     }
   }
 
   test("notifies availability when pending and does not passivate") {
-    forAllF { booking: Booking =>
+    forAllF { (booking: Booking) =>
       for {
         effector <- Effector.apply[IO, Booking, BookingAlg](
           new SelfEntity {
@@ -76,7 +76,7 @@ class BookingSideEffectSuite
           },
           Some(booking.copy(status = Booking.Status.Pending))
         )
-        _ <- BookingSideEffect().apply(effector)
+        _ <- new BookingSideEffect().apply(effector)
       } yield ()
     }
   }

@@ -2,7 +2,7 @@ package endless.example.data
 
 import cats.Show
 import cats.kernel.Eq
-import cats.syntax.show._
+import cats.syntax.show.*
 
 final case class LatLon(lat: Double, lon: Double)
 

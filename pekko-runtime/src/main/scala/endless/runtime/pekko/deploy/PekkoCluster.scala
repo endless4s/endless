@@ -5,12 +5,12 @@ import org.apache.pekko.actor.CoordinatedShutdown
 import org.apache.pekko.actor.typed.ActorSystem
 import org.apache.pekko.cluster.{Cluster, MemberStatus}
 import org.apache.pekko.cluster.sharding.typed.scaladsl.ClusterSharding
-import cats.effect.kernel.implicits._
+import cats.effect.kernel.implicits.*
 import cats.effect.kernel.{Async, Deferred, Resource, Sync}
 import cats.effect.std.Dispatcher
 import cats.implicits.catsSyntaxApplicativeError
-import cats.syntax.flatMap._
-import cats.syntax.functor._
+import cats.syntax.flatMap.*
+import cats.syntax.functor.*
 import org.typelevel.log4cats.Logger
 
 import scala.concurrent.TimeoutException
@@ -27,7 +27,7 @@ import scala.concurrent.duration.{Duration, DurationInt}
   *   effects dispatcher tied to the cluster resource scope
   */
 final case class PekkoCluster[F[_]: Async](
-    system: ActorSystem[_],
+    system: ActorSystem[?],
     dispatcher: Dispatcher[F],
     cluster: Cluster,
     sharding: ClusterSharding
@@ -61,7 +61,7 @@ object PekkoCluster {
     *   seconds by default).
     */
   def managedResource[F[_]: Async: Logger](
-      createActorSystem: => ActorSystem[_],
+      createActorSystem: => ActorSystem[?],
       catsEffectReleaseTimeout: Duration = 5.seconds,
       pekkoReleaseTimeout: Duration = 5.seconds
   ): Resource[F, PekkoCluster[F]] =
@@ -111,7 +111,7 @@ object PekkoCluster {
       )
 
   private def createCluster[F[_]: Async: Logger](
-      createActorSystem: => ActorSystem[_],
+      createActorSystem: => ActorSystem[?],
       dispatcher: Dispatcher[F]
   ) = for {
     system <- Sync[F].delay(createActorSystem)

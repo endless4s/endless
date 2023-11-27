@@ -3,8 +3,8 @@ package endless.core.entity
 import cats.effect.IO
 import cats.effect.kernel.Ref
 import munit.ScalaCheckEffectSuite
-import org.scalacheck.effect.PropF._
-import scala.concurrent.duration._
+import org.scalacheck.effect.PropF.*
+import scala.concurrent.duration.*
 
 class EffectorSuite extends munit.CatsEffectSuite with ScalaCheckEffectSuite {
   test("ifKnown with state") {

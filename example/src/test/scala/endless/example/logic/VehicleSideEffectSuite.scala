@@ -4,7 +4,7 @@ import cats.effect.IO
 import endless.core.entity.Effector
 import endless.example.algebra.VehicleAlg
 import endless.example.data.{LatLon, Speed, Vehicle}
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
 class VehicleSideEffectSuite extends munit.CatsEffectSuite {
 

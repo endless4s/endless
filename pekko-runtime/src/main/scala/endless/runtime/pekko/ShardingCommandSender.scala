@@ -3,9 +3,9 @@ package endless.runtime.pekko
 import org.apache.pekko.cluster.sharding.typed.scaladsl.{ClusterSharding, EntityTypeKey}
 import org.apache.pekko.util.Timeout
 import cats.effect.kernel.Async
-import cats.syntax.applicative._
-import cats.syntax.flatMap._
-import cats.syntax.show._
+import cats.syntax.applicative.*
+import cats.syntax.flatMap.*
+import cats.syntax.show.*
 import cats.~>
 import endless.core.entity.EntityNameProvider
 import endless.core.protocol.{CommandSender, EntityIDEncoder, OutgoingCommand}

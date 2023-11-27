@@ -1,22 +1,22 @@
 package endless.example
 
 import cats.effect.IO
-import cats.syntax.show._
-import endless.example.app.HttpServer._
+import cats.syntax.show.*
+import endless.example.app.HttpServer.*
 import endless.example.data.Booking.BookingID
 import endless.example.data.Vehicle.VehicleID
 import endless.example.data.{Booking, LatLon, Speed}
-import io.circe.generic.auto._
-import org.http4s.Method._
+import io.circe.generic.auto.*
+import org.http4s.Method.*
 import org.http4s.Uri
 import org.http4s.blaze.client.BlazeClientBuilder
-import org.http4s.circe.CirceEntityCodec._
+import org.http4s.circe.CirceEntityCodec.*
 import org.http4s.client.Client
-import org.http4s.client.dsl.io._
+import org.http4s.client.dsl.io.*
 
 import java.time.Instant
 import java.util.UUID
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
 trait ExampleAppSuite { self: munit.CatsEffectSuite =>
   protected val client: Fixture[Client[IO]] =

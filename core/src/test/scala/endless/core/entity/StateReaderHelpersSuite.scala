@@ -1,6 +1,6 @@
 package endless.core.entity
 import cats.data.EitherT
-import cats.syntax.either._
+import cats.syntax.either.*
 import cats.{Id, Monad}
 import org.scalacheck.Prop.forAll
 
@@ -15,7 +15,7 @@ class StateReaderHelpersSuite extends munit.ScalaCheckSuite {
     }
   }
 
-  property("ifKnown with no state") {
+  test("ifKnown with no state") {
     val entity = new TestEntity(None)
     assertEquals(
       entity.ifKnown(identity)(Error.EntityNotFound).left.getOrElse(fail("non-empty state")),
@@ -33,7 +33,7 @@ class StateReaderHelpersSuite extends munit.ScalaCheckSuite {
     }
   }
 
-  property("ifUnknown with no state") {
+  test("ifUnknown with no state") {
     val entity = new TestEntity(None)
     assertEquals(
       entity.ifUnknown("foo")(_ => Error.EntityAlreadyExists).getOrElse(fail("non-empty state")),
@@ -51,7 +51,7 @@ class StateReaderHelpersSuite extends munit.ScalaCheckSuite {
     }
   }
 
-  property("ifKnownF with no state") {
+  test("ifKnownF with no state") {
     val entity = new TestEntity(None)
     assertEquals(
       entity.ifKnownF(identity)(Error.EntityNotFound).left.getOrElse(fail("non-empty state")),
@@ -72,7 +72,7 @@ class StateReaderHelpersSuite extends munit.ScalaCheckSuite {
     }
   }
 
-  property("ifUnknownF with no state") {
+  test("ifUnknownF with no state") {
     val entity = new TestEntity(None)
     assertEquals(
       entity.ifUnknownF("foo")(_ => Error.EntityAlreadyExists).getOrElse(fail("non-empty state")),
@@ -92,7 +92,7 @@ class StateReaderHelpersSuite extends munit.ScalaCheckSuite {
     }
   }
 
-  property("ifKnownFE with no state") {
+  test("ifKnownFE with no state") {
     val entity = new TestEntity(None)
     assertEquals(
       entity
@@ -116,7 +116,7 @@ class StateReaderHelpersSuite extends munit.ScalaCheckSuite {
     }
   }
 
-  property("ifUnknownFE with no state") {
+  test("ifUnknownFE with no state") {
     val entity = new TestEntity(None)
     assertEquals(
       entity
@@ -138,7 +138,7 @@ class StateReaderHelpersSuite extends munit.ScalaCheckSuite {
     }
   }
 
-  property("ifKnownT with no state") {
+  test("ifKnownT with no state") {
     val entity = new TestEntity(None)
     assertEquals(
       entity
@@ -162,7 +162,7 @@ class StateReaderHelpersSuite extends munit.ScalaCheckSuite {
     }
   }
 
-  property("ifUnknownT with no state") {
+  test("ifUnknownT with no state") {
     val entity = new TestEntity(None)
     assertEquals(
       entity

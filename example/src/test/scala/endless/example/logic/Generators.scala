@@ -31,7 +31,7 @@ trait Generators {
     Gen.uuid.map(uuid => BookingAlreadyExists(BookingID(uuid)))
   implicit val bookingUnknownGen: Gen[BookingUnknown.type] = Gen.const(BookingUnknown)
   implicit val cancelErrorGen: Gen[CancelError] =
-    Gen.oneOf(bookingUnknownGen, bookingIDGen.map(BookingWasRejected))
+    Gen.oneOf(bookingUnknownGen, bookingIDGen.map(BookingWasRejected.apply))
 
   implicit val arbBookingID: Arbitrary[BookingID] = Arbitrary(bookingIDGen)
   implicit val arbBooking: Arbitrary[Booking] = Arbitrary(bookingGen)

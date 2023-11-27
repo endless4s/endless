@@ -6,11 +6,11 @@ import akka.cluster.sharding.typed.scaladsl.{ClusterSharding, EntityContext}
 import akka.persistence.typed.state.scaladsl.DurableStateBehavior
 import akka.util.Timeout
 import cats.effect.kernel.{Async, Resource}
-import endless.core.entity._
-import endless.core.interpret._
+import endless.core.entity.*
+import endless.core.interpret.*
 import endless.core.protocol.{CommandProtocol, CommandSender, EntityIDCodec}
 import endless.runtime.akka.ShardingCommandSender
-import endless.runtime.akka.data._
+import endless.runtime.akka.data.*
 import endless.runtime.akka.deploy.AkkaDurableDeployer.{
   AkkaDurableDeploymentParameters,
   DeployedAkkaDurableRepository
@@ -34,7 +34,7 @@ trait AkkaDurableDeployer extends DurableDeployer {
       commandProtocol: CommandProtocol[ID, Alg],
       parameters: AkkaDurableDeploymentParameters[F, S]
   ): Resource[F, DeployedAkkaDurableRepository[F, RepositoryAlg]] = {
-    import parameters._
+    import parameters.*
     implicit val sharding: ClusterSharding = akkaCluster.sharding
     implicit val sender: CommandSender[F, ID] = ShardingCommandSender[F, ID]
     for {

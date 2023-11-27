@@ -2,11 +2,11 @@ package endless.example.logic
 import cats.data.Chain
 import cats.effect.IO
 import endless.core.interpret.EntityT
-import endless.core.interpret.EntityT._
+import endless.core.interpret.EntityT.*
 import endless.example.algebra.BookingAlg.{BookingAlreadyExists, BookingUnknown, BookingWasRejected}
-import endless.example.data.BookingEvent._
+import endless.example.data.BookingEvent.*
 import endless.example.data.{Booking, BookingEvent, LatLon}
-import org.scalacheck.effect.PropF._
+import org.scalacheck.effect.PropF.*
 import org.typelevel.log4cats.testing.TestingLogger
 
 //#example
@@ -19,7 +19,7 @@ class BookingEntitySuite
   private implicit val eventApplier: BookingEventApplier = new BookingEventApplier
 
   test("place booking") {
-    forAllF { booking: Booking =>
+    forAllF { (booking: Booking) =>
       bookingAlg
         .place(
           booking.id,
@@ -67,7 +67,7 @@ class BookingEntitySuite
 //#example
 
   test("place booking when it already exists") {
-    forAllF { booking: Booking =>
+    forAllF { (booking: Booking) =>
       bookingAlg
         .place(
           booking.id,
@@ -86,7 +86,7 @@ class BookingEntitySuite
   }
 
   test("get booking") {
-    forAllF { booking: Booking =>
+    forAllF { (booking: Booking) =>
       bookingAlg.get
         .run(Some(booking))
         .map {
@@ -121,7 +121,7 @@ class BookingEntitySuite
   }
 
   test("change origin when unknown") {
-    forAllF { newOrigin: LatLon =>
+    forAllF { (newOrigin: LatLon) =>
       bookingAlg
         .changeOrigin(newOrigin)
         .run(None)
@@ -146,7 +146,7 @@ class BookingEntitySuite
   }
 
   test("change destination when unknown") {
-    forAllF { newDestination: LatLon =>
+    forAllF { (newDestination: LatLon) =>
       bookingAlg
         .changeDestination(newDestination)
         .run(None)
@@ -170,7 +170,7 @@ class BookingEntitySuite
   }
 
   test("cancel booking") {
-    forAllF { booking: Booking =>
+    forAllF { (booking: Booking) =>
       bookingAlg.cancel.run(Some(booking)).map {
         case Right((events, _)) =>
           assertEquals(events, Chain(BookingCancelled))
@@ -180,7 +180,7 @@ class BookingEntitySuite
   }
 
   test("cancel booking when rejected") {
-    forAllF { booking: Booking =>
+    forAllF { (booking: Booking) =>
       bookingAlg.cancel.run(Some(booking.copy(status = Booking.Status.Rejected))).map {
         case Right((_, Left(bookingWasRejected))) =>
           assertEquals(bookingWasRejected, BookingWasRejected(booking.id))
@@ -197,7 +197,7 @@ class BookingEntitySuite
   }
 
   test("notify capacity available") {
-    forAllF { booking: Booking =>
+    forAllF { (booking: Booking) =>
       bookingAlg.notifyCapacity(true).run(Some(booking)).map {
         case Right((events, _)) =>
           assertEquals(events, Chain(BookingAccepted))
@@ -214,7 +214,7 @@ class BookingEntitySuite
   }
 
   test("notify capacity unavailable") {
-    forAllF { booking: Booking =>
+    forAllF { (booking: Booking) =>
       bookingAlg.notifyCapacity(false).run(Some(booking)).map {
         case Right((events, _)) =>
           assertEquals(events, Chain(BookingRejected))

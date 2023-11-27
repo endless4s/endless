@@ -1,8 +1,8 @@
 package endless.core.entity
 import cats.effect.kernel.{Concurrent, Ref}
-import cats.syntax.applicative._
-import cats.syntax.flatMap._
-import cats.syntax.functor._
+import cats.syntax.applicative.*
+import cats.syntax.flatMap.*
+import cats.syntax.functor.*
 import cats.{Applicative, Monad}
 
 import scala.concurrent.duration.FiniteDuration

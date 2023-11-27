@@ -1,21 +1,22 @@
 package endless.example.protocol
 
-import cats.conversions.all._
+import cats.conversions.all.*
+import cats.syntax.show.*
 import com.google.protobuf.timestamp.Timestamp
 import endless.\/
 import endless.core.protocol.{CommandSender, Decoder, IncomingCommand}
 import endless.example.algebra.BookingAlg
-import endless.example.algebra.BookingAlg._
+import endless.example.algebra.BookingAlg.*
 import endless.example.data.Booking.BookingID
-import endless.example.data._
+import endless.example.data.*
 import endless.example.proto.booking.commands.BookingCommand.Command
-import endless.example.proto.booking.commands._
+import endless.example.proto.booking.commands.*
 import endless.example.proto.booking.commands.{BookingCommand, PlaceBookingV1}
 import endless.example.proto.booking.models.BookingStatusV1.Status
 import endless.example.proto.booking.replies
 import endless.example.proto.booking.{models => proto}
 import endless.protobuf.{ProtobufCommandProtocol, ProtobufDecoder}
-import BookingCommandProtocol._
+import BookingCommandProtocol.*
 import endless.example.proto.booking.replies.UnitReply
 
 import java.time.Instant
@@ -39,7 +40,7 @@ class BookingCommandProtocol extends ProtobufCommandProtocol[BookingID, BookingA
           BookingCommand.of(
             Command.PlaceBookingV1(
               PlaceBookingV1(
-                proto.BookingID(bookingID.id.toString),
+                proto.BookingID(bookingID.show),
                 Timestamp.of(time.getEpochSecond, time.getNano),
                 passengerCount,
                 proto.LatLonV1(origin.lat, origin.lon),
@@ -68,7 +69,7 @@ class BookingCommandProtocol extends ProtobufCommandProtocol[BookingID, BookingA
             case replies.GetBookingReply(replies.GetBookingReply.Reply.Booking(booking), _) =>
               Right(
                 Booking(
-                  BookingID(UUID.fromString(booking.id.value)),
+                  BookingID.fromString(booking.id.value),
                   Instant.ofEpochSecond(booking.time.seconds, booking.time.nanos),
                   LatLon(booking.origin.lat, booking.origin.lon),
                   LatLon(booking.destination.lat, booking.destination.lon),
@@ -222,7 +223,7 @@ class BookingCommandProtocol extends ProtobufCommandProtocol[BookingID, BookingA
               replies.PlaceBookingReply(
                 replies.PlaceBookingReply.Reply.AlreadyExists(
                   replies.BookingAlreadyExistsV1(
-                    proto.BookingID(bookingAlreadyExists.bookingID.id.toString)
+                    proto.BookingID(bookingAlreadyExists.bookingID.show)
                   )
                 )
               )
@@ -244,7 +245,7 @@ class BookingCommandProtocol extends ProtobufCommandProtocol[BookingID, BookingA
               replies.GetBookingReply(
                 replies.GetBookingReply.Reply.Booking(
                   proto.BookingV1(
-                    proto.BookingID(booking.id.id.toString),
+                    proto.BookingID(booking.id.show),
                     Timestamp(booking.time.getEpochSecond, booking.time.getNano),
                     proto.LatLonV1(booking.origin.lat, booking.origin.lon),
                     proto.LatLonV1(booking.destination.lat, booking.destination.lon),
@@ -318,7 +319,7 @@ class BookingCommandProtocol extends ProtobufCommandProtocol[BookingID, BookingA
             case Left(BookingWasRejected(bookingID)) =>
               replies.CancelBookingReply(
                 replies.CancelBookingReply.Reply.Rejected(
-                  replies.BookingWasRejectedV1(proto.BookingID(bookingID.id.toString))
+                  replies.BookingWasRejectedV1(proto.BookingID(bookingID.show))
                 )
               )
             case Right(_) =>

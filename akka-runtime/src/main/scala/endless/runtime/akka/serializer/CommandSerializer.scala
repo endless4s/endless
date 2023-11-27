@@ -3,7 +3,7 @@ package endless.runtime.akka.serializer
 import akka.actor.typed.ActorRefResolver
 import akka.actor.typed.scaladsl.adapter.ClassicActorSystemOps
 import akka.serialization.{BaseSerializer, SerializerWithStringManifest}
-import cats.syntax.show._
+import cats.syntax.show.*
 import com.google.protobuf.ByteString
 import endless.runtime.akka.data.Command
 import endless.runtime.akka.serializer.CommandSerializer.ManifestKey

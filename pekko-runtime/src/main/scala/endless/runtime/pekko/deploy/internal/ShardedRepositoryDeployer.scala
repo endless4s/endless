@@ -11,11 +11,11 @@ import org.apache.pekko.cluster.sharding.typed.scaladsl.{
 import org.apache.pekko.util.Timeout
 import cats.effect.kernel.{Async, Resource}
 import cats.effect.std.Dispatcher
-import endless.core.entity._
+import endless.core.entity.*
 import endless.core.interpret.RepositoryInterpreter
 import endless.core.protocol.{CommandProtocol, CommandSender, EntityIDEncoder}
 import endless.runtime.pekko.ShardingCommandSender
-import endless.runtime.pekko.data._
+import endless.runtime.pekko.data.*
 import endless.runtime.pekko.deploy.PekkoCluster
 import org.typelevel.log4cats.Logger
 

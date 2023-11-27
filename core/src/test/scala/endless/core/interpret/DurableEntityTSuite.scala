@@ -1,15 +1,15 @@
 package endless.core.interpret
 
 import cats.laws.discipline.MonadTests
-import cats.syntax.eq._
-import cats.syntax.flatMap._
+import cats.syntax.eq.*
+import cats.syntax.flatMap.*
 import cats.tests.ListWrapper
-import cats.tests.ListWrapper._
+import cats.tests.ListWrapper.*
 import cats.{Applicative, Eq, Functor, Monad}
-import endless.core.interpret.DurableEntityT._
+import endless.core.interpret.DurableEntityT.*
 import munit.DisciplineSuite
 import org.scalacheck.Arbitrary
-import org.scalacheck.Arbitrary._
+import org.scalacheck.Arbitrary.*
 import org.typelevel.log4cats.Logger
 
 class DurableEntityTSuite extends DisciplineSuite {

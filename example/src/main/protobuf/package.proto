@@ -1,0 +1,9 @@
+syntax = "proto3";
+import "scalapb/scalapb.proto";
+
+package endless.example.proto;
+
+option (scalapb.options) = {
+  scope: PACKAGE
+  scala3_sources: true
+};

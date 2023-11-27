@@ -5,7 +5,7 @@ import endless.example.algebra.VehicleAlg
 import endless.example.data.Vehicle.VehicleID
 import endless.example.data.{LatLon, Speed}
 import endless.example.proto.vehicle.commands.VehicleCommand.Command
-import endless.example.proto.vehicle.commands._
+import endless.example.proto.vehicle.commands.*
 import endless.example.proto.vehicle.models.{LatLonV1, SpeedV1}
 import endless.example.proto.vehicle.replies.{
   GetPositionReply,

@@ -7,17 +7,17 @@ import org.apache.pekko.persistence.typed.scaladsl.{Effect, EventSourcedBehavior
 import org.apache.pekko.persistence.typed.{PersistenceId, RecoveryCompleted, RecoveryFailed}
 import cats.effect.kernel.Async
 import cats.effect.std.Dispatcher
-import cats.syntax.applicative._
-import cats.syntax.flatMap._
-import cats.syntax.functor._
-import cats.syntax.show._
+import cats.syntax.applicative.*
+import cats.syntax.flatMap.*
+import cats.syntax.functor.*
+import cats.syntax.show.*
 import endless.core.entity.{Effector, EntityNameProvider, Sharding, SideEffect}
 import endless.core.event.EventApplier
 import endless.core.interpret.{EntityT, SideEffectInterpreter}
 import endless.core.protocol.{CommandProtocol, CommandSender, EntityIDCodec}
 import endless.runtime.pekko.EntityPassivator
 import endless.runtime.pekko.data.{Command, Reply}
-import endless.runtime.pekko.deploy.internal.EventSourcedShardedEntityDeployer._
+import endless.runtime.pekko.deploy.internal.EventSourcedShardedEntityDeployer.*
 import org.typelevel.log4cats.Logger
 
 private[deploy] class EventSourcedShardedEntityDeployer[F[
@@ -115,7 +115,7 @@ private[deploy] class EventSourcedShardedEntityDeployer[F[
               // run the effector asynchronously, as it can describe long-running processes
               dispatcher.unsafeRunAndForget(handleSideEffect(state))
             )
-            .thenReply(command.replyTo) { _: Option[S] =>
+            .thenReply(command.replyTo) { (_: Option[S]) =>
               Reply(incomingCommand.replyEncoder.encode(reply))
             }
             .pure[F]

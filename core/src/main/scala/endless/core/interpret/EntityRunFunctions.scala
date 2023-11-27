@@ -1,9 +1,9 @@
 package endless.core.interpret
 
-import cats.conversions.all._
+import cats.conversions.all.*
 import cats.data.{Chain, NonEmptyChain}
-import cats.syntax.applicative._
-import cats.syntax.either._
+import cats.syntax.applicative.*
+import cats.syntax.either.*
 import cats.{Applicative, Monad}
 import endless.core.data.{EventsFolder, Folded}
 

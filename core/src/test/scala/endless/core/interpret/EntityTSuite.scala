@@ -2,17 +2,17 @@ package endless.core.interpret
 
 import cats.data.{Chain, NonEmptyChain}
 import cats.laws.discipline.{FunctorTests, MonadTests}
-import cats.syntax.either._
-import cats.syntax.eq._
-import cats.syntax.flatMap._
+import cats.syntax.either.*
+import cats.syntax.eq.*
+import cats.syntax.flatMap.*
 import cats.tests.ListWrapper
-import cats.tests.ListWrapper._
+import cats.tests.ListWrapper.*
 import cats.{Applicative, Eq, Functor, Monad}
 import endless.core.event.EventApplier
-import endless.core.interpret.EntityT._
+import endless.core.interpret.EntityT.*
 import munit.DisciplineSuite
 import org.scalacheck.Arbitrary
-import org.scalacheck.Arbitrary._
+import org.scalacheck.Arbitrary.*
 import org.typelevel.log4cats.Logger
 
 class EntityTSuite extends DisciplineSuite {
@@ -70,24 +70,27 @@ class EntityTSuite extends DisciplineSuite {
   }
 
   test("reader folds state") {
-    val List(Right((events, Some(folded)))) = (EntityT
-      .writer[ListWrapper, State, Event](
-        NonEmptyChain(event1, event2, event3)
-      ) >> EntityT.reader)
-      .run(Some(Chain.empty))
-      .list
-
-    assert(events === Chain(event1, event2, event3))
-    assert(folded === Chain(event1, event2, event3))
+    val result = (EntityT.writer[ListWrapper, State, Event](
+      NonEmptyChain(event1, event2, event3)
+    ) >> EntityT.reader).run(Option(Chain.empty)).list.head
+    result match {
+      case Right((events, Some(folded))) =>
+        assert(events === Chain(event1, event2, event3))
+        assert(folded === Chain(event1, event2, event3))
+      case _ => fail("reader failed")
+    }
   }
 
   test("failing folder fails when reader is involved") {
-    val List(Left(error)) = (EntityT
+    val result = (EntityT
       .writer[ListWrapper, State, Event](NonEmptyChain.one(event1)) >> EntityT.reader)
       .run(Some(Chain.empty))((_: Option[State], _: Event) => "error".asLeft)
       .list
-
-    assert(error === "error")
+      .head
+    result match {
+      case Left("error") => ()
+      case _             => fail("reader failed")
+    }
   }
 
   test("liftK is resolved by Logger auto-derive") {

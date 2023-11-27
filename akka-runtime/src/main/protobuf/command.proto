@@ -1,4 +1,9 @@
 syntax = "proto2";
+import "scalapb/scalapb.proto";
+
+option (scalapb.options) = {
+  scala3_sources: true
+};
 
 package endless.runtime.akka.serializer.proto;
 option optimize_for = SPEED;

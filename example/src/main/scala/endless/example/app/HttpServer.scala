@@ -1,17 +1,17 @@
 package endless.example.app
 
 import cats.effect.{IO, Resource}
-import cats.syntax.applicative._
-import cats.syntax.either._
-import cats.syntax.show._
+import cats.syntax.applicative.*
+import cats.syntax.either.*
+import cats.syntax.show.*
 import endless.example.algebra.{BookingsAlg, VehiclesAlg}
 import endless.example.data.Booking.BookingID
 import endless.example.data.Vehicle.VehicleID
-import endless.example.data._
-import io.circe.generic.auto._
+import endless.example.data.*
+import io.circe.generic.auto.*
 import org.http4s.blaze.server.BlazeServerBuilder
-import org.http4s.circe.CirceEntityCodec._
-import org.http4s.dsl.io._
+import org.http4s.circe.CirceEntityCodec.*
+import org.http4s.dsl.io.*
 import org.http4s.server.Server
 import org.http4s.{HttpRoutes, Request}
 

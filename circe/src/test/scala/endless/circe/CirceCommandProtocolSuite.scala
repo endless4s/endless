@@ -1,7 +1,7 @@
 package endless.circe
 import cats.Id
 import endless.core.protocol.{CommandSender, Decoder, IncomingCommand}
-import io.circe.generic.auto._
+import io.circe.generic.auto.*
 import org.scalacheck.Prop.forAll
 
 class CirceCommandProtocolSuite extends munit.ScalaCheckSuite {
