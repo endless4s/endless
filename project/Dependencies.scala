@@ -74,7 +74,7 @@ object Dependencies {
     "io.circe" %% "circe-parser"
   ).map(_ % circeVersion)
 
-  lazy val logbackVersion = "1.4.11"
+  lazy val logbackVersion = "1.4.14"
   lazy val logback = Seq("ch.qos.logback" % "logback-classic" % logbackVersion)
 
   lazy val log4catsVersion = "2.6.0"
