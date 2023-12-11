@@ -18,8 +18,9 @@ import org.typelevel.log4cats.Logger
 import java.time.Instant
 
 //#definition
-final case class BookingEntity[F[_]: Logger: Clock](entity: Entity[F, Booking, BookingEvent])
-    extends BookingAlg[F] {
+final case class BookingEntityBehavior[F[_]: Logger: Clock](
+    entity: Entity[F, Booking, BookingEvent]
+) extends BookingAlg[F] {
   import entity.*
 
   def place(

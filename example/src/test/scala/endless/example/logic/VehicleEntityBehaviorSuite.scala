@@ -7,12 +7,12 @@ import endless.example.data.{LatLon, Speed, Vehicle}
 import org.scalacheck.effect.PropF.*
 import org.typelevel.log4cats.testing.TestingLogger
 
-class VehicleEntitySuite
+class VehicleEntityBehaviorSuite
     extends munit.CatsEffectSuite
     with munit.ScalaCheckEffectSuite
     with Generators {
   implicit private val logger: TestingLogger[IO] = TestingLogger.impl[IO]()
-  private val vehicleAlg = VehicleEntity(DurableEntityT.instance[IO, Vehicle])
+  private val vehicleAlg = VehicleEntityBehavior(DurableEntityT.instance[IO, Vehicle])
 
   test("set position") {
     forAllF { (latLon: LatLon) =>
