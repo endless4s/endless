@@ -36,7 +36,7 @@ Implementation of the repository algebra is trivial using `Sharding` instance (i
 
 Implementation of behavior algebra is done using the `Entity` typeclass instance (also injected by `deployRepository`):
 
-@@snip [BookingEntity](/example/src/main/scala/endless/example/logic/BookingEntity.scala) { #definition }
+@@snip [BookingEntityBehavior](/example/src/main/scala/endless/example/logic/BookingEntityBehavior.scala) { #definition }
 
 ## Event handling 
 
@@ -67,7 +67,7 @@ We describe the *availability* process as well as entity passivation using `Effe
 
 Unit testing for entity algebra implementation, event handling and effector benefits from to the parametric nature of `F`:   
 
-@@snip [BookingEntitySuite](/example/src/test/scala/endless/example/logic/BookingEntitySuite.scala) { #example }
+@@snip [BookingEntityBehaviorSuite](/example/src/test/scala/endless/example/logic/BookingEntityBehaviorSuite.scala) { #example }
 
 @@snip [BookingEventApplierSuite](/example/src/test/scala/endless/example/logic/BookingEventApplierSuite.scala) { #example }
 

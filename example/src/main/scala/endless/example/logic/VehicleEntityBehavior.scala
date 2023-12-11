@@ -8,7 +8,7 @@ import endless.example.algebra.VehicleAlg
 import endless.example.data.{LatLon, Speed, Vehicle}
 import org.typelevel.log4cats.Logger
 
-final case class VehicleEntity[F[_]: Logger](entity: DurableEntity[F, Vehicle])
+final case class VehicleEntityBehavior[F[_]: Logger](entity: DurableEntity[F, Vehicle])
     extends VehicleAlg[F] {
   import entity.*
 
