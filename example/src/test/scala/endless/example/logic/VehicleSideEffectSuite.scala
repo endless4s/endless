@@ -2,8 +2,10 @@ package endless.example.logic
 
 import cats.effect.IO
 import endless.core.entity.Effector
+import endless.core.entity.SideEffect.Trigger
 import endless.example.algebra.VehicleAlg
 import endless.example.data.{LatLon, Speed, Vehicle}
+
 import scala.concurrent.duration.*
 
 class VehicleSideEffectSuite extends munit.CatsEffectSuite {
@@ -17,21 +19,25 @@ class VehicleSideEffectSuite extends munit.CatsEffectSuite {
         },
         None
       )
-      sideEffect <- VehicleSideEffect[IO]()
-      _ <- sideEffect.apply(effector)
+      sideEffect = new VehicleSideEffect[IO]
+      _ <- sideEffect.apply(Trigger.AfterRecovery, effector)
       _ <- assertIO(recoveryCountRef.get, 1)
     } yield ()
   }
 
   test("does not increment recovery count otherwise") {
     for {
+      recoveryCountRef <- IO.ref(0)
       effector <- Effector.apply[IO, Vehicle, VehicleAlg](
-        new SelfEntity {},
+        new SelfEntity {
+          override def incrementRecoveryCount: IO[Unit] = recoveryCountRef.update(_ + 1)
+        },
         None
       )
-      justRecoveredRef <- IO.ref(false)
-      sideEffect <- IO.pure(new VehicleSideEffect[IO](justRecoveredRef))
-      _ <- sideEffect.apply(effector)
+      sideEffect = new VehicleSideEffect[IO]
+      _ <- sideEffect.apply(Trigger.AfterRead, effector)
+      _ <- sideEffect.apply(Trigger.AfterPersistence, effector)
+      _ <- assertIO(recoveryCountRef.get, 0)
     } yield ()
   }
 
@@ -43,8 +49,8 @@ class VehicleSideEffectSuite extends munit.CatsEffectSuite {
         },
         None
       )
-      sideEffect <- VehicleSideEffect[IO]()
-      _ <- sideEffect.apply(effector)
+      sideEffect = new VehicleSideEffect[IO]
+      _ <- sideEffect.apply(Trigger.AfterRead, effector)
       _ <- assertIO(effector.passivationState, Effector.PassivationState.After(1.second))
     } yield ()
   }

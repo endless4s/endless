@@ -5,6 +5,7 @@ import cats.syntax.flatMap.*
 import cats.syntax.functor.*
 import cats.syntax.show.*
 import cats.{Applicative, Monad}
+import endless.core.entity.SideEffect.Trigger
 import endless.core.entity.{Effector, SideEffect}
 import endless.example.algebra.{AvailabilityAlg, BookingAlg}
 import endless.example.data.Booking
@@ -17,12 +18,12 @@ import scala.concurrent.duration.*
 class BookingSideEffect[F[_]: Logger: Monad]()(implicit
     availabilityAlg: AvailabilityAlg[F]
 ) extends SideEffect[F, Booking, BookingAlg] {
-  def apply(effector: Effector[F, Booking, BookingAlg]): F[Unit] = {
+  def apply(trigger: Trigger, effector: Effector[F, Booking, BookingAlg]): F[Unit] = {
     import effector.*
 
     val availabilityProcess: Booking => F[Unit] = booking =>
-      booking.status match {
-        case Status.Pending =>
+      (booking.status, trigger) match {
+        case (Status.Pending, Trigger.AfterRecovery | Trigger.AfterPersistence) =>
           (availabilityAlg.isCapacityAvailable(
             booking.time,
             booking.passengerCount
