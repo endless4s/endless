@@ -1,5 +1,6 @@
 package endless.example.logic
 
+import endless.core.entity.SideEffect.Trigger
 import endless.example.algebra.BookingAlg.{
   BookingAlreadyExists,
   BookingUnknown,
@@ -13,6 +14,8 @@ import org.scalacheck.{Arbitrary, Gen}
 import java.time.Instant
 
 trait Generators {
+  implicit val triggerGen: Gen[Trigger] =
+    Gen.oneOf(Trigger.AfterPersistence, Trigger.AfterRecovery, Trigger.AfterRead)
   implicit val latLonGen: Gen[LatLon] = for {
     latitude <- Gen.double
     longitude <- Gen.double
@@ -42,4 +45,5 @@ trait Generators {
   )
   implicit val arbBookingUnknown: Arbitrary[BookingUnknown.type] = Arbitrary(bookingUnknownGen)
   implicit val arbCancelError: Arbitrary[CancelError] = Arbitrary(cancelErrorGen)
+  implicit val arbTrigger: Arbitrary[Trigger] = Arbitrary(triggerGen)
 }

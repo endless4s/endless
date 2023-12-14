@@ -62,7 +62,7 @@ private[deploy] class EventSourcedShardedRepositoryDeployer[F[
               Logger[F]
                 .info(
                   show"Recovery of ${nameProvider()} entity ${context.entityId} completed"
-                ) >> handleSideEffect(state)
+                ) >> handleSideEffect(state, SideEffect.Trigger.AfterRecovery)
             }
           case (_, RecoveryFailed(failure)) =>
             dispatcher.unsafeRunSync(
@@ -75,11 +75,12 @@ private[deploy] class EventSourcedShardedRepositoryDeployer[F[
   }
 
   private def handleSideEffect(
-      state: Option[S]
+      state: Option[S],
+      trigger: SideEffect.Trigger
   )(implicit sideEffect: SideEffect[F, S, Alg], entity: Alg[F], passivator: EntityPassivator[F]) = {
     for {
       effector <- Effector[F, S, Alg](entity, state)
-      _ <- sideEffect.apply(effector)
+      _ <- sideEffect.apply(trigger, effector)
       passivationState <- effector.passivationState
       _ <- passivator.apply(passivationState)
     } yield ()
@@ -116,7 +117,8 @@ private[deploy] class EventSourcedShardedRepositoryDeployer[F[
               (state: Option[
                 S
               ]) => // run the effector asynchronously, as it can describe long-running processes
-                dispatcher.unsafeRunAndForget(handleSideEffect(state))
+                dispatcher
+                  .unsafeRunAndForget(handleSideEffect(state, SideEffect.Trigger.AfterPersistence))
             )
             .thenReply(command.replyTo) { (_: Option[S]) =>
               Reply(incomingCommand.replyEncoder.encode(reply))
@@ -124,9 +126,14 @@ private[deploy] class EventSourcedShardedRepositoryDeployer[F[
             .pure[F]
         case Right((_, reply)) =>
           Effect
-            .reply[Reply, E, Option[S]](command.replyTo)(
-              Reply(incomingCommand.replyEncoder.encode(reply))
+            .none[E, Option[S]]
+            .thenRun((state: Option[S]) =>
+              dispatcher
+                .unsafeRunAndForget(handleSideEffect(state, SideEffect.Trigger.AfterRead))
             )
+            .thenReply[Reply](command.replyTo) { (_: Option[S]) =>
+              Reply(incomingCommand.replyEncoder.encode(reply))
+            }
             .pure[F]
       }
     dispatcher.unsafeRunSync(effect)

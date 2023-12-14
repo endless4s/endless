@@ -61,7 +61,7 @@ private[deploy] class DurableShardedRepositoryDeployer[F[
             dispatcher.unsafeRunAndForget(
               Logger[F].info(
                 show"Recovery of ${nameProvider()} entity ${context.entityId} completed"
-              ) >> handleSideEffect(state)
+              ) >> handleSideEffect(state, SideEffect.Trigger.AfterRecovery)
             )
           case (_, RecoveryFailed(failure)) =>
             dispatcher.unsafeRunSync(
@@ -74,11 +74,12 @@ private[deploy] class DurableShardedRepositoryDeployer[F[
   }
 
   private def handleSideEffect(
-      state: Option[S]
+      state: Option[S],
+      trigger: SideEffect.Trigger
   )(implicit sideEffect: SideEffect[F, S, Alg], entity: Alg[F], passivator: EntityPassivator[F]) = {
     for {
       effector <- Effector[F, S, Alg](entity, state)
-      _ <- sideEffect.apply(effector)
+      _ <- sideEffect.apply(trigger, effector)
       passivationState <- effector.passivationState
       _ <- passivator.apply(passivationState)
     } yield ()
@@ -100,15 +101,24 @@ private[deploy] class DurableShardedRepositoryDeployer[F[
         case Some(value) => DurableEntityT.State.Existing(value)
         case None        => DurableEntityT.State.None
       })
-      .flatMap { case (state, reply) =>
-        (state match {
+      .flatMap { case (outcome, reply) =>
+        (outcome match {
           case State.None           => Effect.none
           case State.Existing(_)    => Effect.none
           case State.Updated(state) => Effect.persist(Option(state))
         })
           .thenRun((state: Option[S]) =>
             // run the effector asynchronously, as it can describe long-running processes
-            dispatcher.unsafeRunAndForget(handleSideEffect(state))
+            dispatcher.unsafeRunAndForget(
+              handleSideEffect(
+                state,
+                outcome match {
+                  case State.None        => SideEffect.Trigger.AfterRead
+                  case State.Existing(_) => SideEffect.Trigger.AfterRead
+                  case State.Updated(_)  => SideEffect.Trigger.AfterPersistence
+                }
+              )
+            )
           )
           .thenReply(command.replyTo) { (_: Option[S]) =>
             Reply(incomingCommand.replyEncoder.encode(reply))

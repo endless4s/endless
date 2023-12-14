@@ -120,7 +120,7 @@ object PekkoApp extends Bookings with Vehicles with Availabilities {
                 deployDurableRepository[IO, VehicleID, Vehicle, VehicleAlg, VehiclesAlg](
                   RepositoryInterpreter.lift(ShardedVehicles(_)),
                   DurableBehaviorInterpreter.lift(VehicleEntityBehavior(_)),
-                  (_, _) => VehicleSideEffect()
+                  SideEffectInterpreter.lift { case (_, _) => new VehicleSideEffect() }
                 )
               )
               .flatMap { case (bookingDeployment, vehicleDeployment) =>
