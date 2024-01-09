@@ -35,16 +35,14 @@ trait ShardedRepositoryDeployer[F[_], RepositoryAlg[_[_]], Alg[_[_]], ID] {
     implicit val clusterSharding: ClusterSharding = akkaCluster.sharding
     implicit val commandSender: CommandSender[F, ID] = ShardingCommandSender.apply
     val repository = Sharding.apply[F, ID, Alg]
-    Resource
-      .eval(repositoryInterpreter(repository))
-      .map(repository => {
-        implicit val dispatcher: Dispatcher[F] = akkaCluster.dispatcher
-        val akkaEntity =
-          akka.cluster.sharding.typed.scaladsl.Entity(entityTypeKey) { implicit context =>
-            Behaviors.setup { implicit actor => createBehaviorFor(repository) }
-          }
-        (repository, akkaCluster.sharding.init(customizeEntity(akkaEntity)))
-      })
+    repositoryInterpreter(repository).map(repository => {
+      implicit val dispatcher: Dispatcher[F] = akkaCluster.dispatcher
+      val akkaEntity =
+        akka.cluster.sharding.typed.scaladsl.Entity(entityTypeKey) { implicit context =>
+          Behaviors.setup { implicit actor => createBehaviorFor(repository) }
+        }
+      (repository, akkaCluster.sharding.init(customizeEntity(akkaEntity)))
+    })
   }
 
   protected def createBehaviorFor(repository: RepositoryAlg[F])(implicit

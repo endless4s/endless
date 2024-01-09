@@ -44,16 +44,14 @@ trait ShardedRepositoryDeployer[F[_], RepositoryAlg[_[_]], Alg[_[_]], ID] {
     implicit val clusterSharding: ClusterSharding = pekkoCluster.sharding
     implicit val commandSender: CommandSender[F, ID] = ShardingCommandSender.apply
     val repositoryT = Sharding.apply[F, ID, Alg]
-    Resource
-      .eval(repositoryInterpreter(repositoryT))
-      .map(repository => {
-        implicit val dispatcher: Dispatcher[F] = pekkoCluster.dispatcher
-        val pekkoEntity =
-          org.apache.pekko.cluster.sharding.typed.scaladsl.Entity(entityTypeKey) {
-            implicit context => Behaviors.setup { implicit actor => createBehaviorFor(repository) }
-          }
-        (repository, pekkoCluster.sharding.init(customizeEntity(pekkoEntity)))
-      })
+    repositoryInterpreter(repositoryT).map(repository => {
+      implicit val dispatcher: Dispatcher[F] = pekkoCluster.dispatcher
+      val pekkoEntity =
+        org.apache.pekko.cluster.sharding.typed.scaladsl.Entity(entityTypeKey) { implicit context =>
+          Behaviors.setup { implicit actor => createBehaviorFor(repository) }
+        }
+      (repository, pekkoCluster.sharding.init(customizeEntity(pekkoEntity)))
+    })
   }
 
   protected def createBehaviorFor(repositoryAlg: RepositoryAlg[F])(implicit
