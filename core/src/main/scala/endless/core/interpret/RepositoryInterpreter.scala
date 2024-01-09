@@ -1,6 +1,7 @@
 package endless.core.interpret
 
 import cats.Applicative
+import cats.effect.kernel.Resource
 import endless.core.entity.Sharding
 
 /** Interpret an algebra `RepositoryAlg` expressed using `Sharding` in context `F`, materializing
@@ -18,7 +19,7 @@ import endless.core.entity.Sharding
   *   interpreted repository algebra in context `F`
   */
 trait RepositoryInterpreter[F[_], ID, Alg[_[_]], RepositoryAlg[_[_]]] {
-  def apply(sharding: Sharding[F, ID, Alg]): F[RepositoryAlg[F]]
+  def apply(sharding: Sharding[F, ID, Alg]): Resource[F, RepositoryAlg[F]]
 }
 
 object RepositoryInterpreter {
@@ -40,5 +41,5 @@ object RepositoryInterpreter {
   def lift[F[_]: Applicative, ID, Alg[_[_]], RepositoryAlg[_[_]]](
       pureInterpreter: Sharding[F, ID, Alg] => RepositoryAlg[F]
   ): RepositoryInterpreter[F, ID, Alg, RepositoryAlg] = (sharding: Sharding[F, ID, Alg]) =>
-    Applicative[F].pure(pureInterpreter(sharding))
+    Resource.pure(pureInterpreter(sharding))
 }
