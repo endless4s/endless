@@ -39,28 +39,21 @@ object PekkoApp extends Bookings with Vehicles with Availabilities {
     .flatMap(createPekkoApp(port))
 
   private def actorSystem(executionContext: ExecutionContext): Resource[IO, ActorSystem[Nothing]] =
-    Resource.make(
-      IO(
-        ActorSystem.wrap(
-          org.apache.pekko.actor.ActorSystem(
-            name = "example-pekko-as",
-            config = Some(
-              PersistenceTestKitPlugin.config
-                .withFallback(PersistenceTestKitDurableStateStorePlugin.config)
-                .withFallback(ConfigFactory.defaultApplication)
-                .resolve()
-            ),
-            defaultExecutionContext = Some(executionContext),
-            classLoader = None
-          )
+    IO(
+      ActorSystem.wrap(
+        org.apache.pekko.actor.ActorSystem(
+          name = "example-pekko-as",
+          config = Some(
+            PersistenceTestKitPlugin.config
+              .withFallback(PersistenceTestKitDurableStateStorePlugin.config)
+              .withFallback(ConfigFactory.defaultApplication)
+              .resolve()
+          ),
+          defaultExecutionContext = Some(executionContext),
+          classLoader = None
         )
       )
-    )(system =>
-      IO.fromFuture(IO.blocking {
-        system.terminate()
-        system.whenTerminated
-      }).void
-    )
+    ).toResource
 
   private def createPekkoApp(port: Int)(actorSystem: ActorSystem[Nothing]): Resource[IO, Server] = {
     implicit val askTimeout: Timeout = Timeout(10.seconds)

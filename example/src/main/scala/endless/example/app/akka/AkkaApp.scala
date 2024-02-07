@@ -40,28 +40,21 @@ object AkkaApp extends Bookings with Vehicles with Availabilities {
     .flatMap(createAkkaApp(port))
 
   private def actorSystem(executionContext: ExecutionContext): Resource[IO, ActorSystem[Nothing]] =
-    Resource.make(
-      IO(
-        ActorSystem.wrap(
-          akka.actor.ActorSystem(
-            name = "example-akka-as",
-            config = Some(
-              PersistenceTestKitPlugin.config
-                .withFallback(PersistenceTestKitDurableStateStorePlugin.config)
-                .withFallback(ConfigFactory.defaultApplication)
-                .resolve()
-            ),
-            defaultExecutionContext = Some(executionContext),
-            classLoader = None
-          )
+    IO(
+      ActorSystem.wrap(
+        akka.actor.ActorSystem(
+          name = "example-akka-as",
+          config = Some(
+            PersistenceTestKitPlugin.config
+              .withFallback(PersistenceTestKitDurableStateStorePlugin.config)
+              .withFallback(ConfigFactory.defaultApplication)
+              .resolve()
+          ),
+          defaultExecutionContext = Some(executionContext),
+          classLoader = None
         )
       )
-    )(system =>
-      IO.fromFuture(IO.blocking {
-        system.terminate()
-        system.whenTerminated
-      }).void
-    )
+    ).toResource
 
   // #main
   private def createAkkaApp(port: Int)(actorSystem: ActorSystem[Nothing]): Resource[IO, Server] = {
