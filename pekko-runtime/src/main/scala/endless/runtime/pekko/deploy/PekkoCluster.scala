@@ -104,7 +104,7 @@ object PekkoCluster {
                   "Timed out during cluster shutdown while waiting for actor system to terminate"
                 )
               )
-            _ <- Logger[F].info("pekko cluster exited and actor system shutdown complete")
+            _ <- Logger[F].info("Pekko cluster exited and actor system shutdown complete")
           } yield ()
           (cluster, release)
         })
