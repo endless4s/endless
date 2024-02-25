@@ -17,7 +17,7 @@ val commonSettings = Seq(
   crossScalaVersions := Seq(scala213, scala3),
   libraryDependencies ++= (CrossVersion.partialVersion(scalaVersion.value) match {
     case Some((2, _)) =>
-      Seq(compilerPlugin("org.typelevel" % "kind-projector" % "0.13.2" cross CrossVersion.full))
+      Seq(compilerPlugin("org.typelevel" % "kind-projector" % "0.13.3" cross CrossVersion.full))
     case _ => Nil
   }),
   Compile / scalacOptions ++= Seq("-Xfatal-warnings"),
