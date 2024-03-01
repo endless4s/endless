@@ -17,6 +17,7 @@ endless is a library to build distributed systems in functional Scala using a pl
 * [Abstractions](abstractions.md)
 * [Runtimes](runtime.md)
 * [Example app](example.md)
+* [Transactions](transactions.md)
 * [Reference](reference.md)
 * [Inspiration](inspiration.md)
 @@@
