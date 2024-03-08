@@ -43,20 +43,20 @@ final case class PekkoCluster[F[_]: Async](
 
 object PekkoCluster {
 
-  /** Create a resource that manages the lifetime of an pekko actor system with cluster sharding
+  /** Create a resource that manages the lifetime of an Pekko actor system with cluster sharding
     * extension. The actor system is created when the resource is acquired and shutdown when the
     * resource is released.
     *
     * @param createActorSystem
     *   Actor system creator. It is recommended to use the IO execution context
-    *   (`IO.executionContext`) for the actor system, as it supports pekko operation and it's
+    *   (`IO.executionContext`) for the actor system, as it supports Pekko operation and it's
     *   simpler to have a single application execution context
     * @param catsEffectReleaseTimeout
-    *   Maximum amount of time pekko coordinated shutdown is allowed to wait for cats-effect to
-    *   finish, typically when pekko initiates shutdown following a SBR decision. This value should
-    *   not be higher than the actual timeout for `before-service-unbind` phase of pekko coordinated
+    *   Maximum amount of time Pekko coordinated shutdown is allowed to wait for cats-effect to
+    *   finish, typically when Pekko initiates shutdown following a SBR decision. This value should
+    *   not be higher than the actual timeout for `before-service-unbind` phase of Pekko coordinated
     *   shutdown. See <a
-    *   href="https://pekko.apache.org/docs/pekko/current/coordinated-shutdown.html">pekko
+    *   href="https://pekko.apache.org/docs/pekko/current/coordinated-shutdown.html">Pekko
     *   coordinated shutdown documentation</a> to learn how to configure the timeouts of individual
     *   phases. Default (5 seconds) is the same as the default-phase-timeout of Pekko coordinated
     *   shutdown.
@@ -93,7 +93,7 @@ object PekkoCluster {
         } yield {
           val release = for {
             _ <- awaitCatsTermination.complete(())
-            _ <- Logger[F].info("Leaving pekko actor cluster")
+            _ <- Logger[F].info("Leaving Pekko actor cluster")
             _ <- Async[F]
               .fromFuture(
                 Async[F].blocking(

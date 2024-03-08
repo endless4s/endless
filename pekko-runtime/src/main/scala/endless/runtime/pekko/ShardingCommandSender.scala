@@ -12,14 +12,14 @@ import endless.core.protocol.{CommandSender, EntityIDEncoder, OutgoingCommand}
 import endless.runtime.pekko.data.{Command, Reply}
 import org.typelevel.log4cats.Logger
 
-/** Implementation of [[CommandSender]] for pekko cluster sharding
+/** Implementation of [[CommandSender]] for Pekko cluster sharding
   *
   * Retrieves the entity ref and asks the command, then decodes the reply and lifts it into `F`
   *
   * @param sharding
-  *   pekko cluster sharding extension
+  *   Pekko cluster sharding extension
   * @param askTimeout
-  *   pekko ask timeout
+  *   Pekko ask timeout
   * @param idEncoder
   *   entity ID encoder
   * @param nameProvider
