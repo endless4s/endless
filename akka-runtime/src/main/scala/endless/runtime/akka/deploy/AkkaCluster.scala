@@ -58,8 +58,12 @@ object AkkaCluster {
     *
     * @param catsEffectReleaseTimeout
     *   Maximum amount of time Akka coordinated shutdown is allowed to wait for cats-effect to
-    *   finish, typically when Akka initiates shutdown following a SBR decision. Default (5 seconds)
-    *   is the same as the default-phase-timeout of Akka coordinated shutdown.
+    *   finish, typically when Akka initiates shutdown following a SBR decision. This value should
+    *   not be higher than the actual timeout for `before-service-unbind` phase of Akka coordinated
+    *   shutdown. See <a href="https://doc.akka.io/docs/akka/current/coordinated-shutdown.html">Akka
+    *   coordinated shutdown documentation</a> to learn how to configure the timeouts of individual
+    *   phases. Default (5 seconds) is the same as the default-phase-timeout of Akka coordinated
+    *   shutdown.
     * @param akkaReleaseTimeout
     *   Maximum amount of time to wait for the actor system to terminate during resource release (5
     *   seconds by default).
