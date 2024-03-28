@@ -2,7 +2,7 @@ import Dependencies.*
 import sbtversionpolicy.Compatibility.None
 
 val scala213 = "2.13.12"
-val scala3 = "3.3.3"
+val scala3 = "3.4.1"
 
 val commonSettings = Seq(
   wartremoverExcluded += sourceManaged.value,
