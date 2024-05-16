@@ -32,7 +32,7 @@ An effective alternative to using a projection is to track process completion in
 
 By enabling [*remember-entities*](https://pekko.apache.org/docs/pekko/current/typed/cluster-sharding.html#remembering-entities), we can achieve guaranteed *at-least-once* completion of asynchronous processes thanks to effector running right after recovery (thus withstanding node crash or shard rebalancing).
 
-*endless* makes it easy to implement this pattern with `Self`. Here's the recipe, as illustrated in the example application @github[example](/example/src/main/scala/endless/example/logic/BookingEffector.scala):
+*endless* makes it easy to implement this pattern with `Self`. Here's the recipe, as illustrated in the example application @github[example](/example/src/main/scala/endless/example/logic/BookingSideEffect.scala):
 
 1. `BookingPlaced` event gets persisted. At this point, entity state represents pending acceptation of the booking `Booking(..., status = Pending)`
 2. Effector function inspects the state, and in case of `Pending` status, asks a third-party service for availability and notifies the entity of the result:

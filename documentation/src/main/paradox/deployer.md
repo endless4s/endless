@@ -21,7 +21,7 @@ trait Deployer {
 
  - `F[_]`: abstract effectful context `F` encapsulating all values, e.g. `IO[*]`
  - `Alg[_[_]]`: algebra allowing interaction with the entity, e.g. @github[BookingAlg\[IO\[*\]\]](/example/src/main/scala/endless/example/algebra/BookingAlg.scala)
- - `RepositoryAlg[_[_]]`: repository algebra, e.g. @github[BookingRepositoryAlg\[IO\[*\]\]](/example/src/main/scala/endless/example/repository/BookingRepositoryAlg.scala)
+ - `RepositoryAlg[_[_]]`: repository algebra, e.g. @github[BookingsAlg\[IO\[*\]\]](/example/src/main/scala/endless/example/algebra/BookingsAlg.scala)
  - `ID`: entity ID, e.g.  `final case class BookingID(id: UUID) extends AnyVal`
  - `S`: entity state, e.g. @github[Booking](/example/src/main/scala/endless/example/data/Booking.scala)
  - `E`: entity event, e.g. @github[BookingEvent](/example/src/main/scala/endless/example/data/BookingEvent.scala)
