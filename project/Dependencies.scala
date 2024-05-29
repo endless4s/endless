@@ -38,7 +38,7 @@ object Dependencies {
   lazy val pekkoProvided = pekko.map(_ % Provided)
   lazy val pekkoTest = Seq(pekkoPersistenceTestkit).map(_ % pekkoVersion)
 
-  lazy val catsVersion = "2.10.0"
+  lazy val catsVersion = "2.12.0"
   lazy val cats =
     Seq(
       "org.typelevel" %% "cats-core",
