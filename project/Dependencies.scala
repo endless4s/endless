@@ -84,17 +84,20 @@ object Dependencies {
   )
   lazy val log4catsTesting = Seq("org.typelevel" %% "log4cats-testing" % log4catsVersion)
 
-  lazy val mUnitVersion = "1.0.0"
+  lazy val mUnitVersion = "1.0.1"
   lazy val disciplineMUnitVersion = "2.0.0"
+  lazy val mUnitScalacheckVersion = "1.0.0"
   lazy val mUnit =
-    Seq("org.scalameta" %% "munit", "org.scalameta" %% "munit-scalacheck").map(
-      _ % mUnitVersion
-    ) ++ Seq("org.typelevel" %% "discipline-munit" % disciplineMUnitVersion)
+    Seq(
+      "org.scalameta" %% "munit" % mUnitVersion,
+      "org.scalameta" %% "munit-scalacheck" % mUnitScalacheckVersion,
+      "org.typelevel" %% "discipline-munit" % disciplineMUnitVersion
+    )
 
   lazy val catsEffectMUnitVersion = "2.0.0"
   lazy val catsEffectMUnit = Seq("org.typelevel" %% "munit-cats-effect" % catsEffectMUnitVersion)
 
-  lazy val scalacheckEffectVersion = "1.0.4"
+  lazy val scalacheckEffectVersion = "2.0.0-M2"
   lazy val scalacheckEffect = Seq(
     "org.typelevel" %% "scalacheck-effect-munit" % scalacheckEffectVersion
   )

@@ -1,6 +1,5 @@
 package endless.example.protocol
 
-import cats.conversions.all.*
 import cats.syntax.show.*
 import com.google.protobuf.timestamp.Timestamp
 import endless.\/

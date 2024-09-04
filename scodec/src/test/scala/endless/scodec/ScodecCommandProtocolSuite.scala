@@ -15,10 +15,12 @@ class ScodecCommandProtocolSuite extends munit.ScalaCheckSuite {
   }
 
   val dummyProtocol = new ScodecCommandProtocol[String, DummyAlg] {
-    def server[F[_]]: Decoder[IncomingCommand[F, DummyAlg]] =
-      ScodecDecoder(DummyCommand.scodecDecoder).map { case DummyCommand(x, y) =>
+    def server[F[_]]: Decoder[IncomingCommand[F, DummyAlg]] = {
+      implicit val decoder = DummyCommand.scodecDecoder
+      ScodecDecoder.apply.map { case DummyCommand(x, y) =>
         handleCommand[F, Boolean](_.dummy(x, y))
       }
+    }
 
     def clientFor[F[_]](id: ID)(implicit sender: CommandSender[F, ID]): DummyAlg[F] =
       (x: Int, y: String) => sendCommand[F, DummyCommand, Boolean](id, DummyCommand(x, y))

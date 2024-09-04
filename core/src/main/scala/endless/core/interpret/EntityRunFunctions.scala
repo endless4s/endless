@@ -1,6 +1,5 @@
 package endless.core.interpret
 
-import cats.conversions.all.*
 import cats.data.{Chain, NonEmptyChain}
 import cats.syntax.applicative.*
 import cats.syntax.either.*
