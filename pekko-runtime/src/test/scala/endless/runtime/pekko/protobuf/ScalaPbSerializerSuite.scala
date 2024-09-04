@@ -41,8 +41,8 @@ object ScalaPbSerializerSuite {
   val serializationConfig: String =
     """
       |pekko {
-      |  provider = local
       |  actor {
+      |    provider = local
       |    serializers {
       |      scalapb = "endless.runtime.pekko.protobuf.ScalaPbSerializer"
       |    }
@@ -55,6 +55,7 @@ object ScalaPbSerializerSuite {
       |      "endless.runtime.pekko.protobuf.ScalaPbSerializer" = 1111
       |    }
       |  }
+      |  coordinated-shutdown.exit-jvm = off
       |}
     """.stripMargin
 }
