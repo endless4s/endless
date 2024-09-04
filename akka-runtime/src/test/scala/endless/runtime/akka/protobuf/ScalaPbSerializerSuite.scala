@@ -56,6 +56,7 @@ object ScalaPbSerializerSuite {
       |      "endless.runtime.akka.protobuf.ScalaPbSerializer" = 1111
       |    }
       |  }
+      |  coordinated-shutdown.exit-jvm = off
       |}
     """.stripMargin
 }

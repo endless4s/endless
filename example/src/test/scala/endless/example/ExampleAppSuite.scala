@@ -7,6 +7,7 @@ import endless.example.data.Booking.BookingID
 import endless.example.data.Vehicle.VehicleID
 import endless.example.data.{Booking, LatLon, Speed}
 import io.circe.generic.auto.*
+import munit.catseffect.IOFixture
 import org.http4s.Method.*
 import org.http4s.Uri
 import org.http4s.blaze.client.BlazeClientBuilder
@@ -19,7 +20,7 @@ import java.util.UUID
 import scala.concurrent.duration.*
 
 trait ExampleAppSuite { self: munit.CatsEffectSuite =>
-  protected val client: Fixture[Client[IO]] =
+  protected val client: IOFixture[Client[IO]] =
     ResourceSuiteLocalFixture("booking-client", BlazeClientBuilder[IO].resource)
   def port: Int
   private lazy val baseUri = Uri.unsafeFromString(s"http://localhost:$port")
