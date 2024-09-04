@@ -1,7 +1,7 @@
 import Dependencies.*
 import sbtversionpolicy.Compatibility.None
 
-val scala213 = "2.13.12"
+val scala213 = "2.13.14"
 val scala3 = "3.4.2"
 
 val commonSettings = Seq(
@@ -88,7 +88,7 @@ lazy val pekkoRuntime = (project in file("pekko-runtime"))
   .settings(commonSettings *)
   .dependsOn(core)
   .settings(
-    libraryDependencies ++= catsEffectStd ++ pekkoProvided ++ log4cats ++ scalapbCustomizations ++ (mUnit :+ pekkoTypedTestkit % pekkoVersion)
+    libraryDependencies ++= catsEffectStd ++ pekkoProvided ++ log4cats ++ scalapbCustomizations ++ (mUnit ++ logback ++ log4catsSlf4j :+ pekkoTypedTestkit % pekkoVersion)
       .map(_ % Test)
   )
   .settings(

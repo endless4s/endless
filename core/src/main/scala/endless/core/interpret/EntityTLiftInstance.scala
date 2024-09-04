@@ -1,7 +1,6 @@
 package endless.core.interpret
 
 import cats.Monad
-import cats.conversions.all.*
 import cats.data.NonEmptyChain
 import cats.syntax.applicative.*
 import cats.syntax.either.*
