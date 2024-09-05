@@ -47,7 +47,8 @@ trait DurableDeployer {
     *     involves reading the entity state (e.g. for validation), and writing events (which can
     *     lead to a new version of the state via the `eventApplier` function)
     *   - after events were written, a possible side-effect is triggered: this can be asynchronous
-    *     (i.e. the function doesn't wait for completion of the side-effect to return)
+    *     (i.e. the function doesn't wait for completion of the side-effect to return) but can be
+    *     made synchronous by overriding the `runModeFor` method in the `SideEffect`
     *   - the function finally returns to the caller with the result of the operation described by
     *     the entity algebra (reply value, typically encoded over the wire in a distributed
     *     deployment)
@@ -60,7 +61,7 @@ trait DurableDeployer {
     * algebras respectively (both higher-kinded type constructors).
     *
     * Since the behavior described above involves concurrent handling of repository interactions and
-    * asynchronous side-effecting, we expect `Async` from `F`.
+    * possible asynchronous side-effecting, we expect `Async` from `F`.
     *
     * `EntityIDCodec` is used to encode/decode entity IDs to/from strings.
     *
