@@ -11,6 +11,7 @@ import cats.syntax.applicative.*
 import cats.syntax.flatMap.*
 import cats.syntax.functor.*
 import cats.syntax.show.*
+import endless.core.entity.SideEffect.RunMode
 import endless.core.entity.{Effector, EntityNameProvider, Sharding, SideEffect}
 import endless.core.event.EventApplier
 import endless.core.interpret.{EntityT, SideEffectInterpreter}
@@ -58,11 +59,12 @@ private[deploy] class EventSourcedShardedEntityDeployer[F[
         )
         .receiveSignal {
           case (state, RecoveryCompleted) =>
-            dispatcher.unsafeRunAndForget(
+            dispatcher.unsafeRunSync(
               Logger[F].info(
                 show"Recovery of ${nameProvider()} entity ${context.entityId} completed"
-              ) >> handleSideEffect(state, SideEffect.Trigger.AfterRecovery)
+              )
             )
+            handleSideEffect(state, SideEffect.Trigger.AfterRecovery)
           case (_, RecoveryFailed(failure)) =>
             dispatcher.unsafeRunSync(
               Logger[F].warn(
@@ -76,14 +78,19 @@ private[deploy] class EventSourcedShardedEntityDeployer[F[
   private def handleSideEffect(state: Option[S], trigger: SideEffect.Trigger)(implicit
       sideEffect: SideEffect[F, S, Alg],
       entity: Alg[F],
-      passivator: EntityPassivator[F]
-  ) = {
-    for {
+      passivator: EntityPassivator[F],
+      dispatcher: Dispatcher[F]
+  ): Unit = {
+    val effect = for {
       effector <- Effector[F, S, Alg](entity, state)
       _ <- sideEffect.apply(trigger, effector)
       passivationState <- effector.passivationState
       _ <- passivator.apply(passivationState)
     } yield ()
+    dispatcher.unsafeRunSync(sideEffect.runModeFor(trigger, state)) match {
+      case RunMode.Sync  => dispatcher.unsafeRunSync(effect)
+      case RunMode.Async => dispatcher.unsafeRunAndForget(effect)
+    }
   }
 
   private def handleEvent(state: Option[S], event: E)(implicit dispatcher: Dispatcher[F]) =
@@ -114,10 +121,7 @@ private[deploy] class EventSourcedShardedEntityDeployer[F[
           Effect
             .persist(events.toList)
             .thenRun((state: Option[S]) =>
-              // run the effector asynchronously, as it can describe long-running processes
-              dispatcher.unsafeRunAndForget(
-                handleSideEffect(state, SideEffect.Trigger.AfterPersistence)
-              )
+              handleSideEffect(state, SideEffect.Trigger.AfterPersistence)
             )
             .thenReply(command.replyTo) { (_: Option[S]) =>
               Reply(incomingCommand.replyEncoder.encode(reply))
@@ -126,10 +130,7 @@ private[deploy] class EventSourcedShardedEntityDeployer[F[
         case Right((_, reply)) =>
           Effect
             .none[E, Option[S]]
-            .thenRun((state: Option[S]) =>
-              dispatcher
-                .unsafeRunAndForget(handleSideEffect(state, SideEffect.Trigger.AfterRead))
-            )
+            .thenRun((state: Option[S]) => handleSideEffect(state, SideEffect.Trigger.AfterRead))
             .thenReply[Reply](command.replyTo) { (_: Option[S]) =>
               Reply(incomingCommand.replyEncoder.encode(reply))
             }

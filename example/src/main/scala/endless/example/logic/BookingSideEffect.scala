@@ -18,6 +18,7 @@ import scala.concurrent.duration.*
 class BookingSideEffect[F[_]: Logger: Monad]()(implicit
     availabilityAlg: AvailabilityAlg[F]
 ) extends SideEffect[F, Booking, BookingAlg] {
+
   def apply(trigger: Trigger, effector: Effector[F, Booking, BookingAlg]): F[Unit] = {
     import effector.*
 

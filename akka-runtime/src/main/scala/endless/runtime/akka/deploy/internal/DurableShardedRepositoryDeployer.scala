@@ -13,6 +13,7 @@ import cats.syntax.flatMap.*
 import cats.syntax.functor.*
 import cats.syntax.show.*
 import endless.core.entity.*
+import endless.core.entity.SideEffect.RunMode
 import endless.core.interpret.DurableEntityT.{DurableEntityT, State}
 import endless.core.interpret.*
 import endless.core.protocol.{CommandProtocol, CommandSender, EntityIDCodec}
@@ -58,11 +59,11 @@ private[deploy] class DurableShardedRepositoryDeployer[F[
         )
         .receiveSignal {
           case (state, RecoveryCompleted) =>
-            dispatcher.unsafeRunAndForget(
-              Logger[F].info(
-                show"Recovery of ${nameProvider()} entity ${context.entityId} completed"
-              ) >> handleSideEffect(state, SideEffect.Trigger.AfterRecovery)
+            dispatcher.unsafeRunSync(
+              Logger[F]
+                .info(show"Recovery of ${nameProvider()} entity ${context.entityId} completed")
             )
+            handleSideEffect(state, SideEffect.Trigger.AfterRecovery)
           case (_, RecoveryFailed(failure)) =>
             dispatcher.unsafeRunSync(
               Logger[F].warn(
@@ -76,13 +77,22 @@ private[deploy] class DurableShardedRepositoryDeployer[F[
   private def handleSideEffect(
       state: Option[S],
       trigger: SideEffect.Trigger
-  )(implicit sideEffect: SideEffect[F, S, Alg], entity: Alg[F], passivator: EntityPassivator[F]) = {
-    for {
+  )(implicit
+      sideEffect: SideEffect[F, S, Alg],
+      entity: Alg[F],
+      passivator: EntityPassivator[F],
+      dispatcher: Dispatcher[F]
+  ): Unit = {
+    val effect = for {
       effector <- Effector[F, S, Alg](entity, state)
       _ <- sideEffect.apply(trigger, effector)
       passivationState <- effector.passivationState
       _ <- passivator.apply(passivationState)
     } yield ()
+    dispatcher.unsafeRunSync(sideEffect.runModeFor(trigger, state)) match {
+      case RunMode.Sync  => dispatcher.unsafeRunSync(effect)
+      case RunMode.Async => dispatcher.unsafeRunAndForget(effect)
+    }
   }
 
   private def handleCommand(state: Option[S], command: Command)(implicit
@@ -108,16 +118,13 @@ private[deploy] class DurableShardedRepositoryDeployer[F[
           case State.Updated(state) => Effect.persist(Option(state))
         })
           .thenRun((state: Option[S]) =>
-            // run the effector asynchronously, as it can describe long-running processes
-            dispatcher.unsafeRunAndForget(
-              handleSideEffect(
-                state,
-                outcome match {
-                  case State.None        => SideEffect.Trigger.AfterRead
-                  case State.Existing(_) => SideEffect.Trigger.AfterRead
-                  case State.Updated(_)  => SideEffect.Trigger.AfterPersistence
-                }
-              )
+            handleSideEffect(
+              state,
+              outcome match {
+                case State.None        => SideEffect.Trigger.AfterRead
+                case State.Existing(_) => SideEffect.Trigger.AfterRead
+                case State.Updated(_)  => SideEffect.Trigger.AfterPersistence
+              }
             )
           )
           .thenReply(command.replyTo) { (_: Option[S]) =>

@@ -56,5 +56,5 @@ object SideEffectInterpreter {
     */
   def unit[F[_]: Applicative, S, Alg[_[_]], RepositoryAlg[_[_]]]
       : SideEffectInterpreter[F, S, Alg, RepositoryAlg] =
-    lift((_, _) => (_, _) => Applicative[F].unit)
+    lift((_, _) => SideEffect.unit[F, S, Alg])
 }
