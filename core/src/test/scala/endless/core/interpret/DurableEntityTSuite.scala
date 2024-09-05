@@ -46,7 +46,7 @@ class DurableEntityTSuite extends DisciplineSuite {
       F: Arbitrary[F[A]]
   ): Arbitrary[DurableEntityT[F, SampleState, A]] = Arbitrary(
     F.arbitrary.map(
-      DurableEntityT.stateWriter(sampleState)(Applicative[F]) >> DurableEntityT.liftF(_)
+      DurableEntityT.stateWriter(sampleState)(using Applicative[F]) >> DurableEntityT.liftF(_)
     )
   )
 
