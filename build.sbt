@@ -88,7 +88,7 @@ lazy val pekkoRuntime = (project in file("pekko-runtime"))
   .settings(commonSettings *)
   .dependsOn(core)
   .settings(
-    libraryDependencies ++= catsEffectStd ++ pekkoProvided ++ log4cats ++ scalapbCustomizations ++ (mUnit ++ logback ++ log4catsSlf4j :+ pekkoTypedTestkit % pekkoVersion)
+    libraryDependencies ++= catsEffectStd ++ pekkoProvided ++ log4cats ++ scalapbCustomizations ++ (mUnit ++ logback :+ pekkoTypedTestkit % pekkoVersion)
       .map(_ % Test)
   )
   .settings(
@@ -136,7 +136,7 @@ lazy val example = (project in file("example"))
   .settings(commonSettings *)
   .dependsOn(core, akkaRuntime, pekkoRuntime, circeHelpers, protobufHelpers)
   .settings(
-    libraryDependencies ++= catsEffect ++ http4s ++ blaze ++ akka ++ pekko ++ scalapbCustomizations ++ akkaTest ++ pekkoTest ++ logback ++ log4catsSlf4j ++ (mUnit ++ catsEffectMUnit ++ scalacheckEffect ++ log4catsTesting)
+    libraryDependencies ++= catsEffect ++ http4s ++ blaze ++ akka ++ pekko ++ scalapbCustomizations ++ akkaTest ++ pekkoTest ++ logback ++ (mUnit ++ catsEffectMUnit ++ scalacheckEffect ++ log4catsTesting)
       .map(_ % Test)
   )
   .settings(name := "endless-example", run / fork := true, publish / skip := true)

@@ -79,9 +79,6 @@ object Dependencies {
 
   lazy val log4catsVersion = "2.7.0"
   lazy val log4cats = Seq("org.typelevel" %% "log4cats-core" % log4catsVersion)
-  lazy val log4catsSlf4j = Seq(
-    "org.typelevel" %% "log4cats-slf4j" % log4catsVersion
-  )
   lazy val log4catsTesting = Seq("org.typelevel" %% "log4cats-testing" % log4catsVersion)
 
   lazy val mUnitVersion = "1.0.1"
