@@ -1,8 +1,8 @@
 import Dependencies.*
 import sbtversionpolicy.Compatibility.None
 
-val scala213 = "2.13.14"
-val scala3 = "3.4.3"
+val scala213 = "2.13.15"
+val scala3 = "3.5.1"
 
 val commonSettings = Seq(
   wartremoverExcluded += sourceManaged.value,
@@ -22,7 +22,7 @@ val commonSettings = Seq(
   }),
   Compile / scalacOptions ++= Seq("-Xfatal-warnings"),
   Compile / scalacOptions ++= (CrossVersion.partialVersion(scalaVersion.value) match {
-    case Some((3, _)) => Seq("-Ykind-projector:underscores")
+    case Some((3, _)) => Seq("-Xkind-projector:underscores")
     case Some((2, _)) =>
       Seq("-Xsource:3", "-P:kind-projector:underscore-placeholders", "-Xlint:unused")
     case _ => Nil
