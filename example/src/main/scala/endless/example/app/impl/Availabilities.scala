@@ -12,6 +12,7 @@ import java.time.Instant
 import scala.concurrent.duration.*
 
 trait Availabilities {
+  @SuppressWarnings(Array("org.wartremover.warts.ToString"))
   implicit def alwaysAvailable[F[_]: Logger: Monad: Async]: AvailabilityAlg[F] =
     (time: Instant, passengerCount: Int) =>
       Logger[F].info(
