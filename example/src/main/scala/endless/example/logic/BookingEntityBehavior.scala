@@ -59,10 +59,9 @@ final case class BookingEntityBehavior[F[_]: Logger: Clock](
       booking.status match {
         case Status.Accepted | Status.Pending =>
           EitherT.liftF(
-            (Clock[F].realTimeInstant >>= (timestamp =>
-              Logger[F]
-                .info(show"Cancelling booking with ID ${booking.id} at ${timestamp.toString}")
-            )) >> entity.write(BookingCancelled)
+            Logger[F].info(show"Cancelling booking with ID ${booking.id}") >> entity.write(
+              BookingCancelled
+            )
           )
         case Status.Cancelled => EitherT.pure(())
         case Status.Rejected  => EitherT.leftT[F, Unit](BookingAlg.BookingWasRejected(booking.id))
