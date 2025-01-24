@@ -4,9 +4,14 @@ import endless.core.protocol.{CommandProtocol, CommandSender, IncomingCommand}
 import scalapb.{GeneratedMessage, GeneratedMessageCompanion}
 
 trait ProtobufCommandProtocol[ID, Alg[_[_]]] extends CommandProtocol[ID, Alg] {
-  protected def sendCommand[F[
-      _
-  ], C <: GeneratedMessage: GeneratedMessageCompanion, R <: GeneratedMessage: GeneratedMessageCompanion, A](
+  protected def sendCommand[
+      F[
+          _
+      ],
+      C <: GeneratedMessage: GeneratedMessageCompanion,
+      R <: GeneratedMessage: GeneratedMessageCompanion,
+      A
+  ](
       id: ID,
       command: C,
       replyMapper: R => A
