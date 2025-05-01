@@ -61,9 +61,8 @@ object EntityT extends EntityRunFunctions {
   def writer[F[_]: Applicative, S, E](newEvents: NonEmptyChain[E]): EntityT[F, S, E, Unit] =
     new EntityT((_, existing) => write(newEvents)(existing))
 
-  def purr[F[_]: Applicative, S, E, A](a: A): EntityT[F, S, E, A] = new EntityT((_, events) =>
-    pure(a)(events)
-  )
+  def purr[F[_]: Applicative, S, E, A](a: A): EntityT[F, S, E, A] =
+    new EntityT((_, events) => pure(a)(events))
 
   def liftF[F[_]: Functor, S, E, A](fa: F[A]): EntityT[F, S, E, A] =
     new EntityT((_, events) => fa.map(a => (events, a).asRight))

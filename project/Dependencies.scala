@@ -22,7 +22,7 @@ object Dependencies {
 
   lazy val akkaTest = Seq(akkaPersistenceTestkit).map(_ % akkaVersion)
 
-  lazy val pekkoVersion = "1.1.2"
+  lazy val pekkoVersion = "1.1.3"
   lazy val pekkoActorTyped = "org.apache.pekko" %% "pekko-actor-typed"
   lazy val pekkoPersistenceTyped = "org.apache.pekko" %% "pekko-persistence-typed"
   lazy val pekkoClusterTyped = "org.apache.pekko" %% "pekko-cluster-typed"
@@ -48,20 +48,20 @@ object Dependencies {
   lazy val catsLaws = Seq("org.typelevel" %% "cats-laws" % catsVersion)
   lazy val catsTestkit = Seq("org.typelevel" %% "cats-testkit" % catsVersion)
 
-  lazy val catsEffectVersion = "3.5.4"
+  lazy val catsEffectVersion = "3.5.7"
   lazy val catsEffectKernel = Seq("org.typelevel" %% "cats-effect-kernel" % catsEffectVersion)
   lazy val catsEffectLaws = Seq("org.typelevel" %% "cats-effect-laws" % catsEffectVersion)
   lazy val catsEffectTestKit = Seq("org.typelevel" %% "cats-effect-testkit" % catsEffectVersion)
   lazy val catsEffectStd = Seq("org.typelevel" %% "cats-effect-std" % catsEffectVersion)
   lazy val catsEffect = Seq("org.typelevel" %% "cats-effect" % catsEffectVersion)
 
-  lazy val http4sVersion = "0.23.28"
+  lazy val http4sVersion = "0.23.30"
   lazy val http4s = Seq(
     "org.http4s" %% "http4s-dsl" % http4sVersion,
     "org.http4s" %% "http4s-circe" % http4sVersion
   )
 
-  lazy val blazeVersion = "0.23.16"
+  lazy val blazeVersion = "0.23.17"
   lazy val blaze = Seq(
     "org.http4s" %% "http4s-blaze-server" % blazeVersion,
     "org.http4s" %% "http4s-blaze-client" % blazeVersion
@@ -74,16 +74,17 @@ object Dependencies {
     "io.circe" %% "circe-parser"
   ).map(_ % circeVersion)
 
-  lazy val logbackVersion = "1.5.9"
+  lazy val logbackVersion = "1.5.18"
   lazy val logback = Seq("ch.qos.logback" % "logback-classic" % logbackVersion)
 
   lazy val log4catsVersion = "2.7.0"
   lazy val log4cats = Seq("org.typelevel" %% "log4cats-core" % log4catsVersion)
   lazy val log4catsTesting = Seq("org.typelevel" %% "log4cats-testing" % log4catsVersion)
 
-  lazy val mUnitVersion = "1.0.2"
+
+  lazy val mUnitVersion = "1.0.4"
   lazy val disciplineMUnitVersion = "2.1.0"
-  lazy val mUnitScalacheckVersion = "1.0.0"
+  lazy val mUnitScalacheckVersion = "1.1.0"
   lazy val mUnit =
     Seq(
       "org.scalameta" %% "munit" % mUnitVersion,
@@ -99,7 +100,7 @@ object Dependencies {
     "org.typelevel" %% "scalacheck-effect-munit" % scalacheckEffectVersion
   )
 
-  lazy val kittensVersion = "3.4.0"
+  lazy val kittensVersion = "3.5.0"
   lazy val kittens = Seq("org.typelevel" %% "kittens" % kittensVersion)
 
   lazy val scodecCore = Seq("org.scodec" %% "scodec-core" % "2.2.2")
