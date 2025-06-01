@@ -52,7 +52,7 @@ class BookingCommandProtocol extends ProtobufCommandProtocol[BookingID, BookingA
                   .PlaceBookingReply(replies.PlaceBookingReply.Reply.AlreadyExists(booking), _) =>
               Left(BookingAlreadyExists(BookingID(UUID.fromString(booking.bookingId.value))))
             case replies.PlaceBookingReply(replies.PlaceBookingReply.Reply.Unit(_), _) => Right(())
-            case replies.PlaceBookingReply(replies.PlaceBookingReply.Reply.Empty, _) =>
+            case replies.PlaceBookingReply(replies.PlaceBookingReply.Reply.Empty, _)   =>
               throw new UnexpectedReplyException
           }
         )

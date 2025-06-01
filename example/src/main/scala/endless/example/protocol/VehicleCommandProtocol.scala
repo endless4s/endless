@@ -19,7 +19,7 @@ import endless.protobuf.{ProtobufCommandProtocol, ProtobufDecoder}
 class VehicleCommandProtocol extends ProtobufCommandProtocol[VehicleID, VehicleAlg] {
   override def server[F[_]]: Decoder[IncomingCommand[F, VehicleAlg]] =
     ProtobufDecoder[VehicleCommand].map(_.command match {
-      case Command.Empty => throw new UnexpectedCommandException
+      case Command.Empty             => throw new UnexpectedCommandException
       case Command.SetSpeedV1(value) =>
         handleCommand[F, UnitReply, Unit](
           _.setSpeed(Speed(value.speed.metersPerSecond)),

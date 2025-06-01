@@ -21,7 +21,7 @@ class CommandSerializer(val system: akka.actor.ExtendedActorSystem)
 
   def manifest(o: AnyRef): String = o match {
     case _: Command => ManifestKey
-    case _ =>
+    case _          =>
       throw new IllegalArgumentException(
         show"Can't serialize object of type ${o.getClass.getName} in [${getClass.getName}]"
       )
