@@ -22,7 +22,7 @@ object Dependencies {
 
   lazy val akkaTest = Seq(akkaPersistenceTestkit).map(_ % akkaVersion)
 
-  lazy val pekkoVersion = "1.1.3"
+  lazy val pekkoVersion = "1.1.5"
   lazy val pekkoActorTyped = "org.apache.pekko" %% "pekko-actor-typed"
   lazy val pekkoPersistenceTyped = "org.apache.pekko" %% "pekko-persistence-typed"
   lazy val pekkoClusterTyped = "org.apache.pekko" %% "pekko-cluster-typed"
