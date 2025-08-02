@@ -15,7 +15,7 @@ class ReplySerializer(val system: akka.actor.ExtendedActorSystem)
     with BaseSerializer {
   def manifest(o: AnyRef): String = o match {
     case _: Reply => ManifestKey
-    case _ =>
+    case _        =>
       throw new IllegalArgumentException(
         s"Can't serialize object of type ${o.getClass.getName} in [${getClass.getName}]"
       )
@@ -23,13 +23,13 @@ class ReplySerializer(val system: akka.actor.ExtendedActorSystem)
 
   def toBinary(o: AnyRef): Array[Byte] = o match {
     case reply: Reply => reply.payload
-    case _ =>
+    case _            =>
       throw new IllegalArgumentException(s"Cannot serialize object of type [${o.getClass.getName}]")
   }
 
   def fromBinary(bytes: Array[Byte], manifest: String): AnyRef = manifest match {
     case ManifestKey => Reply(bytes)
-    case _ =>
+    case _           =>
       throw new NotSerializableException(
         s"Unimplemented deserialization of message with manifest [$manifest] in [${getClass.getName}]"
       )

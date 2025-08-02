@@ -39,7 +39,7 @@ class ScalaPbSerializer(val system: ExtendedActorSystem) extends BaseSerializer 
           val classToCompanion = classToCompanionMapRef.get()
           classToCompanion.get(clazz) match {
             case Some(cachedCompanion) => cachedCompanion
-            case None =>
+            case None                  =>
               val uncachedCompanion =
                 if (companion eq null)
                   Class
