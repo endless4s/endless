@@ -13,5 +13,5 @@ jobs:
         with:
           jvm: temurin:17
           apps: sbt
-      - run: sbt scalafmtCheckAll compile coverage +test coverageReport coverageAggregate versionPolicyCheck documentation/makeSite
+      - run: sbt scalafmtCheckAll clean compile coverage +test coverageReport coverageAggregate versionPolicyCheck documentation/makeSite
       - uses: codecov/codecov-action@v2.1.0
