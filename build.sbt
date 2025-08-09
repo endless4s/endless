@@ -10,6 +10,7 @@ val commonSettings = Seq(
     Wart.Any,
     Wart.Nothing,
     Wart.ImplicitParameter,
+    Wart.ImplicitConversion,
     Wart.Throw,
     Wart.DefaultArguments
   ),
