@@ -1,8 +1,8 @@
 import Dependencies.*
 import sbtversionpolicy.Compatibility.None
 
-val scala213 = "2.13.15"
-val scala3 = "3.5.2"
+val scala213 = "2.13.16"
+val scala3 = "3.7.2"
 
 val commonSettings = Seq(
   wartremoverExcluded += sourceManaged.value,
@@ -10,6 +10,7 @@ val commonSettings = Seq(
     Wart.Any,
     Wart.Nothing,
     Wart.ImplicitParameter,
+    Wart.ImplicitConversion,
     Wart.Throw,
     Wart.DefaultArguments
   ),

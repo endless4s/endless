@@ -54,7 +54,8 @@ class EntityTSuite extends DisciplineSuite {
   checkAll(
     "EntityT.FunctorLaws for direct map def",
     FunctorTests[EntityT[ListWrapper, State, Event, *]](
-      using new Functor[EntityT[ListWrapper, State, Event, *]] {
+      using
+      new Functor[EntityT[ListWrapper, State, Event, *]] {
         override def map[A, B](fa: EntityT[ListWrapper, State, Event, A])(
             f: A => B
         ): EntityT[ListWrapper, State, Event, B] = fa.map(f)
@@ -84,7 +85,7 @@ class EntityTSuite extends DisciplineSuite {
   test("failing folder fails when reader is involved") {
     val result = (EntityT
       .writer[ListWrapper, State, Event](NonEmptyChain.one(event1)) >> EntityT.reader)
-      .run(Some(Chain.empty))((_: Option[State], _: Event) => "error".asLeft)
+      .run(Some(Chain.empty))(using (_: Option[State], _: Event) => "error".asLeft)
       .list
       .head
     result match {

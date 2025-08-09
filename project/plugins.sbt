@@ -1,12 +1,12 @@
-addSbtPlugin("org.wartremover" % "sbt-wartremover" % "3.2.7")
+addSbtPlugin("org.wartremover" % "sbt-wartremover" % "3.4.0")
 
-addSbtPlugin("org.scoverage" % "sbt-scoverage" % "2.2.2")
+addSbtPlugin("org.scoverage" % "sbt-scoverage" % "2.3.0")
 
 addSbtPlugin("ch.epfl.scala" % "sbt-version-policy" % "3.2.1")
 
 addSbtPlugin("com.github.sbt" % "sbt-ci-release" % "1.9.3")
 
-addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.5.3")
+addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.5.5")
 
 addSbtPlugin("com.github.sbt" % "sbt-site-paradox" % "1.7.0")
 
