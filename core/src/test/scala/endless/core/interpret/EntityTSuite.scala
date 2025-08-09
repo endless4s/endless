@@ -85,7 +85,7 @@ class EntityTSuite extends DisciplineSuite {
   test("failing folder fails when reader is involved") {
     val result = (EntityT
       .writer[ListWrapper, State, Event](NonEmptyChain.one(event1)) >> EntityT.reader)
-      .run(Some(Chain.empty))(applier = (_: Option[State], _: Event) => "error".asLeft)
+      .run(Some(Chain.empty))(using (_: Option[State], _: Event) => "error".asLeft)
       .list
       .head
     result match {
