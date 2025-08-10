@@ -33,6 +33,8 @@ val commonSettings = Seq(
 inThisBuild(
   List(
     organization := "io.github.endless4s",
+    organizationName := "endless4s",
+    organizationHomepage := Some(url("https://endless4s.github.io")),
     homepage := Some(url("https://github.com/endless4s/endless")),
     licenses := List("MIT License" -> url("http://opensource.org/licenses/mit-license.php")),
     developers := List(
@@ -43,10 +45,20 @@ inThisBuild(
         url("https://jonaschapuis.com")
       )
     ),
-    sonatypeCredentialHost := "s01.oss.sonatype.org",
-    sonatypeProjectHosting := Some(
-      xerial.sbt.Sonatype.GitHubHosting("endless4s", "endless", "me@jonaschapuis.com")
+    scmInfo := Some(
+      ScmInfo(
+        url("https://github.com/endless4s/endless"),
+        "git@github.com:endless4s/endless.git"
+      )
     ),
+    publishTo := {
+      val centralSnapshots = "https://central.sonatype.com/repository/maven-snapshots/"
+      if (isSnapshot.value) Some("central-snapshots" at centralSnapshots)
+      else localStaging.value
+    },
+    description := "Scala library to describe event sourced entities using tagless-final algebras",
+    pomIncludeRepository := { _ => false },
+    publishMavenStyle := true,
     Global / onChangedBuildSource := ReloadOnSourceChanges,
     PB.protocVersion := "3.17.3", // works on Apple Silicon,
     versionPolicyIntention := Compatibility.BinaryCompatible,
@@ -203,8 +215,7 @@ lazy val documentation = (project in file("documentation"))
     ),
     Compile / paradoxMaterialTheme := {
       val theme = (Compile / paradoxMaterialTheme).value
-      val repository =
-        (ThisBuild / sonatypeProjectHosting).value.get.scmInfo.browseUrl.toURI
+      val repository = uri("https://github.com/endless4s/endless")
       theme
         .withRepository(repository)
         .withFont("Overpass", "Overpass Mono")
