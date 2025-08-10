@@ -1,5 +1,5 @@
 import Dependencies.*
-import sbtversionpolicy.Compatibility.None
+import sbtversionpolicy.Compatibility
 
 val scala213 = "2.13.16"
 val scala3 = "3.7.2"
@@ -49,7 +49,7 @@ inThisBuild(
     ),
     Global / onChangedBuildSource := ReloadOnSourceChanges,
     PB.protocVersion := "3.17.3", // works on Apple Silicon,
-    versionPolicyIntention := Compatibility.None,
+    versionPolicyIntention := Compatibility.BinaryCompatible,
     versionScheme := Some("early-semver"),
     versionPolicyIgnoredInternalDependencyVersions := Some(
       "^\\d+\\.\\d+\\.\\d+\\+\\d+".r
