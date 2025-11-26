@@ -1,7 +1,7 @@
 import Dependencies.*
 import sbtversionpolicy.Compatibility
 
-val scala213 = "2.13.16"
+val scala213 = "2.13.18"
 val scala3 = "3.7.2"
 
 val commonSettings = Seq(
