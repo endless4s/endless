@@ -94,7 +94,7 @@ object Dependencies {
   lazy val catsEffectMUnitVersion = "2.0.0"
   lazy val catsEffectMUnit = Seq("org.typelevel" %% "munit-cats-effect" % catsEffectMUnitVersion)
 
-  lazy val scalacheckEffectVersion = "2.0.0-M2"
+  lazy val scalacheckEffectVersion = "2.1.0"
   lazy val scalacheckEffect = Seq(
     "org.typelevel" %% "scalacheck-effect-munit" % scalacheckEffectVersion
   )
