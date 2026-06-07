@@ -1,8 +1,8 @@
 import Dependencies.*
 import sbtversionpolicy.Compatibility
 
-val scala213 = "2.13.16"
-val scala3 = "3.7.2"
+val scala213 = "2.13.18"
+val scala3 = "3.8.4"
 
 val commonSettings = Seq(
   wartremoverExcluded += sourceManaged.value,
@@ -18,10 +18,10 @@ val commonSettings = Seq(
   crossScalaVersions := Seq(scala213, scala3),
   libraryDependencies ++= (CrossVersion.partialVersion(scalaVersion.value) match {
     case Some((2, _)) =>
-      Seq(compilerPlugin("org.typelevel" % "kind-projector" % "0.13.3" cross CrossVersion.full))
+      Seq(compilerPlugin("org.typelevel" % "kind-projector" % "0.13.4" cross CrossVersion.full))
     case _ => Nil
   }),
-  Compile / scalacOptions ++= Seq("-Xfatal-warnings"),
+  Compile / scalacOptions ++= Seq("-Werror"),
   Compile / scalacOptions ++= (CrossVersion.partialVersion(scalaVersion.value) match {
     case Some((3, _)) => Seq("-Xkind-projector:underscores")
     case Some((2, _)) =>
@@ -122,13 +122,6 @@ lazy val circeHelpers = (project in file("circe"))
   )
   .settings(name := "endless-circe-helpers")
 
-lazy val scodecHelpers = (project in file("scodec"))
-  .settings(commonSettings *)
-  .settings(scalaVersion := scala3, crossScalaVersions := Nil) // only scala3 for scodec
-  .dependsOn(core)
-  .settings(libraryDependencies ++= scodecCore ++ mUnit.map(_ % Test))
-  .settings(name := "endless-scodec-helpers")
-
 lazy val protobufHelpers = (project in file("protobuf"))
   .settings(commonSettings *)
   .dependsOn(core)
@@ -169,7 +162,6 @@ lazy val example = (project in file("example"))
 val Core = config("core")
 val Protobuf = config("protobuf")
 val Circe = config("circe")
-val Scodec = config("scodec")
 val AkkaRuntime = config("akka-runtime")
 val PekkoRuntime = config("pekko-runtime")
 
@@ -177,7 +169,6 @@ val PekkoRuntime = config("pekko-runtime")
 val scaladocSiteProjects = List(
   core -> (Core, "endless", "core"),
   protobufHelpers -> (Protobuf, "endless.protobuf", "protobuf"),
-  scodecHelpers -> (Scodec, "endless.scodec", "scodec"),
   circeHelpers -> (Circe, "endless.circe", "circe"),
   akkaRuntime -> (AkkaRuntime, "endless.runtime.akka", "akka-runtime"),
   pekkoRuntime -> (PekkoRuntime, "endless.runtime.pekko", "pekko-runtime")
@@ -229,7 +220,7 @@ lazy val documentation = (project in file("documentation"))
 
 lazy val root = project
   .in(file("."))
-  .aggregate(core, akkaRuntime, pekkoRuntime, circeHelpers, scodecHelpers, protobufHelpers, example)
+  .aggregate(core, akkaRuntime, pekkoRuntime, circeHelpers, protobufHelpers, example)
   .dependsOn(example)
   .settings(commonSettings *)
   .settings(crossScalaVersions := Nil)

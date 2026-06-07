@@ -16,7 +16,7 @@ In other words, `clientFor` materializes algebra invocations into outgoing comma
 @@@ note { .info title="Explicit or implicit representations" }
 `CommandProtocol` is the entry point for implementations to map algebra entries to concrete commands and replies. Having these lower-level aspects described separately makes it easier to have precise control of versions and to deal with migration challenges. 
 
-We provide helpers for definition of binary protocols in `endless-protobuf-helpers` as well as `endless-scodec-helpers` and JSON protocols in `endless-circe-helpers`.
+We provide helpers for definition of binary protocols in `endless-protobuf-helpers` and JSON protocols in `endless-circe-helpers`.
 
 Definition of protobuf protocols is very convenient using `endless-protobuf-helpers` because scalaPB-generated types can be referenced directly, there is no need for a separate representation of commands (and associated data-mapping headaches).
 @@@
