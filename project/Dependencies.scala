@@ -83,7 +83,7 @@ object Dependencies {
 
   lazy val mUnitVersion = "1.3.2"
   lazy val disciplineMUnitVersion = "2.0.0"
-  lazy val mUnitScalacheckVersion = "1.3.0"
+  lazy val mUnitScalacheckVersion = "1.3.1"
   lazy val mUnit =
     Seq(
       "org.scalameta" %% "munit" % mUnitVersion,
