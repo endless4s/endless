@@ -2,7 +2,7 @@ import Dependencies.*
 import sbtversionpolicy.Compatibility
 
 val scala213 = "2.13.18"
-val scala3 = "3.8.4"
+val scala3 = "3.9.0"
 
 val commonSettings = Seq(
   wartremoverExcluded += sourceManaged.value,
@@ -61,7 +61,7 @@ inThisBuild(
     publishMavenStyle := true,
     Global / onChangedBuildSource := ReloadOnSourceChanges,
     PB.protocVersion := "3.17.3", // works on Apple Silicon,
-    versionPolicyIntention := Compatibility.BinaryAndSourceCompatible,
+    versionPolicyIntention := Compatibility.BinaryCompatible,
     versionScheme := Some("early-semver"),
     versionPolicyIgnoredInternalDependencyVersions := Some(
       "^\\d+\\.\\d+\\.\\d+\\+\\d+".r
