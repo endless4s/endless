@@ -1,11 +1,11 @@
 # Pekko and Akka runtimes
 
-Once required interpreters and typeclass instances have been defined, deploying an entity with Pekko or Akka boils down to a single call to @scaladoc[deployRepository](endless.core.entity.Deployer). This requires an actor system and the cluster sharding extension in implicit scope, bundled in the type @scaladoc[PekkoCluster](endless.runtime.pekko.deploy.PekkoCluster) (or @scaladoc[AkkaCluster](endless.runtime.akka.deploy.AkkaCluster)). The recommended pattern is to use the built-in @scaladoc[managedResource](endless.runtime.akka.deploy.AkkaCluster.managedResource) helper method to obtain an instance of this class, which wraps actor system creation and shutdown with a @link:[Resource](https://typelevel.org/cats-effect/docs/std/resource) { open=new }.  
+Once required interpreters and typeclass instances have been defined, deploying an entity with Pekko or Akka boils down to a single call to @scaladoc[deployRepository](endless.core.entity.Deployer). This requires an actor system and the cluster sharding extension in implicit scope, bundled in the type @scaladoc[PekkoCluster](endless.runtime.pekko.deploy.PekkoCluster) (or @scaladoc[AkkaCluster](endless.runtime.akka.deploy.AkkaCluster)). The recommended pattern is to use the built-in @scaladoc[managedResource](endless.runtime.akka.deploy.AkkaCluster$) helper method to obtain an instance of this class, which wraps actor system creation and shutdown with a @link:[Resource](https://typelevel.org/cats-effect/docs/std/resource) { open=new }.  
 
 ## How to initiate the distributed cluster
 The entrypoint is available by importing `endless.runtime.pekko.syntax.deploy.*` or `endless.runtime.akka.syntax.deploy.*` and calling `deployRepository` with the required parameters. 
 
-This function ties everything together and delivers a cats effect @link:[Resource](https://typelevel.org/cats-effect/docs/std/resource) { open=new } with an instance of [DeployedPekkoRepository](endless.runtime.pekko.deploy.DeployedPekkoRepository) in context `F` bundling the `RepositoryAlg` instance together with the ref to the shard region actor returned by the call to Pekko's @link:[ClusterSharding.init](https://doc.akka.io/docs/akka/current/typed/cluster-sharding.html#basic-example) { open=new }.
+This function ties everything together and delivers a cats effect @link:[Resource](https://typelevel.org/cats-effect/docs/std/resource) { open=new } with an instance of @scaladoc[DeployedPekkoRepository](endless.runtime.pekko.deploy.PekkoDeployer.DeployedPekkoRepository) in context `F` bundling the `RepositoryAlg` instance together with the ref to the shard region actor returned by the call to Pekko's @link:[ClusterSharding.init](https://doc.akka.io/docs/akka/current/typed/cluster-sharding.html#basic-example) { open=new }.
 
 The following snippet is the scaffolding for the library's sample application (in its Pekko form), a simple API to manage vehicles and bookings:
 
@@ -28,12 +28,12 @@ In order to bridge Pekko/Akka's implicit asynchronicity with the side-effect fre
 ## Internals
 
 ### Protocol
-Thanks to the @ref:[CommandProtocol](protocol.md) instance, entity algebra calls can be "materialized" into concrete commands and replies. These types are encoded to a binary payload, which is transported within an internal protobuf envelope @github:[command.proto](/runtime/src/main/protobuf/command.proto).
+Thanks to the @ref:[CommandProtocol](protocol.md) instance, entity algebra calls can be "materialized" into concrete commands and replies. These types are encoded to a binary payload, which is transported within an internal protobuf envelope @github[command.proto](/pekko-runtime/src/main/protobuf/command.proto).
 
-[ShardingCommandSender](/runtime/src/main/scala/endless/runtime/pekko/ShardingCommandSender.scala) takes care of delivering the commands to the right entity and returning the reply simply by using Pekko/Akka's `ask`.
+@github[ShardingCommandSender](/pekko-runtime/src/main/scala/endless/runtime/pekko/ShardingCommandSender.scala) takes care of delivering the commands to the right entity and returning the reply simply by using Pekko/Akka's `ask`.
 
 ### Deployer
-Internally, @github[deployRepository](/runtime/src/main/scala/endless/runtime/pekko/PekkoDeployer.scala) uses @link:[EventSourcedBehavior](https://pekko.apache.org/docs/pekko/current/typed/persistence.html#example-and-core-api) { open=new } DSL to configure the entity in the following way (for @github[deployDurableRepository](/runtime/src/main/scala/endless/runtime/pekko/DurablePekkoDeployer.scala), this is [DurableStateBehavior](https://pekko.apache.org/docs/pekko/current/typed/durable-state/persistence.html#cluster-sharding-and-durablestatebehavior)):
+Internally, @github[deployRepository](/pekko-runtime/src/main/scala/endless/runtime/pekko/deploy/PekkoDeployer.scala) uses @link:[EventSourcedBehavior](https://pekko.apache.org/docs/pekko/current/typed/persistence.html#example-and-core-api) { open=new } DSL to configure the entity in the following way (for @github[deployDurableRepository](/pekko-runtime/src/main/scala/endless/runtime/pekko/deploy/PekkoDurableDeployer.scala), this is [DurableStateBehavior](https://pekko.apache.org/docs/pekko/current/typed/durable-state/persistence.html#cluster-sharding-and-durablestatebehavior)):
 
 #### Command handler
 
@@ -49,7 +49,7 @@ This is simply a synchronous run of @ref:[EventApplier](applier.md) (using `Disp
 Upon successful recovery, we log an info entry and run the effector, while we log a warning entry upon recovery failure.
 
 @@@ note { .tip title="Custom behavior" } 
-The built-in behavior is further customizable via a `customizeBehavior` function parameter that can be optionally passed into [PekkoDeploymentParameters](endless.runtime.pekko.deploy.PekkoDeployer.PekkoDeploymentParameters) or [AkkaDeploymentParameters](endless.runtime.akka.deploy.AkkaDeployer.AkkaDeploymentParameters). 
+The built-in behavior is further customizable via a `customizeBehavior` function parameter that can be optionally passed into @scaladoc[PekkoDeploymentParameters](endless.runtime.pekko.deploy.PekkoDeployer.PekkoDeploymentParameters) or @scaladoc[AkkaDeploymentParameters](endless.runtime.akka.deploy.AkkaDeployer.AkkaDeploymentParameters). 
 @@@
 
 @@@ warning { title="Compatibility" }

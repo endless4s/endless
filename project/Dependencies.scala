@@ -1,7 +1,7 @@
 import sbt.*
 
 object Dependencies {
-  lazy val akkaVersion = "2.6.20"
+  lazy val akkaVersion = "2.6.21"
   lazy val akkaActorTyped = "com.typesafe.akka" %% "akka-actor-typed"
   lazy val akkaPersistenceTyped = "com.typesafe.akka" %% "akka-persistence-typed"
   lazy val akkaClusterTyped = "com.typesafe.akka" %% "akka-cluster-typed"
@@ -22,7 +22,7 @@ object Dependencies {
 
   lazy val akkaTest = Seq(akkaPersistenceTestkit).map(_ % akkaVersion)
 
-  lazy val pekkoVersion = "1.6.0"
+  lazy val pekkoVersion = "1.7.0"
   lazy val pekkoActorTyped = "org.apache.pekko" %% "pekko-actor-typed"
   lazy val pekkoPersistenceTyped = "org.apache.pekko" %% "pekko-persistence-typed"
   lazy val pekkoClusterTyped = "org.apache.pekko" %% "pekko-cluster-typed"
@@ -48,42 +48,42 @@ object Dependencies {
   lazy val catsLaws = Seq("org.typelevel" %% "cats-laws" % catsVersion)
   lazy val catsTestkit = Seq("org.typelevel" %% "cats-testkit" % catsVersion)
 
-  lazy val catsEffectVersion = "3.7.0"
+  lazy val catsEffectVersion = "3.7.1"
   lazy val catsEffectKernel = Seq("org.typelevel" %% "cats-effect-kernel" % catsEffectVersion)
   lazy val catsEffectLaws = Seq("org.typelevel" %% "cats-effect-laws" % catsEffectVersion)
   lazy val catsEffectTestKit = Seq("org.typelevel" %% "cats-effect-testkit" % catsEffectVersion)
   lazy val catsEffectStd = Seq("org.typelevel" %% "cats-effect-std" % catsEffectVersion)
   lazy val catsEffect = Seq("org.typelevel" %% "cats-effect" % catsEffectVersion)
 
-  lazy val http4sVersion = "0.23.34"
+  lazy val http4sVersion = "0.23.37"
   lazy val http4s = Seq(
     "org.http4s" %% "http4s-dsl" % http4sVersion,
     "org.http4s" %% "http4s-circe" % http4sVersion
   )
 
-  lazy val blazeVersion = "0.23.17"
+  lazy val blazeVersion = "0.23.18"
   lazy val blaze = Seq(
     "org.http4s" %% "http4s-blaze-server" % blazeVersion,
     "org.http4s" %% "http4s-blaze-client" % blazeVersion
   )
 
-  lazy val circeVersion = "0.14.15"
+  lazy val circeVersion = "0.14.16"
   lazy val circe = Seq(
     "io.circe" %% "circe-core",
     "io.circe" %% "circe-generic",
     "io.circe" %% "circe-parser"
   ).map(_ % circeVersion)
 
-  lazy val logbackVersion = "1.5.34"
+  lazy val logbackVersion = "1.6.3"
   lazy val logback = Seq("ch.qos.logback" % "logback-classic" % logbackVersion)
 
   lazy val log4catsVersion = "2.8.0"
   lazy val log4cats = Seq("org.typelevel" %% "log4cats-core" % log4catsVersion)
   lazy val log4catsTesting = Seq("org.typelevel" %% "log4cats-testing" % log4catsVersion)
 
-  lazy val mUnitVersion = "1.3.2"
+  lazy val mUnitVersion = "1.3.6"
   lazy val disciplineMUnitVersion = "2.0.0"
-  lazy val mUnitScalacheckVersion = "1.3.0"
+  lazy val mUnitScalacheckVersion = "1.3.1"
   lazy val mUnit =
     Seq(
       "org.scalameta" %% "munit" % mUnitVersion,
