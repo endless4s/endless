@@ -15,3 +15,5 @@ jobs:
           apps: sbt
       - run: sbt scalafmtCheckAll clean compile coverage +test coverageReport coverageAggregate versionPolicyCheck documentation/makeSite
       - uses: codecov/codecov-action@v7
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
