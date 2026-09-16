@@ -7,7 +7,7 @@ endless is a library to build distributed systems in functional Scala using a pl
 @@@
 
 <div align="right">
-<a href="https://typelevel.org/projects/affiliate/"><img src="https://typelevel.org/img/assets/typelevel-brand.svg" height="40px" align="right" alt="Typelevel Affiliate Project" /></a>
+<a href="https://typelevel.org/projects/affiliate/"><img src="https://img.shields.io/badge/typelevel-affiliate%20project-FFB4B5.svg" height="20px" align="right" alt="Typelevel Affiliate Project" /></a>
 <img src="https://typelevel.org/cats/img/cats-badge.svg" height="40px" align="right" alt="Cats friendly"/>
 </div>
 

@@ -8,7 +8,7 @@ It has a simple CRUD API for bookings and vehicles:
 @@snip [ExampleApp](/example/src/main/scala/endless/example/app/HttpServer.scala) { #api }
 
 ## Scaffolding
-The application is assembled via calls to @scaladoc[deployRepository](endless.core.entity.Deployer.deployRepository) (for bookings) and @scaladoc[deployDurableEntity](endless.core.entity.Deployer.deployDurableRepository) (for vehicles) (see @ref:[runtime](runtime.md) for more details)
+The application is assembled via calls to @scaladoc[deployRepository](endless.core.entity.Deployer) (for bookings) and @scaladoc[deployDurableRepository](endless.core.entity.DurableDeployer) (for vehicles) (see @ref:[runtime](runtime.md) for more details)
 
 Akka and Pekko runtimes essentially have the same API, so we'll use Pekko for the example:
 
