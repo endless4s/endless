@@ -5,8 +5,8 @@
 You will need the following tools:
 
 - [Git](https://git-scm.com/)
-- [Java 8](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html)
-- [SBT](http://www.scala-sbt.org/)
+- [Java 17](https://adoptium.net/temurin/releases/?version=17) (the JDK CI builds with)
+- [sbt](https://www.scala-sbt.org/)
 
 ## Workflow
 
@@ -37,17 +37,33 @@ It will open the generated documentation in your browser.
 
 ## Publish a Release
 
-Push a Git tag:
+Releases are cut from tags: pushing a `v*` tag runs the `release` workflow, which publishes to
+Maven Central and redeploys the documentation site.
+
+Before tagging, state what the release guarantees relative to the previous one by setting
+`versionPolicyIntention` in `build.sbt`:
+
+| Intention | Meaning | Version bump |
+|-----------|---------|--------------|
+| `Compatibility.BinaryAndSourceCompatible` | nothing breaks | patch |
+| `Compatibility.BinaryCompatible` | source-breaking, still links | minor |
+| `Compatibility.None` | breaking | major |
+
+`sbt versionPolicyCheck` verifies the code actually honours that intention against the previously
+released version, and `sbt versionCheck` verifies the tag you are about to push matches it. CI runs
+both, so run them locally first.
+
+Then push the tag:
 
 ~~~ bash
-$ git tag v2.0.0
-$ git push origin v2.0.0
+$ git tag v1.1.0
+$ git push origin v1.1.0
 ~~~
 
-Then, reset the compatibility guarantees in `build.sbt`:
+Finally, reset the intention for the next development cycle:
 
 ~~~
 versionPolicyIntention := Compatibility.BinaryAndSourceCompatible
 ~~~
 
-Commit and push the changes.
+Commit and push the change.
