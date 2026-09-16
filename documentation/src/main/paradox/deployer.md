@@ -29,7 +29,7 @@ trait Deployer {
 Repository operation is defined by the interpreted repository, behavior and side-effect algebras, following a strictly defined sequence:
 
  1. the interpreted repository is used to create a handle on the entity with the specified ID. This handle implements the entity algebra, using which the caller can interact with the entity.
- 2. when a function of the entity algebra is invoked, the invocation is serialized using the `commandProtocol` and sent over the wire thanks to [CommandSender](endless.core.protocol.CommandSender). It is then decoded on the server side and run with the provided `behavior` interpreter: this typically involves reading the entity state (e.g. for validation) and writing events (which leads to a new version of the state via the `eventApplier` folding function)
+ 2. when a function of the entity algebra is invoked, the invocation is serialized using the `commandProtocol` and sent over the wire thanks to @scaladoc[CommandSender](endless.core.protocol.CommandSender). It is then decoded on the server side and run with the provided `behavior` interpreter: this typically involves reading the entity state (e.g. for validation) and writing events (which leads to a new version of the state via the `eventApplier` folding function)
  3. after events are written, a possible side-effect is triggered: this supports asynchronicity (i.e. starting fibers)
  4. the function finally returns to the caller with the result of the operation, encoded over the wire as a reply using `commandProtocol` and delivered back to the caller thanks to `CommandSender`.
 

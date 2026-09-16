@@ -10,4 +10,4 @@ trait CommandSender[F[_], ID] {
 
 In other words, it implements the transport layer of the cluster, and is typically provided by the runtime.
 
-The built-in implementations in Pekko and Akka runtimes simply rely on an actor `ask`: @github[ShardingCommandSender](/runtime/src/main/scala/endless/runtime/pekko/ShardingCommandSender.scala)
+The built-in implementations in Pekko and Akka runtimes simply rely on an actor `ask`: @github[ShardingCommandSender](/pekko-runtime/src/main/scala/endless/runtime/pekko/ShardingCommandSender.scala)
