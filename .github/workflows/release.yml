@@ -45,6 +45,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          # Recent actions/checkout persists its credentials into git worktrees, and
+          # github-pages-deploy-action deploys from a worktree. Those credentials win over
+          # the deploy token, so the push goes out as github-actions[bot] and is refused by
+          # the other repository. Don't persist them.
+          persist-credentials: false
       - uses: coursier/setup-action@v3
         with:
           jvm: temurin:17
