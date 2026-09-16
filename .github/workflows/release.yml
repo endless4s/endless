@@ -18,6 +18,8 @@ jobs:
         run: sbt scalafmtCheckAll coverage +test coverageReport coverageAggregate
       - name: Codecov
         uses: codecov/codecov-action@v7
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
 
   publish:
     runs-on: ubuntu-latest
@@ -36,6 +38,8 @@ jobs:
           SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
       - uses: codecov/codecov-action@v7
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
 
   publishSite:
     runs-on: ubuntu-latest
