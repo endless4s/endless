@@ -46,6 +46,10 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
+          # sbt-dynver derives the version from tags, and the docs interpolate it as
+          # $project.version$. Without the full history this job renders 0.0.0-SNAPSHOT and
+          # publishes a dependency snippet nobody can resolve.
+          fetch-depth: 0
           # Recent actions/checkout persists its credentials into git worktrees, and
           # github-pages-deploy-action deploys from a worktree. Those credentials win over
           # the deploy token, so the push goes out as github-actions[bot] and is refused by
